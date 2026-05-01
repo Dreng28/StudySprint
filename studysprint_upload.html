@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>StudySprint — Upload Syllabus</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --purple: #6C2BD9; --purple-mid: #8B5CF6; --purple-light: #EDE9FE; --purple-pale: #F5F3FF;
+    --green: #10B981; --green-light: #D1FAE5;
+    --coral: #EF4444; --coral-light: #FEE2E2;
+    --amber: #F59E0B; --amber-light: #FEF3C7;
+    --bg: #F0F2F8; --surface: #FFFFFF;
+    --text: #111827; --text-secondary: #6B7280; --text-muted: #9CA3AF;
+    --border: #E5E7EB;
+    --radius: 16px; --radius-sm: 10px;
+    --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04);
+  }
+  body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+  /* Nav */
+  .topnav { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 24px; height: 60px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 50; }
+  .nav-left { display: flex; align-items: center; gap: 12px; }
+  .back-btn { display: flex; align-items: center; gap: 6px; background: none; border: none; cursor: pointer; color: var(--text-secondary); font-family: 'Plus Jakarta Sans', sans-serif; font-size: 14px; font-weight: 500; padding: 6px 0; }
+  .back-btn:hover { color: var(--purple); }
+  .nav-title { font-size: 16px; font-weight: 700; color: var(--text); }
+  .nav-sub { font-size: 12px; color: var(--text-muted); }
+
+  /* Page */
+  .page { max-width: 700px; margin: 0 auto; padding: 28px 24px 60px; }
+
+  /* How it works banner */
+  .how-banner {
+    background: linear-gradient(135deg, #6C2BD9 0%, #9333EA 60%, #C026D3 100%);
+    border-radius: var(--radius);
+    padding: 28px 28px 24px;
+    margin-bottom: 24px;
+  }
+  .how-title { font-size: 18px; font-weight: 700; color: white; margin-bottom: 18px; display: flex; align-items: center; gap: 8px; }
+  .how-steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .how-step { background: rgba(255,255,255,0.12); border-radius: 12px; padding: 16px; }
+  .step-num { width: 30px; height: 30px; border-radius: 50%; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; color: white; margin-bottom: 10px; }
+  .step-title { font-size: 13.5px; font-weight: 700; color: white; margin-bottom: 4px; }
+  .step-desc { font-size: 12px; color: rgba(255,255,255,0.75); line-height: 1.4; }
+
+  /* Cards */
+  .card { background: var(--surface); border-radius: var(--radius); padding: 28px; box-shadow: var(--shadow); margin-bottom: 20px; }
+  .card-title { font-size: 18px; font-weight: 700; color: var(--text); margin-bottom: 20px; }
+
+  /* API Key section */
+  .api-info { background: var(--purple-pale); border-radius: var(--radius-sm); padding: 14px 16px; margin-bottom: 18px; display: flex; gap: 12px; align-items: flex-start; border: 1px solid var(--purple-light); }
+  .api-info-icon { width: 32px; height: 32px; background: var(--purple); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .api-info-text { font-size: 13px; color: #4C1D95; line-height: 1.5; }
+  .api-info-text strong { font-weight: 600; }
+  .field-label { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 8px; display: block; }
+  .field-wrap { position: relative; margin-bottom: 10px; }
+  .field-input { width: 100%; padding: 12px 44px 12px 14px; border-radius: var(--radius-sm); border: 1.5px solid var(--border); font-family: 'Plus Jakarta Sans', sans-serif; font-size: 14px; color: var(--text); background: var(--bg); outline: none; transition: border-color 0.15s, background 0.15s; letter-spacing: 0.04em; }
+  .field-input:focus { border-color: var(--purple); background: white; }
+  .field-toggle { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: var(--text-muted); }
+  .field-hint { font-size: 12px; color: var(--text-muted); margin-bottom: 16px; line-height: 1.5; }
+  .field-hint a { color: var(--purple); text-decoration: none; }
+  .dev-warning { background: #FEF2F2; border: 1px solid #FECACA; border-radius: var(--radius-sm); padding: 10px 14px; font-size: 12px; color: #7F1D1D; line-height: 1.5; margin-bottom: 18px; display: flex; gap: 8px; }
+  .saved-bar { background: var(--green-light); border: 1px solid #A7F3D0; border-radius: var(--radius-sm); padding: 10px 14px; font-size: 13px; color: #064E3B; display: none; align-items: center; gap: 8px; margin-bottom: 14px; }
+
+  /* Upload zone */
+  .drop-zone {
+    border: 2px dashed #C4B5FD;
+    border-radius: var(--radius-sm);
+    padding: 48px 24px;
+    text-align: center;
+    background: var(--purple-pale);
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+    margin-bottom: 16px;
+  }
+  .drop-zone:hover, .drop-zone.dragover { border-color: var(--purple); background: #EDE9FE; }
+  .drop-zone-icon { width: 60px; height: 60px; background: var(--purple-light); border-radius: 16px; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; }
+  .drop-title { font-size: 16px; font-weight: 700; color: var(--text); margin-bottom: 6px; }
+  .drop-sub { font-size: 13px; color: var(--text-secondary); margin-bottom: 16px; }
+  .browse-btn { display: inline-flex; align-items: center; gap: 8px; background: linear-gradient(135deg, var(--purple), var(--purple-mid)); color: white; border: none; padding: 11px 24px; border-radius: var(--radius-sm); font-family: 'Plus Jakarta Sans', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; transition: opacity 0.15s; margin-bottom: 10px; }
+  .browse-btn:hover { opacity: 0.9; }
+  .drop-format { font-size: 12px; color: var(--text-muted); }
+  #file-input { display: none; }
+
+  /* OR divider */
+  .or-divider { display: flex; align-items: center; gap: 12px; margin: 16px 0; }
+  .or-line { flex: 1; height: 1px; background: var(--border); }
+  .or-text { font-size: 12px; color: var(--text-muted); font-weight: 500; }
+
+  /* URL input */
+  .url-row { display: flex; gap: 10px; }
+  .url-input { flex: 1; padding: 12px 14px; border-radius: var(--radius-sm); border: 1.5px solid var(--border); font-family: 'Plus Jakarta Sans', sans-serif; font-size: 14px; color: var(--text); background: var(--bg); outline: none; }
+  .url-input:focus { border-color: var(--purple); background: white; }
+  .fetch-btn { padding: 12px 20px; background: var(--text); color: white; border: none; border-radius: var(--radius-sm); font-family: 'Plus Jakarta Sans', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+
+  /* Paste fallback */
+  .paste-area { width: 100%; min-height: 100px; padding: 12px 14px; border-radius: var(--radius-sm); border: 1.5px solid var(--border); font-family: 'Plus Jakarta Sans', sans-serif; font-size: 13px; color: var(--text); background: var(--bg); outline: none; resize: vertical; line-height: 1.5; transition: border-color 0.15s; }
+  .paste-area:focus { border-color: var(--purple); background: white; }
+  .parse-btn { margin-top: 12px; display: inline-flex; align-items: center; gap: 8px; background: linear-gradient(135deg, var(--purple), var(--purple-mid)); color: white; border: none; padding: 12px 24px; border-radius: var(--radius-sm); font-family: 'Plus Jakarta Sans', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; }
+
+  /* Previously uploaded */
+  .prev-item { display: flex; align-items: center; gap: 14px; padding: 14px 0; border-bottom: 1px solid var(--border); }
+  .prev-item:last-child { border-bottom: none; }
+  .prev-icon { width: 40px; height: 40px; background: var(--purple-light); border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .prev-info { flex: 1; }
+  .prev-name { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 2px; }
+  .prev-sub { font-size: 12px; color: var(--text-muted); }
+  .status-badge { font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 999px; margin-right: 10px; }
+  .status-parsed { background: var(--green-light); color: var(--green); }
+  .status-pending { background: var(--amber-light); color: var(--amber); }
+  .view-btn-sm { padding: 8px 16px; background: var(--text); color: white; border: none; border-radius: 8px; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; }
+
+  /* Parsing overlay */
+  .parse-overlay { display: none; }
+  .parse-overlay.active { display: block; }
+  .parse-steps { margin-top: 16px; display: flex; flex-direction: column; gap: 10px; }
+  .parse-step { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: var(--radius-sm); background: var(--bg); }
+  .parse-step.done { background: var(--green-light); }
+  .parse-step.active-step { background: var(--purple-light); }
+  .ps-icon { width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .ps-icon.done { background: var(--green); }
+  .ps-icon.active { background: var(--purple); }
+  .ps-icon.pending { background: #E5E7EB; }
+  .mini-spin { width: 11px; height: 11px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.7s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .ps-label { font-size: 13px; color: var(--text); }
+  .ps-label.muted { color: var(--text-muted); }
+  .spinner { width: 48px; height: 48px; border: 3px solid var(--purple-light); border-top-color: var(--purple); border-radius: 50%; animation: spin 0.85s linear infinite; margin: 0 auto 16px; }
+  .parse-heading { font-size: 17px; font-weight: 700; text-align: center; color: var(--text); margin-bottom: 6px; }
+  .parse-sub { font-size: 13px; color: var(--text-secondary); text-align: center; margin-bottom: 20px; }
+
+  /* Results */
+  .results-section { display: none; }
+  .results-section.active { display: block; }
+  .success-bar { background: var(--green-light); border: 1px solid #A7F3D0; border-radius: var(--radius-sm); padding: 12px 16px; display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+  .success-check { width: 28px; height: 28px; background: var(--green); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .success-text { font-size: 13px; color: #064E3B; }
+  .result-stats { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-bottom: 16px; }
+  .rs-card { background: var(--bg); border-radius: var(--radius-sm); padding: 12px; }
+  .rs-label { font-size: 11px; color: var(--text-secondary); margin-bottom: 4px; }
+  .rs-val { font-size: 22px; font-weight: 800; color: var(--text); }
+  .rs-card.warn .rs-val { color: var(--amber); }
+  .rs-card.warn .rs-label { color: #92400E; }
+  .flag-item { display: flex; align-items: flex-start; gap: 10px; padding: 10px 12px; border-radius: var(--radius-sm); background: var(--amber-light); margin-bottom: 8px; }
+  .flag-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--amber); flex-shrink: 0; margin-top: 4px; }
+  .flag-text { font-size: 13px; color: #78350F; flex: 1; line-height: 1.5; }
+  .flag-btn { font-size: 12px; font-weight: 600; color: var(--amber); border: 1px solid var(--amber); background: transparent; border-radius: 8px; padding: 4px 10px; cursor: pointer; white-space: nowrap; font-family: 'Plus Jakarta Sans', sans-serif; }
+  .flag-btn:hover { background: var(--amber); color: white; }
+  .result-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 4px; }
+  .result-table th { font-size: 11px; font-weight: 600; color: var(--text-secondary); text-align: left; padding: 0 8px 10px; border-bottom: 1px solid var(--border); }
+  .result-table td { padding: 10px 8px; border-bottom: 1px solid #F3F4F6; color: var(--text); }
+  .result-table tr:last-child td { border-bottom: none; }
+  .w-pill { display: inline-block; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 999px; background: var(--purple-light); color: var(--purple); }
+  .w-pill.miss { background: var(--amber-light); color: var(--amber); }
+  .json-box { background: #1E1B4B; border-radius: var(--radius-sm); padding: 14px; margin-top: 12px; display: none; }
+  .json-box.open { display: block; }
+  .json-box pre { font-family: 'Courier New', monospace; font-size: 11.5px; color: #A5B4FC; line-height: 1.6; white-space: pre-wrap; word-break: break-all; }
+  .toggle-json-btn { width: 100%; margin-top: 10px; padding: 10px; border: 1.5px solid var(--border); border-radius: var(--radius-sm); background: transparent; color: var(--text-secondary); font-family: 'Plus Jakarta Sans', sans-serif; font-size: 13px; cursor: pointer; }
+  .action-bar { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; background: var(--surface); border-radius: var(--radius); border: 1.5px solid var(--border); margin-top: 16px; }
+  .action-bar-text { font-size: 13px; color: var(--text-secondary); }
+  .action-bar-btns { display: flex; gap: 10px; }
+  .btn-outline { padding: 10px 18px; border: 1.5px solid var(--border); border-radius: var(--radius-sm); background: white; color: var(--text); font-family: 'Plus Jakarta Sans', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; }
+  .btn-purple { padding: 10px 18px; border: none; border-radius: var(--radius-sm); background: linear-gradient(135deg, var(--purple), var(--purple-mid)); color: white; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+
+  /* Save key btn */
+  .save-key-btn { display: inline-flex; align-items: center; gap: 8px; padding: 11px 22px; border: none; border-radius: var(--radius-sm); background: linear-gradient(135deg, var(--purple), var(--purple-mid)); color: white; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; transition: opacity 0.15s; }
+  .save-key-btn:disabled { background: #9CA3AF; cursor: not-allowed; }
+
+  /* Screen toggling */
+  .screen { display: none; }
+  .screen.active { display: block; }
+
+  @keyframes fadeUp { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+  .card { animation: fadeUp 0.35s ease both; }
+</style>
+</head>
+<body>
+
+<nav class="topnav">
+  <div class="nav-left">
+    <button class="back-btn" onclick="window.location='studysprint_dashboard.html'">
+      <svg width="16" height="16" fill="none" viewBox="0 0 16 16"><path d="M10 3L5 8l5 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <div>
+      <div class="nav-title">Upload &amp; Parse Syllabus</div>
+      <div class="nav-sub">Let AI extract your course information</div>
+    </div>
+  </div>
+</nav>
+
+<div class="page">
+
+  <!-- How it works -->
+  <div class="how-banner">
+    <div class="how-title">✨ How It Works</div>
+    <div class="how-steps">
+      <div class="how-step">
+        <div class="step-num">1</div>
+        <div class="step-title">Upload PDF</div>
+        <div class="step-desc">Upload your course syllabus in PDF format</div>
+      </div>
+      <div class="how-step">
+        <div class="step-num">2</div>
+        <div class="step-title">AI Parsing</div>
+        <div class="step-desc">LLM extracts key dates and topics automatically</div>
+      </div>
+      <div class="how-step">
+        <div class="step-num">3</div>
+        <div class="step-title">Review &amp; Confirm</div>
+        <div class="step-desc">Verify and adjust extracted information</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCREEN: API Key -->
+  <div class="screen active" id="screen-apikey">
+    <div class="card">
+      <div class="card-title">Connect Claude AI</div>
+      <div class="api-info">
+        <div class="api-info-icon">
+          <svg width="16" height="16" fill="none" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6" stroke="white" stroke-width="1.4" fill="none"/><path d="M8 5v3.5l2 1" stroke="white" stroke-width="1.4" stroke-linecap="round"/></svg>
+        </div>
+        <div class="api-info-text">StudySprint uses <strong>Claude Sonnet 4</strong> to read your syllabus and extract course details, deadlines, and grading weights. Enter your free Anthropic API key below.</div>
+      </div>
+      <div class="saved-bar" id="saved-bar">
+        <svg width="14" height="14" fill="none" viewBox="0 0 14 14"><path d="M2 7l4 4 6-6" stroke="#10B981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        API key saved for this session.
+        <button onclick="clearKey()" style="background:none;border:none;color:#EF4444;cursor:pointer;font-size:13px;font-family:'Plus Jakarta Sans',sans-serif;margin-left:8px;font-weight:600;">Change</button>
+      </div>
+      <label class="field-label">Anthropic API Key</label>
+      <div class="field-wrap">
+        <input class="field-input" type="password" id="api-key-input" placeholder="sk-ant-api03-…" oninput="validateKey()"/>
+        <button class="field-toggle" onclick="toggleVis()">👁</button>
+      </div>
+      <div class="field-hint">Get your free key at <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a> → API Keys → Create Key. Your key is never stored permanently.</div>
+      <div class="dev-warning">
+        <svg width="14" height="14" fill="none" viewBox="0 0 14 14" style="flex-shrink:0;margin-top:1px;"><path d="M7 2L12.5 12H1.5L7 2z" stroke="#7F1D1D" stroke-width="1.3" fill="none"/><path d="M7 6v3M7 10.5v.5" stroke="#7F1D1D" stroke-width="1.5" stroke-linecap="round"/></svg>
+        <span><strong>For learning/demo only.</strong> In a real app, API keys must live on a backend server — never in a frontend file.</span>
+      </div>
+      <button class="save-key-btn" id="save-key-btn" onclick="saveKey()" disabled>
+        <svg width="14" height="14" fill="none" viewBox="0 0 14 14"><path d="M2 7l4 4 6-6" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Save &amp; Continue
+      </button>
+    </div>
+  </div>
+
+  <!-- SCREEN: Upload -->
+  <div class="screen" id="screen-upload">
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+        <div class="card-title" style="margin-bottom:0;">Upload Syllabus</div>
+        <span style="font-size:12px;font-weight:600;color:var(--green);background:var(--green-light);padding:4px 12px;border-radius:999px;">✓ Claude AI Connected</span>
+      </div>
+      <div class="drop-zone" id="drop-zone"
+        ondragover="event.preventDefault();this.classList.add('dragover')"
+        ondragleave="this.classList.remove('dragover')"
+        ondrop="handleDrop(event)"
+        onclick="document.getElementById('file-input').click()">
+        <div class="drop-zone-icon">
+          <svg width="28" height="28" fill="none" viewBox="0 0 28 28"><path d="M14 4v16M9 9l5-5 5 5" stroke="#6C2BD9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 20v2a2 2 0 002 2h16a2 2 0 002-2v-2" stroke="#6C2BD9" stroke-width="2" stroke-linecap="round"/></svg>
+        </div>
+        <div class="drop-title">Drag &amp; Drop Your PDF Here</div>
+        <div class="drop-sub">or click to browse from your computer</div>
+        <button class="browse-btn" onclick="event.stopPropagation();document.getElementById('file-input').click()">
+          <svg width="14" height="14" fill="none" viewBox="0 0 14 14"><path d="M2 4h10M2 7h8M2 10h6" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg>
+          Browse Files
+        </button>
+        <div class="drop-format">Supported format: PDF (Max 10MB)</div>
+        <input type="file" id="file-input" accept=".pdf,.txt,.docx" onchange="handleFileSelect(event)"/>
+      </div>
+
+      <div class="or-divider"><div class="or-line"></div><span class="or-text">OR</span><div class="or-line"></div></div>
+
+      <label class="field-label">Paste Syllabus URL</label>
+      <div class="url-row" style="margin-bottom:20px;">
+        <input class="url-input" type="url" id="url-input" placeholder="https://example.com/syllabus.pdf"/>
+        <button class="fetch-btn" onclick="handleURL()">Fetch</button>
+      </div>
+
+      <div class="or-divider"><div class="or-line"></div><span class="or-text">OR PASTE TEXT</span><div class="or-line"></div></div>
+      <label class="field-label" style="margin-top:14px;">Paste Syllabus Text Directly</label>
+      <textarea class="paste-area" id="paste-text" placeholder="Paste your syllabus here — course name, schedule, quiz dates, exam dates, grading breakdown..."></textarea>
+      <button class="parse-btn" onclick="handlePastedText()">
+        <svg width="14" height="14" fill="none" viewBox="0 0 14 14"><circle cx="7" cy="7" r="6" stroke="white" stroke-width="1.4" fill="none"/><path d="M4.5 7l2 2 3.5-3" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Parse with Claude AI
+      </button>
+    </div>
+
+    <!-- Previously uploaded -->
+    <div class="card" id="prev-card" style="display:none;">
+      <div class="card-title">Previously Uploaded Syllabi</div>
+      <div id="prev-list">
+        <div style="font-size:13px;color:var(--text-muted);padding:16px 0;text-align:center;">Loading…</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCREEN: Parsing -->
+  <div class="screen" id="screen-parsing">
+    <div class="card">
+      <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--bg);border-radius:var(--radius-sm);margin-bottom:24px;">
+        <div style="width:32px;height:32px;background:var(--coral-light);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+          <svg width="16" height="16" fill="none" viewBox="0 0 16 16"><rect x="2" y="1" width="10" height="14" rx="2" stroke="#EF4444" stroke-width="1.4" fill="none"/><path d="M9 1v4h5" stroke="#EF4444" stroke-width="1.4" stroke-linecap="round"/></svg>
+        </div>
+        <div><div style="font-size:13px;font-weight:600;color:var(--text);" id="file-name-bar">syllabus.pdf</div><div style="font-size:11.5px;color:var(--text-muted);" id="file-size-bar">Reading…</div></div>
+        <div style="margin-left:auto;font-size:12px;font-weight:600;color:var(--purple);background:var(--purple-light);padding:4px 12px;border-radius:999px;">Processing…</div>
+      </div>
+      <div class="spinner"></div>
+      <div class="parse-heading" id="parse-heading">Sending to Claude AI…</div>
+      <div class="parse-sub" id="parse-sub">Claude Sonnet 4 is reading your syllabus.</div>
+      <div class="parse-steps">
+        <div class="parse-step active-step" id="pstep-0">
+          <div class="ps-icon active"><div class="mini-spin"></div></div>
+          <span class="ps-label">Reading file &amp; preparing prompt</span>
+        </div>
+        <div class="parse-step" id="pstep-1">
+          <div class="ps-icon pending"></div>
+          <span class="ps-label muted">Sending to Anthropic API</span>
+        </div>
+        <div class="parse-step" id="pstep-2">
+          <div class="ps-icon pending"></div>
+          <span class="ps-label muted">Claude extracting course details</span>
+        </div>
+        <div class="parse-step" id="pstep-3">
+          <div class="ps-icon pending"></div>
+          <span class="ps-label muted">Parsing deadlines &amp; assessments</span>
+        </div>
+        <div class="parse-step" id="pstep-4">
+          <div class="ps-icon pending"></div>
+          <span class="ps-label muted">Building structured JSON output</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCREEN: Results -->
+  <div class="screen" id="screen-results">
+    <div class="success-bar" id="success-bar" style="display:none;">
+      <div class="success-check"><svg width="12" height="12" fill="none" viewBox="0 0 12 12"><path d="M2 6l3 3 5-5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="success-text"><strong>Claude parsed your syllabus!</strong> Review the extracted data below before generating your study sprints.</div>
+    </div>
+    <div class="card" id="error-card" style="display:none;">
+      <div style="background:#FEF2F2;border:1px solid #FECACA;border-radius:var(--radius-sm);padding:14px 16px;font-size:13px;color:#7F1D1D;line-height:1.6;" id="error-msg"></div>
+      <button class="btn-outline" style="margin-top:12px;" onclick="goTo('upload')">← Try Again</button>
+    </div>
+    <div id="results-content" style="display:none;">
+      <div class="card">
+        <div class="result-stats" style="margin-bottom:20px;">
+          <div class="rs-card"><div class="rs-label">Assessments</div><div class="rs-val" id="r-assess">—</div></div>
+          <div class="rs-card"><div class="rs-label">Key Dates</div><div class="rs-val" id="r-dates">—</div></div>
+          <div class="rs-card"><div class="rs-label">Topics</div><div class="rs-val" id="r-topics">—</div></div>
+          <div class="rs-card warn"><div class="rs-label">To Confirm</div><div class="rs-val" id="r-flags">—</div></div>
+        </div>
+        <div id="flags-list" style="margin-bottom:16px;"></div>
+        <div class="card-title" style="font-size:15px;margin-bottom:12px;">Assessments Extracted</div>
+        <table class="result-table">
+          <thead><tr><th>Assessment</th><th>Due Date</th><th>Weight</th></tr></thead>
+          <tbody id="assess-body"></tbody>
+        </table>
+        <button class="toggle-json-btn" id="json-toggle" onclick="toggleJSON()">View Raw JSON ▼</button>
+        <div class="json-box" id="json-box"><pre id="json-pre"></pre></div>
+      </div>
+      <div class="action-bar">
+        <div class="action-bar-text">Happy with the results? Generate your study schedule.</div>
+        <div class="action-bar-btns">
+          <button class="btn-outline" onclick="goTo('upload')">Re-upload</button>
+          <button class="btn-purple" onclick="generateSprints()">
+            Generate Sprints
+            <svg width="14" height="14" fill="none" viewBox="0 0 14 14"><path d="M2 7h10M7 2l5 5-5 5" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script src="api.js"></script>
+<script>
+requireAuth();
+let apiKey = '', currentText = '', currentCourseId = null, lastParsed = null;
+
+function goTo(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + name).classList.add('active');
+}
+
+// ── Skip API-key screen if authenticated (backend handles Claude) ──
+(function initScreen() {
+  if (Auth.isLoggedIn()) {
+    // Load previously uploaded syllabi in background
+    loadPreviousSyllabi();
+    goTo('upload');
+  }
+})();
+
+function validateKey() {
+  const v = document.getElementById('api-key-input').value.trim();
+  const ok = v.startsWith('sk-ant') && v.length > 20;
+  const btn = document.getElementById('save-key-btn');
+  btn.disabled = !ok;
+}
+function toggleVis() {
+  const inp = document.getElementById('api-key-input');
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+}
+function saveKey() {
+  apiKey = document.getElementById('api-key-input').value.trim();
+  document.getElementById('saved-bar').style.display = 'flex';
+  goTo('upload');
+}
+function clearKey() {
+  apiKey = '';
+  document.getElementById('api-key-input').value = '';
+  document.getElementById('saved-bar').style.display = 'none';
+  validateKey();
+  goTo('apikey');
+}
+
+function handleDrop(e) {
+  e.preventDefault();
+  document.getElementById('drop-zone').classList.remove('dragover');
+  const f = e.dataTransfer.files[0];
+  if (f) readAndParse(f);
+}
+function handleFileSelect(e) {
+  const f = e.target.files[0];
+  if (f) readAndParse(f);
+}
+function handleURL() {
+  const url = document.getElementById('url-input').value.trim();
+  if (!url) return;
+  currentText = `Syllabus from URL: ${url}`;
+  document.getElementById('file-name-bar').textContent = url.split('/').pop() || 'syllabus.pdf';
+  document.getElementById('file-size-bar').textContent = 'Fetching…';
+  startParsing();
+}
+function handlePastedText() {
+  const txt = document.getElementById('paste-text').value.trim();
+  if (!txt) { alert('Please paste some syllabus text first.'); return; }
+  currentText = txt;
+  document.getElementById('file-name-bar').textContent = 'Pasted text';
+  document.getElementById('file-size-bar').textContent = txt.length + ' characters';
+  startParsing();
+}
+function readAndParse(file) {
+  document.getElementById('file-name-bar').textContent = file.name;
+  document.getElementById('file-size-bar').textContent = (file.size/1024).toFixed(0) + ' KB';
+  const reader = new FileReader();
+  reader.onload = e => {
+    let raw = e.target.result || '';
+    let text = raw.replace(/[^\x20-\x7E\n\r\t]/g,' ').replace(/\s{4,}/g,'\n').trim();
+    currentText = text.length > 80 ? text : `Syllabus file: ${file.name}`;
+    startParsing();
+  };
+  reader.onerror = () => { currentText = `Syllabus: ${file.name}`; startParsing(); };
+  reader.readAsBinaryString(file);
+}
+
+const STEPS = [
+  ['Reading file & preparing prompt','Loading your document and building the AI prompt…'],
+  ['Sending to Anthropic API','Making a secure request to Claude Sonnet 4…'],
+  ['Claude extracting course details','Identifying course name, schedule, and topics…'],
+  ['Parsing deadlines & assessments','Finding due dates, quiz dates, and grading weights…'],
+  ['Building structured JSON output','Organising the extracted data…'],
+];
+
+function setStep(i, state) {
+  const row = document.getElementById('pstep-'+i);
+  const icon = row.querySelector('.ps-icon');
+  const lbl = row.querySelector('.ps-label');
+  row.className = 'parse-step' + (state==='done'?' done':state==='active'?' active-step':'');
+  if (state==='done') {
+    icon.className='ps-icon done';
+    icon.innerHTML='<svg width="11" height="11" fill="none" viewBox="0 0 11 11"><path d="M1.5 5.5l3 3 5-5" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    lbl.classList.remove('muted');
+  } else if (state==='active') {
+    icon.className='ps-icon active';
+    icon.innerHTML='<div class="mini-spin"></div>';
+    lbl.classList.remove('muted');
+    document.getElementById('parse-heading').textContent = STEPS[i][0] + '…';
+    document.getElementById('parse-sub').textContent = STEPS[i][1];
+  } else {
+    icon.className='ps-icon pending'; icon.innerHTML=''; lbl.classList.add('muted');
+  }
+}
+
+function startParsing() {
+  goTo('parsing');
+  setStep(0,'active');
+  setTimeout(() => { setStep(0,'done'); setStep(1,'active');
+    setTimeout(() => { setStep(1,'done'); setStep(2,'active'); callClaude(); }, 700);
+  }, 800);
+}
+
+function finishSteps() { for(let i=0;i<5;i++) setStep(i,'done'); }
+
+async function callClaude() {
+  if (!apiKey && !Auth.isLoggedIn()) {
+    showError('Please log in or enter an API key.');
+    return;
+  }
+
+  try {
+    let parsed, raw;
+
+    if (apiKey) {
+      // ── DEMO MODE: direct browser call ─────────────────────
+      const SYSTEM = `You are an expert academic assistant. Parse the university course syllabus and respond ONLY with a valid JSON object — no markdown, no backticks, no explanation.
+Schema: { "course_name":"string","course_code":"string|null","instructor":"string|null","semester":"string|null","assessments":[{"name":"string","due_date":"string|null","weight_percent":number|null,"type":"quiz|exam|project|lab|other"}],"weekly_topics":["string"],"key_dates":[{"date":"string","event":"string","type":"exam|quiz|submission|holiday|other"}],"flags":["string"],"summary":"string" }`;
+
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': apiKey,
+          'anthropic-version': '2023-06-01',
+          'anthropic-dangerous-direct-browser-access': 'true',
+        },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 2048,
+          system: SYSTEM,
+          messages: [{ role: 'user', content: `Parse this syllabus:\n\n${currentText.slice(0, 12000)}` }],
+        }),
+      });
+      if (!res.ok) { const e = await res.json().catch(() => ({})); throw new Error(e.error?.message || `HTTP ${res.status}`); }
+      const data = await res.json();
+      raw = data.content.map(b => b.text || '').join('').trim();
+      parsed = JSON.parse(raw.replace(/```json|```/gi, '').trim());
+
+    } else {
+      // ── PRODUCTION MODE: backend ────────────────────────────
+      setStep(2, 'active');
+
+      // Create course from parsed name (will be updated after parsing)
+      const courseRes = await Courses.create({ course_name: 'New Course', color: '#6C2BD9' });
+      if (!courseRes?.success) throw new Error(courseRes?.message || 'Could not create course.');
+      currentCourseId = courseRes.id;
+
+      setStep(2, 'done'); setStep(3, 'active');
+
+      const fileName = document.getElementById('file-name-bar')?.textContent || 'syllabus';
+      const syllabusRes = await Syllabi.parse(
+        currentCourseId,
+        currentText,
+        fileName,
+        null
+      );
+      if (!syllabusRes?.success) throw new Error(syllabusRes?.message || 'Parsing failed on server.');
+      parsed = syllabusRes.parsed;
+      raw = JSON.stringify(parsed);
+
+      setStep(3, 'done'); setStep(4, 'active');
+
+      // Update the course with the real name from parsing
+      if (parsed.course_name) {
+        await Courses.update(currentCourseId, {
+          course_name: parsed.course_name,
+          course_code: parsed.course_code || null,
+          instructor:  parsed.instructor  || null,
+          semester:    parsed.semester    || null,
+          summary:     parsed.summary     || null,
+        });
+      }
+      setStep(4, 'done');
+    }
+
+    lastParsed = parsed;
+    finishSteps();
+    setTimeout(() => showResults(parsed, raw), 500);
+
+  } catch (err) {
+    finishSteps();
+    setTimeout(() => showError(err.message + '<br><br>Check your connection and try again.'), 500);
+  }
+}
+
+function showResults(data, raw) {
+  goTo('results');
+  document.getElementById('success-bar').style.display = 'flex';
+  document.getElementById('error-card').style.display = 'none';
+  document.getElementById('results-content').style.display = 'block';
+  document.getElementById('r-assess').textContent = (data.assessments || []).length;
+  document.getElementById('r-dates').textContent  = (data.key_dates   || []).length;
+  document.getElementById('r-topics').textContent = (data.weekly_topics || []).length;
+  document.getElementById('r-flags').textContent  = (data.flags || []).length;
+
+  const fl = document.getElementById('flags-list');
+  fl.innerHTML = '';
+  (data.flags || []).forEach(f => {
+    fl.innerHTML += `<div class="flag-item">
+      <div class="flag-dot"></div>
+      <div class="flag-text">${escHtml(f)}</div>
+      <button class="flag-btn" onclick="this.closest('.flag-item').style.opacity='0.4';this.textContent='✓'">Confirm</button>
+    </div>`;
+  });
+
+  const tbody = document.getElementById('assess-body');
+  tbody.innerHTML = '';
+  (data.assessments || []).forEach(a => {
+    const miss = !a.weight_percent;
+    tbody.innerHTML += `<tr>
+      <td>${escHtml(a.name)}</td>
+      <td>${a.due_date ? escHtml(a.due_date) : '<span style="color:var(--amber);font-size:11.5px;">Not found</span>'}</td>
+      <td>${miss ? '<span class="w-pill miss">?%</span>' : `<span class="w-pill">${a.weight_percent}%</span>`}</td>
+    </tr>`;
+  });
+
+  document.getElementById('json-pre').textContent = JSON.stringify(data, null, 2);
+}
+
+// ── Generate Sprints (wired button in results action bar) ──────────
+async function generateSprints() {
+  if (!currentCourseId) {
+    // Demo mode — just navigate
+    window.location.href = 'studysprint_schedule.html';
+    return;
+  }
+  const btn = document.querySelector('.btn-purple');
+  if (btn) { btn.disabled = true; btn.textContent = 'Generating…'; }
+  try {
+    const res = await Sprints.generate(currentCourseId);
+    if (!res?.success) throw new Error(res?.message || 'Sprint generation failed.');
+    window.location.href = 'studysprint_schedule.html';
+  } catch (err) {
+    showToastUpload(err.message, true);
+    if (btn) { btn.disabled = false; btn.innerHTML = 'Generate Sprints <svg width="14" height="14" fill="none" viewBox="0 0 14 14"><path d="M2 7h10M7 2l5 5-5 5" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>'; }
+  }
+}
+
+function showToastUpload(msg, isError = false) {
+  const t = document.createElement('div');
+  t.style.cssText = `position:fixed;bottom:28px;left:50%;transform:translateX(-50%);
+    background:${isError ? '#7F1D1D' : '#1E1B4B'};color:white;font-size:13px;font-weight:500;
+    padding:12px 22px;border-radius:999px;z-index:200;white-space:nowrap;
+    box-shadow:0 8px 24px rgba(0,0,0,0.2);`;
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 3000);
+}
+
+// ── Load previously uploaded syllabi ──────────────
+async function loadPreviousSyllabi() {
+  const container = document.getElementById('prev-list');
+  const card      = document.getElementById('prev-card');
+  if (!container || !card) return;
+  try {
+    const res = await Syllabi.list();
+    if (!res?.success || !res.syllabi?.length) {
+      card.style.display = 'none';
+      return;
+    }
+    card.style.display = 'block';
+    container.innerHTML = '';
+    res.syllabi.slice(0, 5).forEach(s => {
+      const div = document.createElement('div');
+      div.className = 'prev-item';
+      const statusClass = s.parse_status === 'parsed' ? 'status-parsed' : 'status-pending';
+      const statusText  = s.parse_status === 'parsed' ? '✓ Parsed' : '⏳ Pending';
+      const uploaded    = new Date(s.created_at).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
+      div.innerHTML = `
+        <div class="prev-icon">
+          <svg width="20" height="20" fill="none" viewBox="0 0 20 20">
+            <rect x="3" y="2" width="14" height="16" rx="2" stroke="#6C2BD9" stroke-width="1.5" fill="none"/>
+            <path d="M7 7h6M7 10h6M7 13h4" stroke="#6C2BD9" stroke-width="1.4" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="prev-info">
+          <div class="prev-name">${escHtml(s.course_name || s.file_name || 'Untitled')}</div>
+          <div class="prev-sub">${escHtml(s.file_name || '')} · Uploaded: ${uploaded}</div>
+        </div>
+        <span class="status-badge ${statusClass}">${statusText}</span>
+        <button class="view-btn-sm" onclick="viewSyllabus(${s.id})">View</button>`;
+      container.appendChild(div);
+    });
+  } catch (_) {
+    card.style.display = 'none';
+  }
+}
+
+async function viewSyllabus(id) {
+  const res = await Syllabi.get(id);
+  if (res?.success && res.syllabus?.parsed_json) {
+    currentCourseId = res.syllabus.course_id;
+    lastParsed = typeof res.syllabus.parsed_json === 'string'
+      ? JSON.parse(res.syllabus.parsed_json)
+      : res.syllabus.parsed_json;
+    showResults(lastParsed, JSON.stringify(lastParsed, null, 2));
+  }
+}
+
+// ── XSS guard ─────────────────────────────────────
+function escHtml(s) {
+  return String(s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function showError(msg) {
+  goTo('results');
+  document.getElementById('success-bar').style.display = 'none';
+  document.getElementById('results-content').style.display = 'none';
+  document.getElementById('error-card').style.display = 'block';
+  document.getElementById('error-msg').innerHTML = '<strong>Error:</strong> ' + msg;
+}
+
+function toggleJSON() {
+  const b = document.getElementById('json-box');
+  const btn = document.getElementById('json-toggle');
+  b.classList.toggle('open');
+  btn.textContent = b.classList.contains('open') ? 'Hide Raw JSON ▲' : 'View Raw JSON ▼';
+}
+</script>
+</body>
+</html>

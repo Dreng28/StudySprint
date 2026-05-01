@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>StudySprint — Profile & Settings</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --purple: #6C2BD9; --purple-mid: #8B5CF6; --purple-light: #EDE9FE; --purple-pale: #F5F3FF;
+    --green: #10B981; --green-light: #D1FAE5;
+    --coral: #EF4444; --coral-light: #FEE2E2;
+    --amber: #F59E0B; --amber-light: #FEF3C7;
+    --blue: #3B82F6; --blue-light: #DBEAFE;
+    --bg: #F0F2F8; --surface: #FFFFFF;
+    --text: #111827; --text-secondary: #6B7280; --text-muted: #9CA3AF;
+    --border: #E5E7EB; --radius: 16px; --radius-sm: 10px;
+    --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04);
+  }
+  body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+  /* Nav */
+  .topnav { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 24px; height: 60px; display: flex; align-items: center; gap: 12px; position: sticky; top: 0; z-index: 50; }
+  .back-btn { display: flex; align-items: center; gap: 6px; background: none; border: none; cursor: pointer; color: var(--text-secondary); font-family: 'Plus Jakarta Sans', sans-serif; font-size: 14px; font-weight: 500; }
+  .back-btn:hover { color: var(--purple); }
+  .nav-title { font-size: 16px; font-weight: 700; color: var(--text); }
+  .nav-sub { font-size: 12px; color: var(--text-muted); }
+
+  /* Page */
+  .page { max-width: 1000px; margin: 0 auto; padding: 28px 24px 60px; }
+
+  /* Profile banner */
+  .profile-banner {
+    background: linear-gradient(135deg, #6C2BD9 0%, #9333EA 60%, #C026D3 100%);
+    border-radius: var(--radius);
+    padding: 28px 32px;
+    display: flex;
+    align-items: flex-start;
+    gap: 20px;
+    margin-bottom: 24px;
+    position: relative;
+    overflow: hidden;
+  }
+  .profile-banner::before { content:''; position:absolute; top:-30px; right:-30px; width:140px; height:140px; background:rgba(255,255,255,0.07); border-radius:50%; }
+  .avatar-wrap { position: relative; flex-shrink: 0; }
+  .avatar { width: 80px; height: 80px; border-radius: 20px; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; border: 2px solid rgba(255,255,255,0.3); }
+  .avatar-cam { position: absolute; bottom: -4px; right: -4px; width: 24px; height: 24px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+  .profile-info { flex: 1; }
+  .profile-name { font-size: 24px; font-weight: 800; color: white; margin-bottom: 4px; }
+  .profile-email { font-size: 13px; color: rgba(255,255,255,0.75); margin-bottom: 8px; }
+  .profile-detail { font-size: 13px; color: rgba(255,255,255,0.8); display: flex; align-items: center; gap: 6px; margin-bottom: 16px; }
+  .profile-actions { display: flex; gap: 10px; }
+  .edit-btn { padding: 9px 18px; background: var(--purple); color: white; border: none; border-radius: var(--radius-sm); font-family: 'Plus Jakarta Sans', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; }
+  .change-pw-btn { padding: 9px 18px; background: rgba(255,255,255,0.15); color: white; border: 1.5px solid rgba(255,255,255,0.3); border-radius: var(--radius-sm); font-family: 'Plus Jakarta Sans', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; backdrop-filter: blur(4px); }
+  .member-badge { background: rgba(255,255,255,0.15); border-radius: 12px; padding: 12px 16px; text-align: center; backdrop-filter: blur(4px); border: 1px solid rgba(255,255,255,0.2); flex-shrink: 0; }
+  .member-label { font-size: 10px; font-weight: 600; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; }
+  .member-date { font-size: 18px; font-weight: 800; color: white; margin-bottom: 2px; }
+  .member-sub { font-size: 11px; color: rgba(255,255,255,0.6); }
+
+  /* Two-col layout */
+  .two-col { display: grid; grid-template-columns: 1fr 320px; gap: 20px; align-items: start; }
+
+  /* Cards */
+  .card { background: var(--surface); border-radius: var(--radius); padding: 24px; box-shadow: var(--shadow); margin-bottom: 20px; }
+  .card-title { font-size: 17px; font-weight: 700; color: var(--text); margin-bottom: 20px; }
+
+  /* Form fields */
+  .field-group { margin-bottom: 18px; }
+  .field-label { font-size: 13px; font-weight: 600; color: var(--text-secondary); display: block; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+  .field-label svg { color: var(--text-muted); }
+  .field-input { width: 100%; padding: 12px 14px; border-radius: var(--radius-sm); border: 1.5px solid var(--border); font-family: 'Plus Jakarta Sans', sans-serif; font-size: 14px; color: var(--text); background: var(--bg); outline: none; transition: border-color 0.15s, background 0.15s; }
+  .field-input:focus { border-color: var(--purple); background: white; }
+  .field-select { width: 100%; padding: 12px 14px; border-radius: var(--radius-sm); border: 1.5px solid var(--border); font-family: 'Plus Jakarta Sans', sans-serif; font-size: 14px; color: var(--text); background: var(--bg); outline: none; cursor: pointer; appearance: auto; }
+  .form-actions { display: flex; gap: 10px; margin-top: 22px; }
+  .save-btn { padding: 11px 22px; background: linear-gradient(135deg, var(--purple), var(--purple-mid)); color: white; border: none; border-radius: var(--radius-sm); font-family: 'Plus Jakarta Sans', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; }
+  .cancel-btn { padding: 11px 22px; background: white; color: var(--text); border: 1.5px solid var(--border); border-radius: var(--radius-sm); font-family: 'Plus Jakarta Sans', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; }
+  .cancel-btn:hover { border-color: var(--purple); color: var(--purple); }
+
+  /* Stats grid */
+  .stats-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-bottom: 20px; }
+  .stat-mini { background: var(--bg); border-radius: var(--radius-sm); padding: 12px; text-align: center; }
+  .stat-mini-icon { font-size: 11px; font-weight: 700; color: var(--text-muted); margin-bottom: 4px; display: flex; align-items: center; gap: 4px; }
+  .stat-mini-val { font-size: 22px; font-weight: 800; color: var(--text); }
+  .stat-mini.purple .stat-mini-icon { color: var(--purple); }
+  .stat-mini.green  .stat-mini-icon { color: var(--green); }
+  .stat-mini.blue   .stat-mini-icon { color: var(--blue); }
+  .stat-mini.amber  .stat-mini-icon { color: var(--amber); }
+
+  /* Right sidebar */
+  .settings-nav { margin-bottom: 10px; }
+  .settings-nav-item { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: var(--radius-sm); cursor: pointer; font-size: 14px; font-weight: 500; color: var(--text-secondary); transition: all 0.15s; margin-bottom: 2px; }
+  .settings-nav-item:hover { background: var(--bg); color: var(--text); }
+  .settings-nav-item.active { background: var(--purple-light); color: var(--purple); font-weight: 600; }
+  .settings-nav-item svg { flex-shrink: 0; }
+
+  /* Toggle switch */
+  .toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #F9FAFB; }
+  .toggle-row:last-child { border-bottom: none; }
+  .toggle-label { font-size: 14px; color: var(--text); font-weight: 500; }
+  .toggle { position: relative; width: 44px; height: 24px; cursor: pointer; }
+  .toggle input { opacity: 0; width: 0; height: 0; }
+  .toggle-track { position: absolute; inset: 0; background: var(--border); border-radius: 12px; transition: background 0.2s; }
+  .toggle input:checked + .toggle-track { background: var(--purple); }
+  .toggle-thumb { position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; background: white; border-radius: 50%; transition: transform 0.2s; box-shadow: 0 1px 4px rgba(0,0,0,0.15); }
+  .toggle input:checked ~ .toggle-thumb { transform: translateX(20px); }
+
+  /* Study prefs */
+  .pref-select { width: 100%; padding: 10px 12px; border-radius: var(--radius-sm); border: 1.5px solid var(--border); font-family: 'Plus Jakarta Sans', sans-serif; font-size: 13px; color: var(--text); background: var(--bg); outline: none; margin-bottom: 12px; }
+  .pref-select:focus { border-color: var(--purple); }
+  .pref-label { font-size: 13px; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px; display: block; }
+
+  /* Logout */
+  .logout-btn { width: 100%; padding: 13px; background: var(--coral); color: white; border: none; border-radius: var(--radius-sm); font-family: 'Plus Jakarta Sans', sans-serif; font-size: 14px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: opacity 0.15s; }
+  .logout-btn:hover { opacity: 0.9; }
+
+  /* Weekly performance chart placeholder */
+  .chart-placeholder { background: var(--bg); border-radius: var(--radius-sm); height: 120px; display: flex; align-items: flex-end; padding: 12px; gap: 8px; }
+  .chart-bar { flex: 1; background: var(--purple-light); border-radius: 4px 4px 0 0; transition: background 0.15s; }
+  .chart-bar:hover { background: var(--purple); }
+  .chart-labels { display: flex; gap: 8px; margin-top: 6px; }
+  .chart-label { flex: 1; text-align: center; font-size: 10px; color: var(--text-muted); font-weight: 500; }
+
+  @keyframes fadeUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+  .profile-banner { animation: fadeUp 0.35s ease both; }
+  .card { animation: fadeUp 0.35s ease both; animation-delay: 0.1s; }
+</style>
+</head>
+<body>
+
+<!-- Nav -->
+<nav class="topnav">
+  <button class="back-btn" onclick="window.location='studysprint_dashboard.html'">
+    <svg width="16" height="16" fill="none" viewBox="0 0 16 16"><path d="M10 3L5 8l5 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </button>
+  <div>
+    <div class="nav-title">User Profile &amp; Settings</div>
+    <div class="nav-sub">Manage your account and preferences</div>
+  </div>
+</nav>
+
+<div class="page">
+
+  <!-- Profile banner -->
+  <div class="profile-banner">
+    <div class="avatar-wrap">
+      <div class="avatar">
+        <svg width="40" height="40" fill="none" viewBox="0 0 40 40"><circle cx="20" cy="16" r="9" stroke="white" stroke-width="2" fill="none"/><path d="M4 38c0-8.837 7.163-16 16-16s16 7.163 16 16" stroke="white" stroke-width="2" stroke-linecap="round" fill="none"/></svg>
+      </div>
+      <div class="avatar-cam">
+        <svg width="12" height="12" fill="none" viewBox="0 0 12 12"><circle cx="6" cy="6.5" r="2.5" stroke="#6B7280" stroke-width="1.2" fill="none"/><path d="M1 4.5h1.5L3.5 3h5l1 1.5H11v6H1v-6z" stroke="#6B7280" stroke-width="1.2" fill="none" stroke-linejoin="round"/></svg>
+      </div>
+    </div>
+    <div class="profile-info">
+      <div class="profile-name">Andre Mamangun</div>
+      <div class="profile-email"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="e889868c9a8dc685898589868f9d86a89b9c9d8c8d869cc68f879a8c8786c68d8c9d">[email&#160;protected]</a></div>
+      <div class="profile-detail">
+        <svg width="14" height="14" fill="none" viewBox="0 0 14 14"><rect x="1" y="3" width="12" height="10" rx="2" stroke="rgba(255,255,255,0.7)" stroke-width="1.3" fill="none"/><path d="M1 7h12" stroke="rgba(255,255,255,0.7)" stroke-width="1.3"/><path d="M4 1v2M10 1v2" stroke="rgba(255,255,255,0.7)" stroke-width="1.3" stroke-linecap="round"/></svg>
+        BS Computer Science · 2nd Year · BSCS-2B
+      </div>
+      <div class="profile-actions">
+        <button class="edit-btn">
+          <svg width="13" height="13" fill="none" viewBox="0 0 13 13"><path d="M9 2l2 2L4 11H2V9l7-7z" stroke="white" stroke-width="1.3" fill="none"/></svg>
+          Edit Profile
+        </button>
+        <button class="change-pw-btn">Change Password</button>
+      </div>
+    </div>
+    <div class="member-badge">
+      <svg width="14" height="14" fill="none" viewBox="0 0 14 14" style="margin:0 auto 4px;display:block;"><circle cx="7" cy="7" r="6" stroke="rgba(255,255,255,0.6)" stroke-width="1.3" fill="none"/><path d="M4.5 7l2 2 3-3" stroke="rgba(255,255,255,0.6)" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <div class="member-label">Member Since</div>
+      <div class="member-date">Jan 2026</div>
+      <div class="member-sub">3 months active</div>
+    </div>
+  </div>
+
+  <div class="two-col">
+
+    <!-- Left column -->
+    <div>
+      <!-- Personal info -->
+      <div class="card">
+        <div class="card-title">Personal Information</div>
+        <div class="field-group">
+          <label class="field-label">
+            <svg width="14" height="14" fill="none" viewBox="0 0 14 14"><circle cx="7" cy="5" r="3" stroke="currentColor" stroke-width="1.3" fill="none"/><path d="M1 13c0-3.314 2.686-6 6-6s6 2.686 6 6" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" fill="none"/></svg>
+            Full Name
+          </label>
+          <input class="field-input" type="text" value="Andre Mamangun"/>
+        </div>
+        <div class="field-group">
+          <label class="field-label">
+            <svg width="14" height="14" fill="none" viewBox="0 0 14 14"><rect x="1" y="3" width="12" height="8" rx="2" stroke="currentColor" stroke-width="1.3" fill="none"/><path d="M1 6l6 3 6-3" stroke="currentColor" stroke-width="1.3"/></svg>
+            Email Address
+          </label>
+          <input class="field-input" type="email" value="andre.mamangun@student.gordon.edu"/>
+        </div>
+        <div class="field-group">
+          <label class="field-label">
+            <svg width="14" height="14" fill="none" viewBox="0 0 14 14"><rect x="2" y="2" width="10" height="10" rx="2" stroke="currentColor" stroke-width="1.3" fill="none"/><path d="M5 7h4M7 5v4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+            Student ID
+          </label>
+          <input class="field-input" type="text" value="BSCS-2B-2024"/>
+        </div>
+        <div class="field-group">
+          <label class="field-label">
+            <svg width="14" height="14" fill="none" viewBox="0 0 14 14"><rect x="1" y="3" width="12" height="10" rx="2" stroke="currentColor" stroke-width="1.3" fill="none"/><path d="M1 7h12" stroke="currentColor" stroke-width="1.3"/><path d="M4 1v2M10 1v2" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+            Program
+          </label>
+          <select class="field-select">
+            <option selected>BS Computer Science - 2nd Year</option>
+            <option>BS Information Technology</option>
+            <option>BS Computer Engineering</option>
+          </select>
+        </div>
+        <div class="form-actions">
+          <button class="save-btn">
+            <svg width="13" height="13" fill="none" viewBox="0 0 13 13"><path d="M2 6.5l3.5 3.5 5.5-5.5" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Save Changes
+          </button>
+          <button class="cancel-btn">Cancel</button>
+        </div>
+      </div>
+
+      <!-- Academic Performance -->
+      <div class="card">
+        <div class="card-title" style="display:flex;align-items:center;gap:8px;">
+          <svg width="18" height="18" fill="none" viewBox="0 0 18 18"><path d="M2 14l4-4 3 3 5-7 4 1" stroke="var(--purple)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Academic Performance
+        </div>
+        <div class="stats-grid">
+          <div class="stat-mini purple">
+            <div class="stat-mini-icon">⚡ TOTAL SPRINTS</div>
+            <div class="stat-mini-val" id="perf-sprints">—</div>
+          </div>
+          <div class="stat-mini green">
+            <div class="stat-mini-icon">✓ COMPLETION</div>
+            <div class="stat-mini-val" id="perf-completion">—</div>
+          </div>
+          <div class="stat-mini blue">
+            <div class="stat-mini-icon">⏱ STUDY HOURS</div>
+            <div class="stat-mini-val" id="perf-hours">—</div>
+          </div>
+          <div class="stat-mini amber">
+            <div class="stat-mini-icon">🎯 AVG. FOCUS</div>
+            <div class="stat-mini-val" id="perf-focus">—</div>
+          </div>
+        </div>
+        <div style="font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;">Weekly Performance</div>
+        <div class="chart-placeholder">
+          <div class="chart-bar" style="height:60%;"></div>
+          <div class="chart-bar" style="height:85%;background:var(--purple);"></div>
+          <div class="chart-bar" style="height:45%;"></div>
+          <div class="chart-bar" style="height:90%;background:var(--purple);"></div>
+          <div class="chart-bar" style="height:70%;"></div>
+          <div class="chart-bar" style="height:55%;"></div>
+          <div class="chart-bar" style="height:40%;"></div>
+        </div>
+        <div class="chart-labels">
+          <div class="chart-label">Mon</div>
+          <div class="chart-label">Tue</div>
+          <div class="chart-label">Wed</div>
+          <div class="chart-label">Thu</div>
+          <div class="chart-label">Fri</div>
+          <div class="chart-label">Sat</div>
+          <div class="chart-label">Sun</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right sidebar -->
+    <div>
+      <!-- Settings nav -->
+      <div class="card">
+        <div class="card-title" style="margin-bottom:10px;">Settings</div>
+        <div class="settings-nav">
+          <div class="settings-nav-item active" id="snav-general" onclick="switchSettings('general')">
+            <svg width="16" height="16" fill="none" viewBox="0 0 16 16"><circle cx="8" cy="8" r="2.5" stroke="currentColor" stroke-width="1.4" fill="none"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.05 3.05l1.42 1.42M11.53 11.53l1.42 1.42M3.05 12.95l1.42-1.42M11.53 4.47l1.42-1.42" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+            General
+          </div>
+          <div class="settings-nav-item" id="snav-notifications" onclick="switchSettings('notifications')">
+            <svg width="16" height="16" fill="none" viewBox="0 0 16 16"><path d="M8 2a5 5 0 00-5 5c0 4-1.5 5-1.5 5h13S13 11 13 7A5 5 0 008 2zM6.5 14a1.5 1.5 0 003 0" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" fill="none"/></svg>
+            Notifications
+          </div>
+          <div class="settings-nav-item" id="snav-privacy" onclick="switchSettings('privacy')">
+            <svg width="16" height="16" fill="none" viewBox="0 0 16 16"><rect x="3" y="7" width="10" height="8" rx="2" stroke="currentColor" stroke-width="1.4" fill="none"/><path d="M5 7V5a3 3 0 016 0v2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" fill="none"/></svg>
+            Privacy
+          </div>
+          <div class="settings-nav-item" id="snav-schedule" onclick="switchSettings('schedule')">
+            <svg width="16" height="16" fill="none" viewBox="0 0 16 16"><rect x="1" y="3" width="14" height="12" rx="2" stroke="currentColor" stroke-width="1.4" fill="none"/><path d="M1 7h14" stroke="currentColor" stroke-width="1.4"/><path d="M5 1v2M11 1v2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+            Schedule
+          </div>
+        </div>
+      </div>
+
+      <!-- Notifications -->
+      <div class="card" id="panel-notifications" style="display:none;">
+        <div class="card-title" style="font-size:15px;display:flex;align-items:center;gap:8px;">
+          <svg width="16" height="16" fill="none" viewBox="0 0 16 16"><path d="M8 2a5 5 0 00-5 5c0 4-1.5 5-1.5 5h13S13 11 13 7A5 5 0 008 2zM6.5 14a1.5 1.5 0 003 0" stroke="var(--purple)" stroke-width="1.5" stroke-linecap="round" fill="none"/></svg>
+          Notifications
+        </div>
+        <div class="toggle-row">
+          <span class="toggle-label">Email Reminders</span>
+          <label class="toggle"><input type="checkbox" checked/><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
+        </div>
+        <div class="toggle-row">
+          <span class="toggle-label">Sprint Notifications</span>
+          <label class="toggle"><input type="checkbox" checked/><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
+        </div>
+        <div class="toggle-row">
+          <span class="toggle-label">Deadline Alerts</span>
+          <label class="toggle"><input type="checkbox" checked/><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
+        </div>
+        <div class="toggle-row">
+          <span class="toggle-label">Weekly Summary</span>
+          <label class="toggle"><input type="checkbox"/><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
+        </div>
+      </div>
+
+      <!-- Privacy -->
+      <div class="card" id="panel-privacy" style="display:none;">
+        <div class="card-title" style="font-size:15px;display:flex;align-items:center;gap:8px;">
+          <svg width="16" height="16" fill="none" viewBox="0 0 16 16"><rect x="3" y="7" width="10" height="8" rx="2" stroke="var(--purple)" stroke-width="1.4" fill="none"/><path d="M5 7V5a3 3 0 016 0v2" stroke="var(--purple)" stroke-width="1.4" stroke-linecap="round" fill="none"/></svg>
+          Privacy
+        </div>
+        <div class="toggle-row">
+          <div>
+            <div class="toggle-label">Data Collection</div>
+            <div style="font-size:12px;color:var(--text-muted);margin-top:2px;">Allow StudySprint to collect usage analytics</div>
+          </div>
+          <label class="toggle"><input type="checkbox" checked/><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
+        </div>
+        <div class="toggle-row">
+          <div>
+            <div class="toggle-label">Activity Logging</div>
+            <div style="font-size:12px;color:var(--text-muted);margin-top:2px;">Keep a log of completed sprints and uploads</div>
+          </div>
+          <label class="toggle"><input type="checkbox" checked/><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
+        </div>
+        <div style="margin-top:16px;padding:12px 14px;background:var(--bg);border-radius:var(--radius-sm);font-size:12.5px;color:var(--text-secondary);line-height:1.6;">
+          🔒 Your syllabus content is sent to Gemini AI for parsing only and is never stored permanently. All personal data is stored securely on your local server.
+        </div>
+      </div>
+
+      <!-- Schedule Preferences -->
+      <div class="card" id="panel-schedule" style="display:none;">
+        <div class="card-title" style="font-size:15px;display:flex;align-items:center;gap:8px;">
+          <svg width="16" height="16" fill="none" viewBox="0 0 16 16"><rect x="1" y="3" width="14" height="12" rx="2" stroke="var(--purple)" stroke-width="1.4" fill="none"/><path d="M1 7h14" stroke="var(--purple)" stroke-width="1.4"/><path d="M5 1v2M11 1v2" stroke="var(--purple)" stroke-width="1.4" stroke-linecap="round"/></svg>
+          Schedule Preferences
+        </div>
+        <div style="margin-bottom:16px;">
+          <label class="pref-label">Preferred Study Time</label>
+          <select class="pref-select">
+            <option>Morning (6am – 12pm)</option>
+            <option selected>Afternoon (12pm – 6pm)</option>
+            <option>Evening (6pm – 12am)</option>
+            <option>Late Night (12am – 6am)</option>
+          </select>
+        </div>
+        <div class="toggle-row">
+          <div>
+            <div class="toggle-label">Weekend Sprints</div>
+            <div style="font-size:12px;color:var(--text-muted);margin-top:2px;">Allow sprints to be scheduled on weekends</div>
+          </div>
+          <label class="toggle"><input type="checkbox" checked/><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
+        </div>
+        <div class="toggle-row">
+          <div>
+            <div class="toggle-label">Auto-Reschedule</div>
+            <div style="font-size:12px;color:var(--text-muted);margin-top:2px;">Automatically move missed sprints to next day</div>
+          </div>
+          <label class="toggle"><input type="checkbox"/><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
+        </div>
+      </div>
+
+      <!-- Study Preferences (General tab) -->
+      <div class="card" id="panel-studyprefs">
+        <div class="card-title" style="font-size:15px;">Study Preferences</div>
+        <label class="pref-label">Sprint Duration</label>
+        <select class="pref-select">
+          <option value="25">25 minutes</option>
+          <option value="45" selected>45 minutes</option>
+          <option value="60">60 minutes</option>
+          <option value="90">90 minutes</option>
+        </select>
+        <label class="pref-label">Study Mode</label>
+        <select class="pref-select">
+          <option value="intensive">Intensive</option>
+          <option value="balanced" selected>Balanced</option>
+          <option value="relaxed">Relaxed</option>
+        </select>
+      </div>
+
+      <!-- Logout -->
+      <button class="logout-btn" onclick="Auth.logout()">
+        <svg width="16" height="16" fill="none" viewBox="0 0 16 16"><path d="M10 3h3a1 1 0 011 1v8a1 1 0 01-1 1h-3M7 11l4-4-4-4M11 8H3" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Log Out
+      </button>
+    </div>
+  </div>
+</div>
+
+<script src="api.js"></script>
+<script>
+requireAuth();
+
+// ── XSS guard ─────────────────────────────────────
+function escHtml(s) {
+  return String(s || '')
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── Toast ──────────────────────────────────────────
+function showToast(msg, isError = false) {
+  const t = document.createElement('div');
+  t.style.cssText = `position:fixed;bottom:28px;left:50%;transform:translateX(-50%);
+    background:${isError ? '#7F1D1D' : '#1E1B4B'};color:white;font-size:13px;font-weight:500;
+    padding:12px 22px;border-radius:999px;z-index:200;white-space:nowrap;
+    box-shadow:0 8px 24px rgba(0,0,0,0.2);`;
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 2800);
+}
+
+// ── Load profile from backend ─────────────────────
+async function loadProfile() {
+  let res;
+  try { res = await Auth.getMe(); }
+  catch (e) { showToast('Could not reach server.', true); return; }
+
+  if (!res?.success) { showToast(res?.message || 'Failed to load profile.', true); return; }
+  const u = res.user;
+
+  // Banner
+  document.querySelector('.profile-name').textContent  = escHtml(u.full_name || '');
+  document.querySelector('.profile-email').textContent = escHtml(u.email     || '');
+
+  // Member since
+  const joined = new Date(u.created_at);
+  document.querySelector('.member-date').textContent =
+    joined.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+  const monthsAgo = Math.max(0,
+    (new Date().getFullYear() - joined.getFullYear()) * 12 +
+    (new Date().getMonth()   - joined.getMonth()));
+  document.querySelector('.member-sub').textContent =
+    monthsAgo === 0 ? 'New member' : `${monthsAgo} month${monthsAgo !== 1 ? 's' : ''} active`;
+
+  // Profile detail
+  const detailEl = document.querySelector('.profile-detail');
+  if (detailEl && u.program) {
+    const svgIcon = detailEl.querySelector('svg')?.outerHTML || '';
+    detailEl.innerHTML = svgIcon + escHtml(u.program);
+  }
+
+  // Form fields — index order: Full Name, Email, Student ID
+  const inputs = document.querySelectorAll('.field-input');
+  if (inputs[0]) inputs[0].value = u.full_name  || '';
+  if (inputs[1]) inputs[1].value = u.email      || '';
+  if (inputs[2]) inputs[2].value = u.student_id || '';
+
+  const progSel = document.querySelector('.field-select');
+  if (progSel && u.program) progSel.value = u.program;
+
+  // Notification toggles
+  const toggles = document.querySelectorAll('.toggle input');
+  if (toggles[0]) toggles[0].checked = !!u.notif_email;
+  if (toggles[1]) toggles[1].checked = !!u.notif_sprint;
+  if (toggles[2]) toggles[2].checked = !!u.notif_deadline;
+  if (toggles[3]) toggles[3].checked = !!u.notif_weekly;
+
+  // Study preferences
+  const selects = document.querySelectorAll('.pref-select');
+  if (selects[0]) selects[0].value = String(u.sprint_duration || 45);
+  if (selects[1]) selects[1].value = u.study_mode || 'balanced';
+}
+
+// ── Save profile ──────────────────────────────────
+async function saveProfile() {
+  const inputs  = document.querySelectorAll('.field-input');
+  const toggles = document.querySelectorAll('.toggle input');
+  const selects = document.querySelectorAll('.pref-select');
+
+  const btn = document.querySelector('.save-btn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Saving…'; }
+
+  const res = await Auth.updateProfile({
+    full_name:       inputs[0]?.value?.trim(),
+    student_id:      inputs[2]?.value?.trim(),
+    program:         document.querySelector('.field-select')?.value,
+    sprint_duration: parseInt(selects[0]?.value) || 45,
+    study_mode:      selects[1]?.value || 'balanced',
+    notif_email:     toggles[0]?.checked ? 1 : 0,
+    notif_sprint:    toggles[1]?.checked ? 1 : 0,
+    notif_deadline:  toggles[2]?.checked ? 1 : 0,
+    notif_weekly:    toggles[3]?.checked ? 1 : 0,
+  });
+
+  if (btn) { btn.disabled = false; btn.innerHTML = '<svg width="13" height="13" fill="none" viewBox="0 0 13 13"><path d="M2 6.5l3.5 3.5 5.5-5.5" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg> Save Changes'; }
+
+  showToast(res?.success ? 'Profile saved!' : (res?.message || 'Save failed.'), !res?.success);
+  if (res?.success) loadProfile();
+}
+
+// ── Change password modal ─────────────────────────
+function openChangePassword() {
+  // Inject modal if not present
+  if (document.getElementById('pw-modal')) {
+    document.getElementById('pw-modal').style.display = 'flex';
+    return;
+  }
+  const modal = document.createElement('div');
+  modal.id = 'pw-modal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(17,24,39,0.45);display:flex;align-items:center;justify-content:center;z-index:200;backdrop-filter:blur(2px);';
+  modal.innerHTML = `
+    <div style="background:white;border-radius:16px;padding:28px;width:380px;max-width:92vw;box-shadow:0 20px 60px rgba(0,0,0,0.2);">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+        <div style="font-size:18px;font-weight:700;color:var(--text);">Change Password</div>
+        <button onclick="document.getElementById('pw-modal').style.display='none'"
+          style="background:none;border:none;font-size:22px;cursor:pointer;color:var(--text-muted);">×</button>
+      </div>
+      <div style="margin-bottom:14px;">
+        <label style="font-size:13px;font-weight:600;color:var(--text-secondary);display:block;margin-bottom:6px;">Current Password</label>
+        <input id="pw-current" type="password" placeholder="Enter current password"
+          style="width:100%;padding:11px 14px;border-radius:10px;border:1.5px solid var(--border);font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;outline:none;"/>
+      </div>
+      <div style="margin-bottom:14px;">
+        <label style="font-size:13px;font-weight:600;color:var(--text-secondary);display:block;margin-bottom:6px;">New Password</label>
+        <input id="pw-new" type="password" placeholder="At least 8 characters"
+          style="width:100%;padding:11px 14px;border-radius:10px;border:1.5px solid var(--border);font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;outline:none;"/>
+      </div>
+      <div style="margin-bottom:20px;">
+        <label style="font-size:13px;font-weight:600;color:var(--text-secondary);display:block;margin-bottom:6px;">Confirm New Password</label>
+        <input id="pw-confirm" type="password" placeholder="Repeat new password"
+          style="width:100%;padding:11px 14px;border-radius:10px;border:1.5px solid var(--border);font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;outline:none;"/>
+      </div>
+      <div id="pw-error" style="display:none;background:#FEF2F2;border:1px solid #FECACA;border-radius:8px;padding:10px 14px;font-size:13px;color:#7F1D1D;margin-bottom:14px;"></div>
+      <div style="display:flex;gap:10px;">
+        <button onclick="document.getElementById('pw-modal').style.display='none'"
+          style="flex:1;padding:11px;border-radius:10px;border:1.5px solid var(--border);background:white;font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;">
+          Cancel
+        </button>
+        <button onclick="submitChangePassword()"
+          style="flex:1;padding:11px;border-radius:10px;border:none;background:linear-gradient(135deg,var(--purple),var(--purple-mid));color:white;font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;">
+          Update Password
+        </button>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+}
+
+async function submitChangePassword() {
+  const current = document.getElementById('pw-current')?.value;
+  const newPw   = document.getElementById('pw-new')?.value;
+  const confirm = document.getElementById('pw-confirm')?.value;
+  const errEl   = document.getElementById('pw-error');
+
+  if (!current || !newPw || !confirm) {
+    errEl.textContent = 'Please fill in all fields.'; errEl.style.display = 'block'; return;
+  }
+  if (newPw.length < 8) {
+    errEl.textContent = 'New password must be at least 8 characters.'; errEl.style.display = 'block'; return;
+  }
+  if (newPw !== confirm) {
+    errEl.textContent = 'Passwords do not match.'; errEl.style.display = 'block'; return;
+  }
+  errEl.style.display = 'none';
+
+  const res = await Auth.changePassword({ current_password: current, new_password: newPw });
+  if (res?.success) {
+    document.getElementById('pw-modal').style.display = 'none';
+    showToast('Password updated successfully!');
+  } else {
+    errEl.textContent = res?.message || 'Failed to update password.';
+    errEl.style.display = 'block';
+  }
+}
+
+// ── Load stats from dashboard ─────────────────────
+async function loadStats() {
+  try {
+    const res = await Dashboard.get();
+    if (!res?.success) return;
+    const { stats = {} } = res;
+
+    const totalEl = document.getElementById('perf-sprints');
+    if (totalEl) totalEl.textContent = stats.total_sprints ?? '0';
+
+    const compEl = document.getElementById('perf-completion');
+    if (compEl) compEl.textContent = stats.completion_rate !== undefined
+      ? Math.round(stats.completion_rate) + '%' : '0%';
+
+    const hoursEl = document.getElementById('perf-hours');
+    if (hoursEl) hoursEl.textContent = stats.total_study_min !== undefined
+      ? Math.round(stats.total_study_min / 60) + 'h' : '0h';
+
+    const focusEl = document.getElementById('perf-focus');
+    if (focusEl) focusEl.textContent = stats.avg_duration_min !== undefined
+      ? Math.round(stats.avg_duration_min) + 'm' : '0m';
+
+    const streakEl = document.querySelector('.prog-card.highlight .prog-val');
+    if (streakEl && stats.streak !== undefined)
+      streakEl.textContent = stats.streak > 0 ? `${stats.streak} Days 🔥` : '0 Days';
+
+  } catch (_) {}
+}
+
+// ── Settings tab switcher ─────────────────────────
+function switchSettings(tab) {
+  // Update nav active state
+  ['general','notifications','privacy','schedule'].forEach(t => {
+    document.getElementById('snav-' + t)?.classList.toggle('active', t === tab);
+  });
+
+  // Show/hide right-side panels
+  ['notifications','privacy','schedule'].forEach(t => {
+    const el = document.getElementById('panel-' + t);
+    if (el) el.style.display = t === tab ? '' : 'none';
+  });
+
+  // Show/hide Study Preferences (only on general tab)
+  const studyPrefs = document.getElementById('panel-studyprefs');
+  if (studyPrefs) studyPrefs.style.display = tab === 'general' ? '' : 'none';
+}
+
+// ── Wire buttons ──────────────────────────────────
+document.querySelector('.save-btn')?.addEventListener('click', saveProfile);
+document.querySelector('.logout-btn')?.addEventListener('click', () => Auth.logout());
+document.querySelector('.change-pw-btn')?.addEventListener('click', openChangePassword);
+document.querySelector('.edit-btn')?.addEventListener('click', () => {
+  document.querySelector('.field-input')?.focus();
+  showToast('Edit your details below and click Save Changes.');
+});
+
+// ── Boot ──────────────────────────────────────────
+loadProfile();
+loadStats();
+</script>
+</body>
+</html>

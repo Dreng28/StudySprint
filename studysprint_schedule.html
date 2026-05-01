@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>StudySprint — Schedule</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --purple: #6C2BD9; --purple-mid: #8B5CF6; --purple-light: #EDE9FE; --purple-pale: #F5F3FF;
+    --green: #10B981; --green-light: #D1FAE5;
+    --coral: #EF4444; --coral-light: #FEE2E2;
+    --amber: #F59E0B; --amber-light: #FEF3C7;
+    --blue: #3B82F6; --blue-light: #DBEAFE;
+    --bg: #F0F2F8; --surface: #FFFFFF;
+    --text: #111827; --text-secondary: #6B7280; --text-muted: #9CA3AF;
+    --border: #E5E7EB;
+    --radius: 16px; --radius-sm: 10px;
+    --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04);
+  }
+  body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; }
+
+  /* Nav */
+  .topnav { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 24px; height: 60px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 50; flex-shrink: 0; }
+  .nav-left { display: flex; align-items: center; gap: 12px; }
+  .back-btn { display: flex; align-items: center; gap: 6px; background: none; border: none; cursor: pointer; color: var(--text-secondary); font-family: 'Plus Jakarta Sans', sans-serif; font-size: 14px; font-weight: 500; }
+  .back-btn:hover { color: var(--purple); }
+  .nav-title { font-size: 16px; font-weight: 700; color: var(--text); }
+  .nav-sub { font-size: 12px; color: var(--text-muted); }
+  .nav-right { display: flex; align-items: center; gap: 10px; }
+  .view-toggle { display: flex; background: var(--bg); border: 1.5px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; }
+  .vt-btn { padding: 7px 16px; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 13px; font-weight: 600; border: none; background: transparent; color: var(--text-secondary); cursor: pointer; transition: all 0.15s; }
+  .vt-btn.active { background: var(--purple); color: white; }
+  .week-nav { display: flex; align-items: center; gap: 8px; background: var(--bg); border: 1.5px solid var(--border); border-radius: var(--radius-sm); padding: 6px 12px; }
+  .week-nav button { background: none; border: none; cursor: pointer; color: var(--text-secondary); font-size: 18px; line-height: 1; transition: color 0.15s; }
+  .week-nav button:hover { color: var(--purple); }
+  .week-label { font-size: 13px; font-weight: 600; color: var(--text); white-space: nowrap; }
+  .recal-btn { display: flex; align-items: center; gap: 6px; padding: 8px 16px; background: linear-gradient(135deg, var(--purple), var(--purple-mid)); color: white; border: none; border-radius: var(--radius-sm); font-family: 'Plus Jakarta Sans', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; }
+
+  /* Page */
+  .page { flex: 1; padding: 24px; max-width: 1100px; margin: 0 auto; width: 100%; }
+
+  /* Bottleneck banner */
+  .alert-banner { background: var(--amber-light); border: 1px solid #FCD34D; border-radius: var(--radius-sm); padding: 12px 16px; display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+  .alert-icon { width: 28px; height: 28px; background: var(--amber); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .alert-text { font-size: 13px; color: #78350F; flex: 1; }
+  .alert-text strong { font-weight: 600; }
+  .alert-fix { padding: 7px 14px; border: 1.5px solid var(--amber); border-radius: 8px; background: transparent; color: var(--amber); font-family: 'Plus Jakarta Sans', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+  .alert-fix:hover { background: var(--amber); color: white; }
+  .alert-close { background: none; border: none; cursor: pointer; color: #92400E; font-size: 18px; line-height: 1; }
+
+  /* Progress row */
+  .progress-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 20px; }
+  .prog-card { background: var(--surface); border-radius: var(--radius-sm); padding: 14px 16px; box-shadow: var(--shadow); }
+  .prog-label { font-size: 11px; font-weight: 600; color: var(--text-muted); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.04em; }
+  .prog-val { font-size: 22px; font-weight: 800; color: var(--text); line-height: 1; }
+  .prog-sub { font-size: 11.5px; color: var(--text-secondary); margin-top: 4px; }
+  .prog-bar { height: 4px; background: #E5E7EB; border-radius: 2px; margin-top: 8px; overflow: hidden; }
+  .prog-fill { height: 100%; border-radius: 2px; background: linear-gradient(90deg, var(--purple), var(--purple-mid)); transition: width 0.6s ease; }
+  .prog-card.highlight { background: var(--purple-pale); border: 1.5px solid var(--purple-light); }
+  .prog-card.highlight .prog-val { color: var(--purple); }
+
+  /* Views */
+  .cal-view, .list-view { display: none; }
+  .cal-view.active, .list-view.active { display: block; }
+
+  /* Calendar */
+  .cal-grid { background: var(--surface); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; border: 1px solid var(--border); }
+  .cal-header-row { display: grid; grid-template-columns: 80px repeat(7, 1fr); background: var(--bg); border-bottom: 1px solid var(--border); }
+  .cal-corner { padding: 12px 8px; }
+  .cal-day-hdr { padding: 12px 8px; text-align: center; border-left: 1px solid var(--border); }
+  .cal-day-name { font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+  .cal-day-num { font-size: 20px; font-weight: 800; color: var(--text); margin-top: 2px; line-height: 1; }
+  .cal-day-hdr.today .cal-day-name { color: var(--purple); }
+  .cal-day-hdr.today .cal-day-num { color: var(--purple); }
+
+  .cal-body-row { display: grid; grid-template-columns: 80px repeat(7, 1fr); border-bottom: 1px solid #F9FAFB; }
+  .cal-body-row:last-child { border-bottom: none; }
+  .cal-time { padding: 10px 10px 0; font-size: 11px; color: var(--text-muted); font-weight: 500; text-align: right; background: var(--bg); border-right: 1px solid var(--border); }
+  .cal-cell { min-height: 70px; padding: 6px; border-left: 1px solid #F3F4F6; transition: background 0.1s; }
+  .cal-cell:hover { background: var(--purple-pale); }
+  .cal-cell.today-col { background: #FAFAF9; }
+
+  .sprint-block { border-radius: 8px; padding: 6px 8px; margin-bottom: 4px; cursor: pointer; transition: transform 0.12s, box-shadow 0.12s; border-left: 3px solid transparent; }
+  .sprint-block:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.12); }
+  .sprint-block.purple { background: #F3F0FF; border-left-color: var(--purple); }
+  .sprint-block.green  { background: #ECFDF5; border-left-color: var(--green); }
+  .sprint-block.coral  { background: #FFF1F0; border-left-color: var(--coral); }
+  .sprint-block.amber  { background: #FFFBEB; border-left-color: var(--amber); }
+  .sprint-block.done-block { opacity: 0.45; }
+  .sprint-block.done-block .sb-title { text-decoration: line-through; }
+  .sb-title { font-size: 11.5px; font-weight: 600; color: var(--text); line-height: 1.3; }
+  .sb-meta { font-size: 10px; color: var(--text-secondary); margin-top: 2px; }
+
+  /* List view */
+  .day-group { margin-bottom: 20px; }
+  .day-group-hdr { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+  .dg-date { font-size: 14px; font-weight: 700; color: var(--text); }
+  .today-badge { font-size: 11px; font-weight: 600; background: var(--purple); color: white; padding: 2px 10px; border-radius: 999px; }
+  .dg-line { flex: 1; height: 1px; background: var(--border); }
+  .dg-count { font-size: 12px; color: var(--text-muted); }
+
+  .list-item { display: flex; align-items: flex-start; gap: 14px; padding: 14px 18px; background: var(--surface); border-radius: var(--radius-sm); border: 1.5px solid var(--border); margin-bottom: 8px; cursor: pointer; transition: box-shadow 0.15s, border-color 0.15s; }
+  .list-item:hover { box-shadow: 0 4px 16px rgba(108,43,217,0.08); border-color: #C4B5FD; }
+  .li-bar { width: 4px; border-radius: 2px; align-self: stretch; flex-shrink: 0; min-height: 40px; }
+  .li-check { width: 20px; height: 20px; border-radius: 6px; border: 2px solid var(--border); display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; cursor: pointer; transition: all 0.15s; }
+  .li-check.done { background: var(--purple); border-color: var(--purple); }
+  .li-check.done::after { content: ''; display: block; width: 9px; height: 5px; border-left: 2.5px solid white; border-bottom: 2.5px solid white; transform: rotate(-45deg) translateY(-1px); }
+  .li-info { flex: 1; min-width: 0; }
+  .li-title { font-size: 14px; font-weight: 600; color: var(--text); }
+  .li-title.done { text-decoration: line-through; color: var(--text-muted); }
+  .li-meta { font-size: 12px; color: var(--text-muted); margin-top: 4px; display: flex; gap: 10px; flex-wrap: wrap; }
+  .li-badge { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 6px; }
+  .li-actions { display: flex; gap: 6px; flex-shrink: 0; }
+  .li-action { background: none; border: 1.5px solid var(--border); border-radius: 8px; font-size: 12px; font-family: 'Plus Jakarta Sans', sans-serif; color: var(--text-secondary); padding: 5px 10px; cursor: pointer; transition: all 0.15s; white-space: nowrap; }
+  .li-action:hover { border-color: var(--purple); color: var(--purple); }
+
+  /* Modal */
+  .modal-bg { position: fixed; inset: 0; background: rgba(17,24,39,0.4); display: none; align-items: center; justify-content: center; z-index: 100; backdrop-filter: blur(2px); }
+  .modal-bg.open { display: flex; }
+  .modal { background: var(--surface); border-radius: var(--radius); padding: 28px; width: 380px; max-width: 92vw; box-shadow: 0 20px 60px rgba(0,0,0,0.2); animation: fadeUp 0.2s ease; }
+  .modal-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 20px; }
+  .modal-title { font-size: 18px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+  .modal-course { font-size: 13px; color: var(--text-secondary); }
+  .modal-close { background: none; border: none; font-size: 22px; cursor: pointer; color: var(--text-muted); line-height: 1; }
+  .modal-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #F3F4F6; font-size: 13px; }
+  .modal-row:last-of-type { border-bottom: none; }
+  .modal-key { color: var(--text-secondary); }
+  .modal-val { color: var(--text); font-weight: 600; }
+  .modal-reason { background: var(--purple-pale); border-radius: var(--radius-sm); padding: 10px 12px; font-size: 12.5px; color: #4C1D95; line-height: 1.5; margin: 14px 0; }
+  .modal-actions { display: flex; gap: 8px; margin-top: 16px; }
+  .modal-actions button { flex: 1; padding: 11px; border-radius: var(--radius-sm); font-family: 'Plus Jakarta Sans', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; }
+  .ma-outline { background: white; border: 1.5px solid var(--border); color: var(--text); }
+  .ma-purple { background: linear-gradient(135deg, var(--purple), var(--purple-mid)); border: none; color: white; }
+
+  /* Toast */
+  .toast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%); background: #1E1B4B; color: white; font-size: 13px; font-weight: 500; padding: 12px 22px; border-radius: 999px; z-index: 200; white-space: nowrap; box-shadow: 0 8px 24px rgba(0,0,0,0.2); animation: fadeUp 0.25s ease; }
+
+  @keyframes fadeUp { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+</style>
+</head>
+<body>
+
+<!-- Nav -->
+<nav class="topnav">
+  <div class="nav-left">
+    <button class="back-btn" onclick="window.location='studysprint_dashboard.html'">
+      <svg width="16" height="16" fill="none" viewBox="0 0 16 16"><path d="M10 3L5 8l5 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <div>
+      <div class="nav-title">Study Schedule</div>
+      <div class="nav-sub" id="week-sub">Week of Mar 24 – 30, 2026</div>
+    </div>
+  </div>
+  <div class="nav-right">
+    <div class="week-nav">
+      <button onclick="shiftWeek(-1)">&#8249;</button>
+      <span class="week-label" id="week-label">Mar 24 – 30</span>
+      <button onclick="shiftWeek(1)">&#8250;</button>
+    </div>
+    <div class="view-toggle">
+      <button class="vt-btn active" id="vbtn-week" onclick="switchView('week')">Week</button>
+      <button class="vt-btn" id="vbtn-list" onclick="switchView('list')">List</button>
+    </div>
+    <button class="recal-btn" onclick="recalibrate()">
+      <svg width="14" height="14" fill="none" viewBox="0 0 14 14"><path d="M2 7A5 5 0 017 2M12 7A5 5 0 017 12" stroke="white" stroke-width="1.6" stroke-linecap="round"/><path d="M7 2L5.5 3.5M7 12L8.5 10.5" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Recalibrate
+    </button>
+  </div>
+</nav>
+
+<div class="page">
+
+  <!-- Alert -->
+  <div class="alert-banner" id="alert-banner" style="display:none;">
+    <div class="alert-icon">
+      <svg width="14" height="14" fill="none" viewBox="0 0 14 14"><path d="M7 3v4.5M7 9.5v.5" stroke="white" stroke-width="1.8" stroke-linecap="round"/><circle cx="7" cy="7" r="6" stroke="white" stroke-width="1.4" fill="none"/></svg>
+    </div>
+    <div class="alert-text"><strong>Bottleneck detected:</strong> Apr 1–5 has 3 deadlines. Add review sessions this week to stay ahead.</div>
+    <button class="alert-fix" onclick="applyFix()">Apply Fix</button>
+    <button class="alert-close" onclick="this.closest('.alert-banner').style.display='none'">×</button>
+  </div>
+
+  <!-- Progress -->
+  <div class="progress-row">
+    <div class="prog-card">
+      <div class="prog-label">This Week</div>
+      <div class="prog-val" id="prog-val">0 / 0</div>
+      <div class="prog-bar"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
+    </div>
+    <div class="prog-card">
+      <div class="prog-label">Hours Planned</div>
+      <div class="prog-val" id="prog-hours">—</div>
+      <div class="prog-sub">This week</div>
+    </div>
+    <div class="prog-card">
+      <div class="prog-label">Next Deadline</div>
+      <div class="prog-val" id="prog-deadline" style="font-size:16px;margin-top:2px;">—</div>
+      <div class="prog-sub" id="prog-deadline-sub">No upcoming deadlines</div>
+    </div>
+    <div class="prog-card highlight">
+      <div class="prog-label">Sprint Streak</div>
+      <div class="prog-val" id="prog-streak">0 Days</div>
+      <div class="prog-sub">Keep it going!</div>
+    </div>
+  </div>
+
+  <!-- WEEK VIEW -->
+  <div class="cal-view active" id="cal-view">
+    <div class="cal-grid" id="cal-grid"></div>
+  </div>
+
+  <!-- LIST VIEW -->
+  <div class="list-view" id="list-view" style="padding-bottom:40px;"></div>
+
+</div>
+
+<!-- Modal -->
+<div class="modal-bg" id="modal-bg" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title" id="m-title">Sprint</div>
+        <div class="modal-course" id="m-course">Course</div>
+      </div>
+      <button class="modal-close" onclick="closeModal()">×</button>
+    </div>
+    <div class="modal-row"><span class="modal-key">Duration</span><span class="modal-val" id="m-dur">—</span></div>
+    <div class="modal-row"><span class="modal-key">Priority</span><span class="modal-val" id="m-pri">—</span></div>
+    <div class="modal-row"><span class="modal-key">Linked deadline</span><span class="modal-val" id="m-dead">—</span></div>
+    <div class="modal-reason" id="m-reason">—</div>
+    <div class="modal-actions">
+      <button class="ma-outline" onclick="markDoneModal()">Mark Complete</button>
+      <button class="ma-outline" onclick="postponeModal()">Postpone 1 Day</button>
+      <button class="ma-purple" onclick="closeModal()">Close</button>
+    </div>
+  </div>
+</div>
+
+<script src="api.js"></script>
+<script>
+requireAuth();
+
+const DAYS   = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+let weekOffset = 0;
+const TODAY = new Date();
+TODAY.setHours(0,0,0,0);
+
+// Align BASE to the Sunday of the current week
+const BASE = new Date(TODAY);
+BASE.setDate(BASE.getDate() - BASE.getDay());
+
+let sprints = [];
+let activeSprint = null;
+
+const colorBars = { purple:'var(--purple)', green:'var(--green)', coral:'var(--coral)', amber:'var(--amber)' };
+const priBg  = { High:'var(--coral-light)', Medium:'var(--amber-light)', Low:'var(--green-light)' };
+const priTxt = { High:'var(--coral)',        Medium:'var(--amber)',       Low:'var(--green)' };
+
+function getWeekStart() {
+  const d = new Date(BASE);
+  d.setDate(d.getDate() + weekOffset * 7);
+  return d;
+}
+function updateWeekLabel() {
+  const ws = getWeekStart();
+  const we = new Date(ws); we.setDate(we.getDate() + 6);
+  const label = `${MONTHS[ws.getMonth()]} ${ws.getDate()} – ${we.getDate()}`;
+  document.getElementById('week-label').textContent = label;
+  document.getElementById('week-sub').textContent =
+    `Week of ${MONTHS[ws.getMonth()]} ${ws.getDate()} – ${we.getDate()}, ${ws.getFullYear()}`;
+}
+function shiftWeek(dir) {
+  weekOffset += dir;
+  updateWeekLabel();
+  loadRealSprints();
+}
+
+function switchView(v) {
+  document.getElementById('vbtn-week').classList.toggle('active', v === 'week');
+  document.getElementById('vbtn-list').classList.toggle('active', v === 'list');
+  document.getElementById('cal-view').classList.toggle('active', v === 'week');
+  document.getElementById('list-view').classList.toggle('active', v === 'list');
+}
+
+function updateProgress() {
+  const done  = sprints.filter(s => s.done).length;
+  const total = sprints.length;
+  const pct   = total ? Math.round(done / total * 100) : 0;
+  document.getElementById('prog-val').textContent  = `${done} / ${total}`;
+  document.getElementById('prog-fill').style.width = pct + '%';
+
+  // Hours planned = sum of all sprint durations this week
+  const totalMin = sprints.reduce((sum, s) => {
+    const mins = parseInt(s.dur) || 0;
+    return sum + mins;
+  }, 0);
+  const hrs = (totalMin / 60).toFixed(1);
+  document.getElementById('prog-hours').textContent = totalMin > 0 ? `${hrs} hrs` : '—';
+
+  // Next deadline
+  const upcoming = sprints
+    .filter(s => !s.done && s.dead && s.dead !== 'TBD')
+    .sort((a, b) => new Date(a.dead) - new Date(b.dead));
+  if (upcoming.length) {
+    document.getElementById('prog-deadline').textContent     = upcoming[0].dead;
+    document.getElementById('prog-deadline-sub').textContent = upcoming[0].title;
+  } else {
+    document.getElementById('prog-deadline').textContent     = '—';
+    document.getElementById('prog-deadline-sub').textContent = 'No upcoming deadlines';
+  }
+}
+
+function buildCal() {
+  const ws   = getWeekStart();
+  const grid = document.getElementById('cal-grid');
+  grid.innerHTML = '';
+
+  // Header row
+  const hrow = document.createElement('div');
+  hrow.className = 'cal-header-row';
+  const corner = document.createElement('div');
+  corner.className = 'cal-corner';
+  hrow.appendChild(corner);
+  for (let d = 0; d < 7; d++) {
+    const date    = new Date(ws); date.setDate(date.getDate() + d);
+    const isToday = date.toDateString() === TODAY.toDateString();
+    const hdr     = document.createElement('div');
+    hdr.className = 'cal-day-hdr' + (isToday ? ' today' : '');
+    hdr.innerHTML = `<div class="cal-day-name">${DAYS[date.getDay()]}</div>
+                     <div class="cal-day-num">${date.getDate()}</div>`;
+    hrow.appendChild(hdr);
+  }
+  grid.appendChild(hrow);
+
+  ['Morning','Afternoon','Evening'].forEach((label, slotIdx) => {
+    const row = document.createElement('div');
+    row.className = 'cal-body-row';
+    const tl = document.createElement('div');
+    tl.className = 'cal-time'; tl.textContent = label;
+    row.appendChild(tl);
+    for (let d = 0; d < 7; d++) {
+      const date    = new Date(ws); date.setDate(date.getDate() + d);
+      const isToday = date.toDateString() === TODAY.toDateString();
+      const cell    = document.createElement('div');
+      cell.className = 'cal-cell' + (isToday ? ' today-col' : '');
+      sprints
+        .filter(s => s.day === d && s.slot === slotIdx)
+        .forEach(sp => {
+          const block = document.createElement('div');
+          block.className = `sprint-block ${sp.color}` + (sp.done ? ' done-block' : '');
+          block.innerHTML = `<div class="sb-title">${escHtml(sp.title)}</div>
+                             <div class="sb-meta">${escHtml(sp.dur)}</div>`;
+          block.onclick = () => openModal(sp);
+          cell.appendChild(block);
+        });
+      row.appendChild(cell);
+    }
+    grid.appendChild(row);
+  });
+}
+
+function buildList() {
+  const ws        = getWeekStart();
+  const container = document.getElementById('list-view');
+  container.innerHTML = '';
+  for (let d = 0; d < 7; d++) {
+    const date    = new Date(ws); date.setDate(date.getDate() + d);
+    const isToday = date.toDateString() === TODAY.toDateString();
+    const daySprs = sprints.filter(s => s.day === d);
+    if (!daySprs.length && !isToday) continue;
+    const group = document.createElement('div');
+    group.className = 'day-group';
+    group.innerHTML = `<div class="day-group-hdr">
+      <span class="dg-date">${DAYS[date.getDay()]}, ${MONTHS[date.getMonth()]} ${date.getDate()}</span>
+      ${isToday ? '<span class="today-badge">Today</span>' : ''}
+      <div class="dg-line"></div>
+      <span class="dg-count">${daySprs.length} task${daySprs.length !== 1 ? 's' : ''}</span>
+    </div>`;
+    if (!daySprs.length) {
+      const empty = document.createElement('div');
+      empty.style.cssText = 'font-size:13px;color:var(--text-muted);padding:14px 18px;background:var(--surface);border-radius:var(--radius-sm);border:1.5px dashed var(--border);';
+      empty.textContent = 'No sprints — free day';
+      group.appendChild(empty);
+    } else {
+      daySprs.forEach(sp => {
+        const el = document.createElement('div');
+        el.className = 'list-item';
+        el.id = 'li-' + sp.id;
+        el.innerHTML = `
+          <div class="li-bar" style="background:${colorBars[sp.color] || 'var(--purple)'};"></div>
+          <div class="li-check${sp.done ? ' done' : ''}" id="lic-${sp.id}" onclick="toggleDone(${sp.id},event)"></div>
+          <div class="li-info">
+            <div class="li-title${sp.done ? ' done' : ''}" id="lit-${sp.id}">${escHtml(sp.title)}</div>
+            <div class="li-meta">
+              <span>${escHtml(sp.course)}</span><span>·</span><span>${escHtml(sp.dur)}</span><span>·</span>
+              <span class="li-badge" style="background:${priBg[sp.pri] || ''};color:${priTxt[sp.pri] || ''};">${escHtml(sp.pri)}</span>
+            </div>
+          </div>
+          <div class="li-actions">
+            <button class="li-action" onclick="openModal(sprints.find(s=>s.id===${sp.id}))">Details</button>
+            <button class="li-action" onclick="postponeById(${sp.id})">Postpone</button>
+          </div>`;
+        group.appendChild(el);
+      });
+    }
+    container.appendChild(group);
+  }
+}
+
+// ── Toggle done (calls backend) ───────────────────
+async function toggleDone(id, e) {
+  e && e.stopPropagation();
+  const sp = sprints.find(s => s.id === id);
+  if (!sp) return;
+  sp.done = !sp.done;
+  updateProgress(); buildCal(); buildList();
+  try {
+    if (sp.done) {
+      await Sprints.complete(id);
+    }
+    // (no un-complete endpoint — backend tracks done_at)
+  } catch (_) { /* offline or error; UI state already updated */ }
+}
+
+function openModal(sp) {
+  activeSprint = sp;
+  document.getElementById('m-title').textContent  = sp.title;
+  document.getElementById('m-course').textContent = sp.course;
+  document.getElementById('m-dur').textContent    = sp.dur;
+  document.getElementById('m-pri').innerHTML =
+    `<span style="background:${priBg[sp.pri] || ''};color:${priTxt[sp.pri] || ''};padding:3px 10px;border-radius:6px;font-size:12px;">${sp.pri}</span>`;
+  document.getElementById('m-dead').textContent   = sp.dead || 'TBD';
+  document.getElementById('m-reason').textContent = '💡 ' + (sp.reason || 'AI-generated sprint.');
+  document.getElementById('modal-bg').classList.add('open');
+}
+function closeModal()   { document.getElementById('modal-bg').classList.remove('open'); activeSprint = null; }
+function markDoneModal(){ if (!activeSprint) return; toggleDone(activeSprint.id); closeModal(); }
+function postponeModal(){ if (!activeSprint) return; postponeById(activeSprint.id); closeModal(); }
+
+async function postponeById(id) {
+  const sp = sprints.find(s => s.id === id);
+  if (!sp) return;
+  sp.day = Math.min(sp.day + 1, 6);
+  buildCal(); buildList();
+  showToast('Sprint moved to next day');
+  try {
+    await Sprints.postpone(id, 1);
+  } catch (_) { /* offline — UI updated already */ }
+}
+
+async function recalibrate() {
+  showToast('Recalibrating schedule…');
+  // Re-load sprints from backend after brief pause
+  setTimeout(loadRealSprints, 800);
+}
+
+function applyFix() {
+  document.getElementById('alert-banner').style.display = 'none';
+  showToast('Fix applied! Extra review sessions added.');
+}
+
+function showToast(msg) {
+  const t = document.createElement('div');
+  t.className = 'toast'; t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 2800);
+}
+
+function escHtml(s) {
+  return String(s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+// ── Load sprints from backend ─────────────────────
+async function loadRealSprints() {
+  const monday = getWeekStart();
+  // Advance to Monday (day 1) for the API
+  const mon = new Date(monday); mon.setDate(mon.getDate() + 1);
+  const weekStr = mon.toISOString().split('T')[0];
+
+  const slotMap = { morning: 0, afternoon: 1, evening: 2 };
+
+  let res;
+  try {
+    res = await Sprints.list(weekStr);
+  } catch (e) {
+    showToast('Could not reach server.');
+    return;
+  }
+
+  sprints = [];
+
+  if (res?.success && res.sprints?.length) {
+    const ws = getWeekStart();
+    res.sprints.forEach(sp => {
+      const spDate = new Date(sp.scheduled_date + 'T00:00:00');
+      const dayIdx = Math.round((spDate - ws) / (1000 * 60 * 60 * 24));
+
+      // Map course color hex → named color
+      const hexToName = (hex) => {
+        if (!hex) return 'purple';
+        const h = hex.toLowerCase();
+        if (h === '#6c2bd9' || h === '#8b5cf6') return 'purple';
+        if (h === '#10b981' || h === '#1d9e75') return 'green';
+        if (h === '#ef4444' || h === '#d85a30') return 'coral';
+        return 'amber';
+      };
+
+      sprints.push({
+        id:     sp.id,
+        day:    dayIdx,
+        slot:   slotMap[sp.scheduled_slot] ?? 0,
+        title:  sp.title,
+        course: sp.course_name || '—',
+        color:  hexToName(sp.color),
+        dur:    `${sp.duration_min} min`,
+        pri:    sp.priority.charAt(0).toUpperCase() + sp.priority.slice(1),
+        dead:   sp.linked_deadline || 'TBD',
+        reason: sp.ai_reason || 'AI-generated sprint.',
+        done:   !!sp.is_done,
+      });
+    });
+  }
+
+  updateProgress(); buildCal(); buildList();
+
+  // Fetch streak from dashboard API
+  try {
+    const dash = await Dashboard.get();
+    if (dash?.success && dash.stats?.streak !== undefined) {
+      const s = dash.stats.streak;
+      document.getElementById('prog-streak').textContent = s > 0 ? `${s} Days 🔥` : '0 Days';
+    }
+  } catch (_) {}
+
+  checkBottleneck();
+}
+
+// ── Bottleneck detection ──────────────────────────
+function checkBottleneck() {
+  const banner = document.getElementById('alert-banner');
+  if (!sprints.length) { banner.style.display = 'none'; return; }
+
+  const deadlineCounts = {};
+  sprints.forEach(sp => {
+    if (sp.dead && sp.dead !== 'TBD') {
+      deadlineCounts[sp.dead] = (deadlineCounts[sp.dead] || 0) + 1;
+    }
+  });
+
+  const hotDates = Object.entries(deadlineCounts)
+    .filter(([, count]) => count >= 3)
+    .map(([date]) => date);
+
+  if (!hotDates.length) { banner.style.display = 'none'; return; }
+
+  banner.style.display = 'flex';
+  banner.innerHTML = `
+    <div class="alert-icon">
+      <svg width="14" height="14" fill="none" viewBox="0 0 14 14"><path d="M7 3v4.5M7 9.5v.5" stroke="white" stroke-width="1.8" stroke-linecap="round"/><circle cx="7" cy="7" r="6" stroke="white" stroke-width="1.4" fill="none"/></svg>
+    </div>
+    <div class="alert-text"><strong>Bottleneck detected:</strong> ${hotDates.join(', ')} has 3+ deadlines. Add review sessions to stay ahead.</div>
+    <button class="alert-fix" onclick="applyFix()">Apply Fix</button>
+    <button class="alert-close" onclick="this.closest('.alert-banner').style.display='none'">×</button>`;
+}
+
+// ── Boot ──────────────────────────────────────────
+updateWeekLabel();
+loadRealSprints();
+</script>
+</body>
+</html>

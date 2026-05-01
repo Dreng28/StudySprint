@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>StudySprint — Sign In</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --purple:#6C2BD9; --purple-mid:#8B5CF6; --purple-light:#EDE9FE; --purple-pale:#F5F3FF;
+    --green:#10B981; --green-light:#D1FAE5;
+    --coral:#EF4444; --coral-light:#FEE2E2;
+    --bg:#F0F2F8; --surface:#FFFFFF;
+    --text:#111827; --text-secondary:#6B7280; --text-muted:#9CA3AF;
+    --border:#E5E7EB; --radius:16px; --radius-sm:10px;
+  }
+  body {
+    font-family:'Plus Jakarta Sans',sans-serif;
+    background:var(--bg); color:var(--text);
+    min-height:100vh; display:flex;
+    align-items:center; justify-content:center; padding:24px;
+  }
+
+  .login-card {
+    width:100%; max-width:500px;
+    background:var(--surface); border-radius:24px;
+    overflow:hidden; box-shadow:0 8px 40px rgba(108,43,217,0.12);
+    animation:fadeUp .5s ease both;
+  }
+  @keyframes fadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+
+  /* Header */
+  .card-header {
+    background:linear-gradient(135deg,#6C2BD9 0%,#9333EA 60%,#C026D3 100%);
+    padding:36px 32px 28px; text-align:center;
+    position:relative; overflow:hidden;
+  }
+  .card-header::before { content:''; position:absolute; top:-30px; right:-30px; width:130px; height:130px; background:rgba(255,255,255,0.07); border-radius:50%; }
+  .card-header::after  { content:''; position:absolute; bottom:-40px; left:-20px; width:100px; height:100px; background:rgba(255,255,255,0.05); border-radius:50%; }
+  .logo-wrap { display:inline-flex; align-items:center; gap:10px; position:relative; z-index:1; margin-bottom:6px; }
+  .logo-icon { width:36px; height:36px; background:rgba(255,255,255,0.2); border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:18px; }
+  .logo-text { font-size:28px; font-weight:800; color:white; letter-spacing:-0.02em; }
+  .header-sub { font-size:13px; color:rgba(255,255,255,0.75); position:relative; z-index:1; }
+
+  /* Tabs */
+  .tabs { display:flex; border-bottom:2px solid var(--border); }
+  .tab { flex:1; padding:14px; text-align:center; font-size:14px; font-weight:600; color:var(--text-muted); cursor:pointer; border-bottom:2.5px solid transparent; margin-bottom:-2px; transition:all .15s; }
+  .tab.active { color:var(--purple); border-color:var(--purple); }
+  .tab:hover:not(.active) { color:var(--text); }
+
+  /* Form panels */
+  .form-panel { display:none; padding:28px 32px 28px; }
+  .form-panel.active { display:block; }
+  .form-title { font-size:20px; font-weight:800; color:var(--text); margin-bottom:4px; }
+  .form-sub { font-size:13px; color:var(--text-secondary); margin-bottom:22px; }
+
+  /* Fields */
+  .field-group { margin-bottom:16px; }
+  .field-label { font-size:13px; font-weight:600; color:var(--text); display:flex; align-items:center; gap:6px; margin-bottom:7px; }
+  .required { color:var(--coral); }
+  .field-wrap { position:relative; }
+  .field-icon { position:absolute; left:13px; top:50%; transform:translateY(-50%); color:var(--text-muted); pointer-events:none; }
+  .field-input {
+    width:100%; padding:12px 42px 12px 40px;
+    border-radius:var(--radius-sm); border:1.5px solid var(--border);
+    background:var(--bg); font-family:'Plus Jakarta Sans',sans-serif;
+    font-size:14px; color:var(--text); outline:none;
+    transition:border-color .15s, background .15s;
+  }
+  .field-input:focus { border-color:var(--purple); background:white; }
+  .field-input.error { border-color:var(--coral); }
+  .field-input.no-icon { padding-left:14px; }
+  .field-toggle { position:absolute; right:12px; top:50%; transform:translateY(-50%); background:none; border:none; cursor:pointer; color:var(--text-muted); font-size:15px; }
+  .field-error { font-size:12px; color:var(--coral); margin-top:5px; display:none; }
+  .field-error.show { display:block; }
+
+  .two-col { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+
+  /* Alerts */
+  .alert { border-radius:var(--radius-sm); padding:11px 14px; font-size:13px; margin-bottom:16px; display:none; align-items:flex-start; gap:8px; line-height:1.5; }
+  .alert.show { display:flex; }
+  .alert.error   { background:var(--coral-light); color:#7F1D1D; border:1px solid #FECACA; }
+  .alert.success { background:var(--green-light);  color:#065F46; border:1px solid #A7F3D0; }
+
+  /* T&C checkbox */
+  .tc-wrap {
+    display:flex; align-items:flex-start; gap:10px;
+    padding:12px 14px; background:var(--bg);
+    border-radius:var(--radius-sm); border:1.5px solid var(--border);
+    margin-bottom:6px; cursor:pointer;
+    transition:border-color .15s, background .15s;
+  }
+  .tc-wrap:hover { border-color:var(--purple-mid); }
+  .tc-wrap.checked { border-color:var(--purple); background:var(--purple-pale); }
+  .tc-box {
+    width:20px; height:20px; min-width:20px;
+    border-radius:5px; border:2px solid var(--border);
+    display:flex; align-items:center; justify-content:center;
+    margin-top:1px; transition:all .15s;
+  }
+  .tc-wrap.checked .tc-box { background:var(--purple); border-color:var(--purple); }
+  .tc-checkmark { display:none; }
+  .tc-wrap.checked .tc-checkmark { display:block; }
+  .tc-text { font-size:13px; color:var(--text-secondary); line-height:1.55; }
+  .tc-link { color:var(--purple); font-weight:600; cursor:pointer; text-decoration:underline; }
+  .tc-link:hover { color:var(--purple-mid); }
+
+  /* Submit button */
+  .submit-btn {
+    width:100%; padding:14px; border:none;
+    border-radius:var(--radius-sm);
+    background:linear-gradient(135deg,var(--purple),var(--purple-mid));
+    color:white; font-family:'Plus Jakarta Sans',sans-serif;
+    font-size:15px; font-weight:700; cursor:pointer;
+    display:flex; align-items:center; justify-content:center; gap:8px;
+    transition:opacity .15s, transform .1s;
+    margin-top:18px;
+  }
+  .submit-btn:hover:not(:disabled) { opacity:.92; }
+  .submit-btn:active:not(:disabled) { transform:scale(.99); }
+  .submit-btn:disabled { opacity:.5; cursor:not-allowed; }
+  .btn-spinner { width:16px; height:16px; border:2.5px solid rgba(255,255,255,.3); border-top-color:white; border-radius:50%; animation:spin .7s linear infinite; display:none; }
+  .submit-btn.loading .btn-spinner { display:block; }
+  .submit-btn.loading .btn-label { display:none; }
+  @keyframes spin { to{transform:rotate(360deg)} }
+
+  .forgot-row { text-align:right; margin-top:6px; }
+  .forgot-link { font-size:12.5px; font-weight:600; color:var(--purple); cursor:pointer; }
+  .forgot-link:hover { text-decoration:underline; }
+
+  /* T&C Modal */
+  .modal-bg {
+    position:fixed; inset:0; background:rgba(17,24,39,.5);
+    display:none; align-items:center; justify-content:center;
+    z-index:999; padding:20px;
+  }
+  .modal-bg.open { display:flex; }
+  .modal {
+    background:white; border-radius:var(--radius);
+    width:100%; max-width:560px; max-height:85vh;
+    display:flex; flex-direction:column;
+    box-shadow:0 20px 60px rgba(0,0,0,.25);
+    animation:fadeUp .2s ease;
+  }
+  .modal-header {
+    padding:20px 24px 16px; border-bottom:1px solid var(--border);
+    display:flex; align-items:center; justify-content:space-between;
+    flex-shrink:0;
+  }
+  .modal-header h2 { font-size:17px; font-weight:700; color:var(--text); }
+  .modal-close { background:none; border:none; font-size:22px; cursor:pointer; color:var(--text-muted); line-height:1; padding:4px; }
+  .modal-body { padding:20px 24px; overflow-y:auto; flex:1; }
+  .tc-section { margin-bottom:20px; }
+  .tc-section h3 { font-size:14px; font-weight:700; color:var(--text); margin-bottom:8px; }
+  .tc-section p  { font-size:13px; color:var(--text-secondary); line-height:1.7; margin-bottom:8px; }
+  .tc-section ul { padding-left:20px; }
+  .tc-section ul li { font-size:13px; color:var(--text-secondary); line-height:1.7; margin-bottom:4px; }
+  .modal-footer {
+    padding:16px 24px; border-top:1px solid var(--border);
+    display:flex; gap:10px; flex-shrink:0;
+  }
+  .modal-accept  { flex:1; padding:12px; background:linear-gradient(135deg,var(--purple),var(--purple-mid)); color:white; border:none; border-radius:var(--radius-sm); font-family:'Plus Jakarta Sans',sans-serif; font-size:14px; font-weight:700; cursor:pointer; }
+  .modal-decline { flex:1; padding:12px; background:white; color:var(--text); border:1.5px solid var(--border); border-radius:var(--radius-sm); font-family:'Plus Jakarta Sans',sans-serif; font-size:14px; font-weight:600; cursor:pointer; }
+  .modal-accept:hover  { opacity:.9; }
+  .modal-decline:hover { border-color:var(--coral); color:var(--coral); }
+</style>
+</head>
+<body>
+
+<div class="login-card">
+
+  <!-- Purple header -->
+  <div class="card-header">
+    <div class="logo-wrap">
+      <div class="logo-icon">✦</div>
+      <span class="logo-text">StudySprint</span>
+    </div>
+    <div class="header-sub">AI-Powered Academic Study Scheduler</div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <div class="tab active" id="tab-login"    onclick="switchTab('login')">Sign In</div>
+    <div class="tab"        id="tab-register" onclick="switchTab('register')">Create Account</div>
+  </div>
+
+  <!-- ══ LOGIN PANEL ══════════════════════════════ -->
+  <div class="form-panel active" id="panel-login">
+    <div class="form-title">Welcome back!</div>
+    <div class="form-sub">Sign in to continue your study journey</div>
+
+    <div class="alert error"   id="login-error">
+      <svg width="14" height="14" fill="none" viewBox="0 0 14 14" style="flex-shrink:0;margin-top:1px;"><circle cx="7" cy="7" r="6" stroke="currentColor" stroke-width="1.4" fill="none"/><path d="M7 4.5v3M7 9.5v.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      <span id="login-error-msg"></span>
+    </div>
+    <div class="alert success" id="login-success">
+      <svg width="14" height="14" fill="none" viewBox="0 0 14 14" style="flex-shrink:0;margin-top:1px;"><circle cx="7" cy="7" r="6" stroke="currentColor" stroke-width="1.4" fill="none"/><path d="M4 7l2 2 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span></span>
+    </div>
+
+    <div class="field-group">
+      <label class="field-label">Email Address</label>
+      <div class="field-wrap">
+        <svg class="field-icon" width="15" height="15" fill="none" viewBox="0 0 15 15"><rect x="1" y="3" width="13" height="9" rx="2" stroke="currentColor" stroke-width="1.3" fill="none"/><path d="M1 6.5l6.5 3.5 6.5-3.5" stroke="currentColor" stroke-width="1.3"/></svg>
+        <input class="field-input" type="email" id="login-email" placeholder="your@email.com" oninput="clearErr('login')"/>
+      </div>
+    </div>
+
+    <div class="field-group">
+      <label class="field-label">Password</label>
+      <div class="field-wrap">
+        <svg class="field-icon" width="15" height="15" fill="none" viewBox="0 0 15 15"><rect x="2.5" y="7" width="10" height="7" rx="2" stroke="currentColor" stroke-width="1.3" fill="none"/><path d="M5 7V5.5a2.5 2.5 0 015 0V7" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" fill="none"/></svg>
+        <input class="field-input" type="password" id="login-password" placeholder="Your password" oninput="clearErr('login')"/>
+        <button class="field-toggle" onclick="toggleVis('login-password',this)" type="button">👁</button>
+      </div>
+      <div class="forgot-row"><span class="forgot-link">Forgot password?</span></div>
+    </div>
+
+    <button class="submit-btn" id="login-btn" onclick="handleLogin()" type="button">
+      <div class="btn-spinner"></div>
+      <span class="btn-label">Sign In →</span>
+    </button>
+  </div>
+
+  <!-- ══ REGISTER PANEL ════════════════════════════ -->
+  <div class="form-panel" id="panel-register">
+    <div class="form-title">Create your account</div>
+    <div class="form-sub">Join StudySprint and start studying smarter</div>
+
+    <div class="alert error"   id="reg-error"><svg width="14" height="14" fill="none" viewBox="0 0 14 14" style="flex-shrink:0;margin-top:1px;"><circle cx="7" cy="7" r="6" stroke="currentColor" stroke-width="1.4" fill="none"/><path d="M7 4.5v3M7 9.5v.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><span id="reg-error-msg"></span></div>
+    <div class="alert success" id="reg-success"><svg width="14" height="14" fill="none" viewBox="0 0 14 14" style="flex-shrink:0;margin-top:1px;"><circle cx="7" cy="7" r="6" stroke="currentColor" stroke-width="1.4" fill="none"/><path d="M4 7l2 2 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span id="reg-success-msg"></span></div>
+
+    <div class="two-col">
+      <div class="field-group">
+        <label class="field-label">Full Name <span class="required">*</span></label>
+        <div class="field-wrap">
+          <svg class="field-icon" width="15" height="15" fill="none" viewBox="0 0 15 15"><circle cx="7.5" cy="5.5" r="3" stroke="currentColor" stroke-width="1.3" fill="none"/><path d="M1 14c0-3.314 2.91-6 6.5-6s6.5 2.686 6.5 6" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" fill="none"/></svg>
+          <input class="field-input" type="text" id="reg-name" placeholder="Full Name" oninput="validateReg()"/>
+        </div>
+        <div class="field-error" id="err-name">Full name is required</div>
+      </div>
+      <div class="field-group">
+        <label class="field-label">Student ID</label>
+        <div class="field-wrap">
+          <svg class="field-icon" width="15" height="15" fill="none" viewBox="0 0 15 15"><rect x="1" y="2" width="13" height="11" rx="2" stroke="currentColor" stroke-width="1.3" fill="none"/><circle cx="5" cy="7.5" r="1.5" stroke="currentColor" stroke-width="1.2" fill="none"/><path d="M8 6.5h4M8 8.5h4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+          <input class="field-input" type="text" id="reg-studentid" placeholder="ID Number"/>
+        </div>
+      </div>
+    </div>
+
+    <div class="field-group">
+      <label class="field-label">Email Address <span class="required">*</span></label>
+      <div class="field-wrap">
+        <svg class="field-icon" width="15" height="15" fill="none" viewBox="0 0 15 15"><rect x="1" y="3" width="13" height="9" rx="2" stroke="currentColor" stroke-width="1.3" fill="none"/><path d="M1 6.5l6.5 3.5 6.5-3.5" stroke="currentColor" stroke-width="1.3"/></svg>
+        <input class="field-input" type="email" id="reg-email" placeholder="your@email.com" oninput="validateReg()"/>
+      </div>
+      <div class="field-error" id="err-email">Enter a valid email address</div>
+    </div>
+
+    <div class="field-group">
+      <label class="field-label">Program / Course</label>
+      <div class="field-wrap">
+        <svg class="field-icon" width="15" height="15" fill="none" viewBox="0 0 15 15"><path d="M7.5 1L14 5l-6.5 4L1 5l6.5-4z" stroke="currentColor" stroke-width="1.3" fill="none"/><path d="M1 5v5c0 1 2.5 3 6.5 3s6.5-2 6.5-3V5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" fill="none"/></svg>
+        <input class="field-input" type="text" id="reg-program" placeholder="e.g. BS Computer Science - 2nd Year"/>
+      </div>
+    </div>
+
+    <div class="two-col">
+      <div class="field-group">
+        <label class="field-label">Password <span class="required">*</span></label>
+        <div class="field-wrap">
+          <svg class="field-icon" width="15" height="15" fill="none" viewBox="0 0 15 15"><rect x="2.5" y="7" width="10" height="7" rx="2" stroke="currentColor" stroke-width="1.3" fill="none"/><path d="M5 7V5.5a2.5 2.5 0 015 0V7" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" fill="none"/></svg>
+          <input class="field-input" type="password" id="reg-password" placeholder="Min. 6 characters" oninput="validateReg()"/>
+          <button class="field-toggle" onclick="toggleVis('reg-password',this)" type="button">👁</button>
+        </div>
+        <div class="field-error" id="err-password">At least 6 characters required</div>
+      </div>
+      <div class="field-group">
+        <label class="field-label">Confirm Password <span class="required">*</span></label>
+        <div class="field-wrap">
+          <svg class="field-icon" width="15" height="15" fill="none" viewBox="0 0 15 15"><rect x="2.5" y="7" width="10" height="7" rx="2" stroke="currentColor" stroke-width="1.3" fill="none"/><path d="M5 7V5.5a2.5 2.5 0 015 0V7" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" fill="none"/></svg>
+          <input class="field-input" type="password" id="reg-confirm" placeholder="Re-enter password" oninput="validateReg()"/>
+          <button class="field-toggle" onclick="toggleVis('reg-confirm',this)" type="button">👁</button>
+        </div>
+        <div class="field-error" id="err-confirm">Passwords do not match</div>
+      </div>
+    </div>
+
+    <!-- ── Terms & Conditions checkbox ── -->
+    <div class="tc-wrap" id="tc-wrap" onclick="toggleTC()">
+      <div class="tc-box">
+        <svg class="tc-checkmark" width="11" height="8" fill="none" viewBox="0 0 11 8"><path d="M1 4l3 3 6-6" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <div class="tc-text">
+        I have read and agree to the
+        <span class="tc-link" onclick="event.stopPropagation(); openTC()">Terms &amp; Conditions</span>
+        and
+        <span class="tc-link" onclick="event.stopPropagation(); openTC()">Privacy Policy</span>
+        of StudySprint.
+      </div>
+    </div>
+    <div class="field-error" id="err-tc" style="margin-bottom:8px;">
+      You must accept the Terms &amp; Conditions to continue.
+    </div>
+
+    <button class="submit-btn" id="reg-btn" onclick="handleRegister()" type="button" disabled>
+      <div class="btn-spinner"></div>
+      <span class="btn-label">Create Account →</span>
+    </button>
+  </div>
+
+</div>
+
+<!-- ══ Terms & Conditions Modal ══════════════════════ -->
+<div class="modal-bg" id="tc-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>📋 Terms &amp; Conditions</h2>
+      <button class="modal-close" onclick="closeTC()" type="button">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="tc-section">
+        <h3>1. Acceptance of Terms</h3>
+        <p>By creating a StudySprint account, you agree to these Terms &amp; Conditions. StudySprint is an educational tool developed as a capstone project at Gordon College. By using this application, you acknowledge that it is a student-developed system and may be subject to updates, maintenance, or changes without prior notice.</p>
+      </div>
+      <div class="tc-section">
+        <h3>2. Use of Your Data</h3>
+        <p>StudySprint collects the following information to provide its services:</p>
+        <ul>
+          <li>Your name, email address, student ID, and program — used to personalise your experience</li>
+          <li>Syllabus content you upload — sent to the Anthropic Claude AI API for parsing and immediately discarded after processing</li>
+          <li>Your study schedule and sprint completion data — stored securely in our database to power the adaptive scheduler</li>
+        </ul>
+        <p>We do not sell your data to third parties.</p>
+      </div>
+      <div class="tc-section">
+        <h3>3. AI-Generated Content</h3>
+        <p>StudySprint uses Anthropic Claude AI to parse syllabus documents and generate study schedules. While we strive for accuracy, AI-generated content may contain errors. You are responsible for verifying all extracted deadlines against your official course materials. StudySprint is not liable for missed deadlines resulting from inaccurate AI parsing.</p>
+      </div>
+      <div class="tc-section">
+        <h3>4. Account Responsibility</h3>
+        <p>You are responsible for maintaining the security of your account credentials. You must not share your account with others. Any activity performed under your account is your responsibility.</p>
+      </div>
+      <div class="tc-section">
+        <h3>5. Acceptable Use</h3>
+        <p>You agree to use StudySprint only for its intended purpose — organising your academic schedule. You must not attempt to reverse-engineer, exploit, or disrupt the system.</p>
+      </div>
+      <div class="tc-section">
+        <h3>6. Limitation of Liability</h3>
+        <p>StudySprint is provided "as is" for educational purposes. The developers and Gordon College are not liable for any academic consequences arising from reliance on the system's generated schedules. Always verify important deadlines directly with your professors.</p>
+      </div>
+      <p style="font-size:12px;color:var(--text-muted);margin-top:16px;">Last updated: April 2026 · Gordon College, Olongapo City</p>
+    </div>
+    <div class="modal-footer">
+      <button class="modal-decline" onclick="closeTC()" type="button">Decline</button>
+      <button class="modal-accept"  onclick="acceptFromModal()" type="button">I Accept &amp; Agree ✓</button>
+    </div>
+  </div>
+</div>
+
+<script src="api.js"></script>
+<script>
+// ── Redirect if already logged in ────────────────
+if (typeof Auth !== 'undefined' && Auth.isLoggedIn()) {
+  window.location.href = 'studysprint_dashboard.html';
+}
+
+let tcAccepted = false;
+
+// ── Handle ?verify=token in URL (email link click) ──
+(async function checkVerifyToken() {
+  const params = new URLSearchParams(window.location.search);
+  const token  = params.get('verify');
+  if (!token) return;
+
+  // Show a "verifying…" state on the login panel
+  showLoginInfo('Verifying your email…');
+
+  try {
+    const res = await fetch(`http://localhost:5000/api/auth/verify?token=${token}`);
+    const data = await res.json();
+    if (data.success) {
+      showLoginSuccess('✅ Email verified! You can now sign in.');
+    } else {
+      showErr('login', data.message || 'Verification failed. The link may have expired.');
+    }
+  } catch (e) {
+    showErr('login', 'Could not reach the server. Make sure it is running.');
+  }
+
+  // Clean token from URL without reloading
+  window.history.replaceState({}, '', window.location.pathname);
+})();
+
+// ── Tab switching ─────────────────────────────────
+function switchTab(tab) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.form-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+  document.getElementById('panel-' + tab).classList.add('active');
+}
+
+// ── Password visibility ───────────────────────────
+function toggleVis(id, btn) {
+  const inp = document.getElementById(id);
+  inp.type  = inp.type === 'password' ? 'text' : 'password';
+  btn.textContent = inp.type === 'password' ? '👁' : '🙈';
+}
+
+// ── Alert helpers ─────────────────────────────────
+function showErr(panel, msg) {
+  const el  = document.getElementById(panel + '-error');
+  const msg_el = document.getElementById(panel + '-error-msg');
+  if (msg_el) msg_el.innerHTML = msg;
+  el?.classList.add('show');
+  document.getElementById(panel + '-success')?.classList.remove('show');
+}
+function clearErr(panel) {
+  document.getElementById(panel + '-error')?.classList.remove('show');
+}
+function showLoginSuccess(msg) {
+  const el = document.getElementById('login-success');
+  if (el) { el.querySelector('span').textContent = msg; el.classList.add('show'); }
+  document.getElementById('login-error')?.classList.remove('show');
+}
+function showLoginInfo(msg) {
+  showLoginSuccess(msg);
+}
+
+// ── LOGIN ─────────────────────────────────────────
+async function handleLogin() {
+  const email    = document.getElementById('login-email').value.trim();
+  const password = document.getElementById('login-password').value;
+  clearErr('login');
+  document.getElementById('login-success')?.classList.remove('show');
+
+  if (!email)    { showErr('login', 'Please enter your email address.'); return; }
+  if (!password) { showErr('login', 'Please enter your password.'); return; }
+
+  const btn = document.getElementById('login-btn');
+  btn.classList.add('loading'); btn.disabled = true;
+
+  const res = await Auth.login(email, password);
+
+  btn.classList.remove('loading'); btn.disabled = false;
+
+  if (res?.success) {
+    window.location.href = 'studysprint_dashboard.html';
+  } else if (res?.requiresVerify) {
+    // Show unverified message with resend option
+    showErr('login',
+      `${res.message} <br><br>
+       <a href="#" onclick="resendVerification('${email}')" 
+          style="color:#6C2BD9;font-weight:600;text-decoration:underline;">
+         Resend verification email
+       </a>`
+    );
+  } else {
+    showErr('login', res?.message || 'Login failed. Please try again.');
+  }
+}
+
+// ── Resend verification ───────────────────────────
+async function resendVerification(email) {
+  clearErr('login');
+  showLoginInfo('Sending a new verification email…');
+  try {
+    const res = await fetch('http://localhost:5000/api/auth/resend-verification', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ email }),
+    });
+    const data = await res.json();
+    showLoginSuccess(data.message || 'Verification email sent! Check your inbox.');
+  } catch (e) {
+    showErr('login', 'Could not reach the server.');
+  }
+}
+
+// ── REGISTER VALIDATION ───────────────────────────
+function validateReg() {
+  const name     = document.getElementById('reg-name').value.trim();
+  const email    = document.getElementById('reg-email').value.trim();
+  const password = document.getElementById('reg-password').value;
+  const confirm  = document.getElementById('reg-confirm').value;
+
+  let valid = true;
+  const setErr = (id, inputId, show) => {
+    document.getElementById(id).classList.toggle('show', show);
+    document.getElementById(inputId).classList.toggle('error', show);
+    if (show) valid = false;
+  };
+
+  setErr('err-name',     'reg-name',     !name);
+  setErr('err-email',    'reg-email',    !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email));
+  setErr('err-password', 'reg-password', password.length > 0 && password.length < 6);
+  setErr('err-confirm',  'reg-confirm',  confirm.length > 0 && confirm !== password);
+
+  const allFilled = name &&
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) &&
+    password.length >= 6 &&
+    confirm === password;
+
+  document.getElementById('reg-btn').disabled = !(allFilled && tcAccepted);
+}
+
+// ── T&C CHECKBOX ──────────────────────────────────
+function toggleTC() {
+  tcAccepted = !tcAccepted;
+  document.getElementById('tc-wrap').classList.toggle('checked', tcAccepted);
+  document.getElementById('err-tc').classList.remove('show');
+  validateReg();
+}
+function openTC()  { document.getElementById('tc-modal').classList.add('open'); }
+function closeTC() { document.getElementById('tc-modal').classList.remove('open'); }
+function acceptFromModal() {
+  tcAccepted = true;
+  document.getElementById('tc-wrap').classList.add('checked');
+  document.getElementById('err-tc').classList.remove('show');
+  closeTC();
+  validateReg();
+}
+
+// ── REGISTER ──────────────────────────────────────
+async function handleRegister() {
+  clearErr('reg');
+  document.getElementById('reg-success')?.classList.remove('show');
+
+  if (!tcAccepted) {
+    document.getElementById('err-tc').classList.add('show');
+    return;
+  }
+
+  const name      = document.getElementById('reg-name').value.trim();
+  const email     = document.getElementById('reg-email').value.trim();
+  const studentId = document.getElementById('reg-studentid').value.trim();
+  const program   = document.getElementById('reg-program').value.trim();
+  const password  = document.getElementById('reg-password').value;
+
+  const btn = document.getElementById('reg-btn');
+  btn.classList.add('loading'); btn.disabled = true;
+
+  const res = await Auth.register(name, email, password, studentId, program, true);
+
+  btn.classList.remove('loading');
+
+  if (res?.success && res?.requiresVerify) {
+    // Show success — do NOT redirect, user needs to verify first
+    const successEl  = document.getElementById('reg-success');
+    const successMsg = document.getElementById('reg-success-msg');
+    if (successMsg) successMsg.textContent =
+      '🎉 Account created! Check your email inbox for a verification link before signing in.';
+    successEl?.classList.add('show');
+    // Clear the form
+    ['reg-name','reg-email','reg-studentid','reg-program','reg-password','reg-confirm']
+      .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+    tcAccepted = false;
+    document.getElementById('tc-wrap').classList.remove('checked');
+    btn.disabled = true;
+  } else if (res?.success) {
+    // Fallback: old backend without requiresVerify
+    window.location.href = 'studysprint_dashboard.html';
+  } else {
+    btn.disabled = false;
+    showErr('reg', res?.message || 'Registration failed. Please try again.');
+  }
+}
+
+// ── Enter key support ─────────────────────────────
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Enter') return;
+  const activeTab = document.querySelector('.tab.active').id;
+  if (activeTab === 'tab-login') handleLogin();
+  else if (!document.getElementById('reg-btn').disabled) handleRegister();
+});
+</script>
+</body>
+</html>
