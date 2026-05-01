@@ -30,6 +30,7 @@ app.use(cors({
 }));
 app.use(express.json({ limit: '5mb' }));      // parse JSON body (up to 5MB for syllabus text)
 app.use(express.urlencoded({ extended: true }));
+app.use(express.static(__dirname));
 
 // ── Health check ──────────────────────────────────
 app.get('/api/health', (req, res) => {
