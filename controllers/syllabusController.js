@@ -3,33 +3,41 @@ const db    = require('../config/db');
 const https = require('https');
 require('dotenv').config();
 
-const callClaude = (syllabusText) => new Promise((resolve, reject) => {
-  const SYSTEM = `You are an expert academic assistant. Parse the university course syllabus and respond ONLY with a valid JSON object — no markdown, no backticks.
-Schema: {"course_name":"string","course_code":"string|null","instructor":"string|null","semester":"string|null","assessments":[{"name":"string","due_date":"string|null","weight_percent":number|null,"type":"quiz|exam|project|lab|other"}],"weekly_topics":["string"],"key_dates":[{"date":"string","event":"string","type":"exam|quiz|submission|holiday|other"}],"flags":["string"],"summary":"string"}`;
+const { GoogleGenAI } = require("@google/genai");
 
-  const body = JSON.stringify({
-    model: 'claude-sonnet-4-20250514', max_tokens: 2048, system: SYSTEM,
-    messages: [{ role: 'user', content: `Parse this syllabus:\n\n${syllabusText.slice(0, 12000)}` }],
-  });
-
-  const req = https.request({
-    hostname: 'api.anthropic.com', path: '/v1/messages', method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'x-api-key': process.env.ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01', 'Content-Length': Buffer.byteLength(body) },
-  }, (apiRes) => {
-    let data = '';
-    apiRes.on('data', chunk => { data += chunk; });
-    apiRes.on('end', () => {
-      try {
-        const parsed = JSON.parse(data);
-        if (parsed.error) return reject(new Error(parsed.error.message));
-        const text  = parsed.content.map(b => b.text || '').join('').trim();
-        resolve(JSON.parse(text.replace(/```json|```/gi, '').trim()));
-      } catch (e) { reject(new Error('Claude response could not be parsed as JSON')); }
-    });
-  });
-  req.on('error', reject);
-  req.write(body); req.end();
+const ai = new GoogleGenAI({
+  apiKey: process.env.GEMINI_API_KEY,
 });
+
+const callGemini = async (syllabusText) => {
+  const result = await ai.models.generateContent({
+    model: "gemini-1.5-flash",
+    contents: `
+You are an academic assistant.
+
+Extract structured syllabus data from this text:
+
+${syllabusText.slice(0, 12000)}
+
+Return ONLY valid JSON:
+{
+  "course_name": "",
+  "course_code": "",
+  "instructor": "",
+  "semester": "",
+  "assessments": [
+    {
+      "name": "",
+      "due_date": ""
+    }
+  ]
+}
+`
+  });
+
+  return JSON.parse(result.text.replace(/```json|```/gi, '').trim());
+};
+
 
 const parseSyllabus = async (req, res) => {
   try {
@@ -46,10 +54,10 @@ const parseSyllabus = async (req, res) => {
     const syllabusId = insertResult.insertId;
 
     let parsed;
-    try { parsed = await callClaude(text); }
-    catch (claudeErr) {
+    try { parsed = await callGemini(text); }
+    catch (geminiErr) {
       await db.query('UPDATE syllabi SET parse_status=? WHERE id=?', ['failed', syllabusId]);
-      return res.status(502).json({ success: false, message: 'Claude API error: ' + claudeErr.message });
+      return res.status(502).json({ success: false, message: 'Gemini API error: ' + geminiErr.message });
     }
 
     await db.query('UPDATE syllabi SET parsed_json=?,flags=?,parse_status=? WHERE id=?',
