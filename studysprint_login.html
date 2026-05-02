@@ -378,7 +378,7 @@ let tcAccepted = false;
   showLoginInfo('Verifying your email…');
 
   try {
-    const res = await fetch(`http://localhost:5000/api/auth/verify?token=${token}`);
+    const res = await fetch(`https://studysprint-production-1587.up.railway.app/api/auth/verify?token=${token}`);
     const data = await res.json();
     if (data.success) {
       showLoginSuccess('✅ Email verified! You can now sign in.');
@@ -466,7 +466,7 @@ async function resendVerification(email) {
   clearErr('login');
   showLoginInfo('Sending a new verification email…');
   try {
-    const res = await fetch('http://localhost:5000/api/auth/resend-verification', {
+    const res = await fetch('https://studysprint-production-1587.up.railway.app/api/auth/resend-verification', {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
       body:    JSON.stringify({ email }),
