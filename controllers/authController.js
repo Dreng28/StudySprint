@@ -2,7 +2,8 @@
 const bcrypt       = require('bcryptjs');
 const jwt          = require('jsonwebtoken');
 const crypto       = require('crypto');
-const nodemailer = require('nodemailer');
+const { Resend } = require('resend');
+const resend = new Resend(process.env.RESEND_API_KEY);
 const db           = require('../config/db');
 require('dotenv').config();
 
@@ -13,29 +14,25 @@ const signToken = (id, email) =>
   });
 
 // ── Nodemailer transporter ────────────────────────────────────────
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-});
+
 
 // ── Send verification email ───────────────────────────────────────
 async function sendVerificationEmail(email, full_name, token) {
   const verifyUrl = `${process.env.FRONTEND_URL}/studysprint_login.html?verify=${token}`;
 
-  await transporter.sendMail({
-    from: `"StudySprint" <${process.env.EMAIL_USER}>`,
+  await resend.emails.send({
+    from: 'StudySprint <onboarding@resend.dev>',
     to: email,
     subject: 'Verify your StudySprint account',
     html: `
-      <h2>Hi ${full_name} 👋</h2>
-      <p>Please verify your email to activate your account:</p>
-      <a href="${verifyUrl}" style="padding:10px 20px;background:#6C2BD9;color:white;text-decoration:none;border-radius:5px;">
-        Verify Email
-      </a>
-      <p>This link expires in 24 hours.</p>
+      <div style="font-family:sans-serif;max-width:520px;margin:0 auto;padding:32px;">
+        <h2>Hi ${full_name} 👋</h2>
+        <p>Please verify your email to activate your StudySprint account.</p>
+        <a href="${verifyUrl}" style="display:inline-block;padding:14px 32px;background:#6C2BD9;color:white;text-decoration:none;border-radius:10px;font-weight:700;">
+          Verify My Email
+        </a>
+        <p style="color:#9CA3AF;font-size:13px;margin-top:24px;">This link expires in 24 hours.</p>
+      </div>
     `,
   });
 }
