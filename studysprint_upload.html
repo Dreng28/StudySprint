@@ -377,6 +377,12 @@
 
 </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>
+  pdfjsLib.GlobalWorkerOptions.workerSrc =
+    "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+</script>
+
 <script src="api.js"></script>
 <script>
 requireAuth();
@@ -445,18 +451,44 @@ function handlePastedText() {
   document.getElementById('file-size-bar').textContent = txt.length + ' characters';
   startParsing();
 }
-function readAndParse(file) {
+async function readAndParse(file) {
   document.getElementById('file-name-bar').textContent = file.name;
-  document.getElementById('file-size-bar').textContent = (file.size/1024).toFixed(0) + ' KB';
+  document.getElementById('file-size-bar').textContent = (file.size / 1024).toFixed(0) + ' KB';
+
+  if (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')) {
+    try {
+      const arrayBuffer = await file.arrayBuffer();
+      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+
+      let fullText = '';
+
+      for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+        const page = await pdf.getPage(pageNum);
+        const textContent = await page.getTextContent();
+        const pageText = textContent.items.map(item => item.str).join(' ');
+        fullText += pageText + '\n';
+      }
+
+      currentText = fullText.trim();
+
+      if (!currentText || currentText.length < 50) {
+        currentText = `Syllabus file: ${file.name}`;
+      }
+
+      startParsing();
+    } catch (err) {
+      showError('Could not read PDF text: ' + err.message);
+    }
+
+    return;
+  }
+
   const reader = new FileReader();
   reader.onload = e => {
-    let raw = e.target.result || '';
-    let text = raw.replace(/[^\x20-\x7E\n\r\t]/g,' ').replace(/\s{4,}/g,'\n').trim();
-    currentText = text.length > 80 ? text : `Syllabus file: ${file.name}`;
+    currentText = e.target.result || '';
     startParsing();
   };
-  reader.onerror = () => { currentText = `Syllabus: ${file.name}`; startParsing(); };
-  reader.readAsBinaryString(file);
+  reader.readAsText(file);
 }
 
 const STEPS = [
