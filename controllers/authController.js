@@ -94,7 +94,7 @@ const register = async (req, res) => {
         (full_name, email, password_hash, student_id, program,
          terms_accepted, terms_accepted_at,
          is_verified, verify_token, verify_token_exp)
-       VALUES (?, ?, ?, ?, ?, 1, NOW(), 0, ?, ?)`,
+       VALUES (?, ?, ?, ?, ?, 1, NOW(), 1, ?, ?)`,
       [full_name, email, password_hash, student_id || null, program || null,
        verify_token, verify_token_exp]
     );
