@@ -11,8 +11,11 @@ const ai = new GoogleGenAI({
 
 const callGemini = async (syllabusText) => {
   const result = await ai.models.generateContent({
-    model: "gemini-2.5-flash",
-    contents: `
+  model: "gemini-2.5-flash",
+  config: {
+    responseMimeType: "application/json"
+  },
+  contents: `
 You are an academic assistant.
 
 Extract structured syllabus data from this text:
