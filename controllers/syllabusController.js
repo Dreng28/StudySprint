@@ -41,6 +41,15 @@ Return ONLY valid JSON:
   return JSON.parse(result.text.replace(/```json|```/gi, '').trim());
 };
 
+function toMysqlDate(value) {
+  if (!value) return null;
+
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return null;
+
+  return d.toISOString().slice(0, 10);
+}
+
 
 const parseSyllabus = async (req, res) => {
   try {
@@ -76,7 +85,7 @@ const parseSyllabus = async (req, res) => {
       await db.query('DELETE FROM assessments WHERE course_id=? AND user_id=?', [course_id, req.user.id]);
       await db.query(
         'INSERT INTO assessments (course_id,user_id,name,type,due_date,weight_percent) VALUES ?',
-        [parsed.assessments.map(a => [course_id, req.user.id, a.name, a.type||'other', a.due_date||null, a.weight_percent||null])]
+        [parsed.assessments.map(a => [course_id, req.user.id, a.name, a.type || 'other', toMysqlDate(a.due_date), a.weight_percent || null])]
       );
     }
 
