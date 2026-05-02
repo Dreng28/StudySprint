@@ -217,19 +217,19 @@
   <!-- SCREEN: API Key -->
   <div class="screen active" id="screen-apikey">
     <div class="card">
-      <div class="card-title">Connect Claude AI</div>
+      <div class="card-title">Connect AI</div>
       <div class="api-info">
         <div class="api-info-icon">
           <svg width="16" height="16" fill="none" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6" stroke="white" stroke-width="1.4" fill="none"/><path d="M8 5v3.5l2 1" stroke="white" stroke-width="1.4" stroke-linecap="round"/></svg>
         </div>
-        <div class="api-info-text">StudySprint uses <strong>Claude Sonnet 4</strong> to read your syllabus and extract course details, deadlines, and grading weights. Enter your free Anthropic API key below.</div>
+        <div class="api-info-text">StudySprint uses <strong>Claude Sonnet 4</strong> to read your syllabus and extract course details, deadlines, and grading weights. Enter your free Gemini key below.</div>
       </div>
       <div class="saved-bar" id="saved-bar">
         <svg width="14" height="14" fill="none" viewBox="0 0 14 14"><path d="M2 7l4 4 6-6" stroke="#10B981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
         API key saved for this session.
         <button onclick="clearKey()" style="background:none;border:none;color:#EF4444;cursor:pointer;font-size:13px;font-family:'Plus Jakarta Sans',sans-serif;margin-left:8px;font-weight:600;">Change</button>
       </div>
-      <label class="field-label">Anthropic API Key</label>
+      <label class="field-label">Gemini Key</label>
       <div class="field-wrap">
         <input class="field-input" type="password" id="api-key-input" placeholder="" oninput="validateKey()"/>
         <button class="field-toggle" onclick="toggleVis()">👁</button>
@@ -251,7 +251,7 @@
     <div class="card">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
         <div class="card-title" style="margin-bottom:0;">Upload Syllabus</div>
-        <span style="font-size:12px;font-weight:600;color:var(--green);background:var(--green-light);padding:4px 12px;border-radius:999px;">✓ Claude AI Connected</span>
+        <span style="font-size:12px;font-weight:600;color:var(--green);background:var(--green-light);padding:4px 12px;border-radius:999px;">✓ AI Connected</span>
       </div>
       <div class="drop-zone" id="drop-zone"
         ondragover="event.preventDefault();this.classList.add('dragover')"
@@ -284,7 +284,7 @@
       <textarea class="paste-area" id="paste-text" placeholder="Paste your syllabus here — course name, schedule, quiz dates, exam dates, grading breakdown..."></textarea>
       <button class="parse-btn" onclick="handlePastedText()">
         <svg width="14" height="14" fill="none" viewBox="0 0 14 14"><circle cx="7" cy="7" r="6" stroke="white" stroke-width="1.4" fill="none"/><path d="M4.5 7l2 2 3.5-3" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        Parse with Claude AI
+        Parse with AI
       </button>
     </div>
 
@@ -308,7 +308,7 @@
         <div style="margin-left:auto;font-size:12px;font-weight:600;color:var(--purple);background:var(--purple-light);padding:4px 12px;border-radius:999px;">Processing…</div>
       </div>
       <div class="spinner"></div>
-      <div class="parse-heading" id="parse-heading">Sending to Claude AI…</div>
+      <div class="parse-heading" id="parse-heading">Sending to AI…</div>
       <div class="parse-sub" id="parse-sub">Claude Sonnet 4 is reading your syllabus.</div>
       <div class="parse-steps">
         <div class="parse-step active-step" id="pstep-0">
@@ -317,7 +317,7 @@
         </div>
         <div class="parse-step" id="pstep-1">
           <div class="ps-icon pending"></div>
-          <span class="ps-label muted">Sending to Anthropic API</span>
+          <span class="ps-label muted">Sending to Gemini</span>
         </div>
         <div class="parse-step" id="pstep-2">
           <div class="ps-icon pending"></div>
@@ -461,7 +461,7 @@ function readAndParse(file) {
 
 const STEPS = [
   ['Reading file & preparing prompt','Loading your document and building the AI prompt…'],
-  ['Sending to Anthropic API','Making a secure request to Claude Sonnet 4…'],
+  ['Sending to Gemini','Making a secure request to Claude Sonnet 4…'],
   ['Claude extracting course details','Identifying course name, schedule, and topics…'],
   ['Parsing deadlines & assessments','Finding due dates, quiz dates, and grading weights…'],
   ['Building structured JSON output','Organising the extracted data…'],
@@ -491,90 +491,80 @@ function startParsing() {
   goTo('parsing');
   setStep(0,'active');
   setTimeout(() => { setStep(0,'done'); setStep(1,'active');
-    setTimeout(() => { setStep(1,'done'); setStep(2,'active'); callClaude(); }, 700);
+    setTimeout(() => { setStep(1,'done'); setStep(2,'active'); callGemini(); }, 700);
   }, 800);
 }
 
 function finishSteps() { for(let i=0;i<5;i++) setStep(i,'done'); }
 
-async function callClaude() {
-  if (!apiKey && !Auth.isLoggedIn()) {
-    showError('Please log in or enter an API key.');
+async function callGemini() {
+  if (!Auth.isLoggedIn()) {
+    showError('Please log in first.');
     return;
   }
 
   try {
     let parsed, raw;
 
-    if (apiKey) {
-      // ── DEMO MODE: direct browser call ─────────────────────
-      const SYSTEM = `You are an expert academic assistant. Parse the university course syllabus and respond ONLY with a valid JSON object — no markdown, no backticks, no explanation.
-Schema: { "course_name":"string","course_code":"string|null","instructor":"string|null","semester":"string|null","assessments":[{"name":"string","due_date":"string|null","weight_percent":number|null,"type":"quiz|exam|project|lab|other"}],"weekly_topics":["string"],"key_dates":[{"date":"string","event":"string","type":"exam|quiz|submission|holiday|other"}],"flags":["string"],"summary":"string" }`;
+    // ── PRODUCTION MODE: backend ────────────
+    setStep(2, 'active');
 
-      const res = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': apiKey,
-          'anthropic-version': '2023-06-01',
-          'anthropic-dangerous-direct-browser-access': 'true',
-        },
-        body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514',
-          max_tokens: 2048,
-          system: SYSTEM,
-          messages: [{ role: 'user', content: `Parse this syllabus:\n\n${currentText.slice(0, 12000)}` }],
-        }),
-      });
-      if (!res.ok) { const e = await res.json().catch(() => ({})); throw new Error(e.error?.message || `HTTP ${res.status}`); }
-      const data = await res.json();
-      raw = data.content.map(b => b.text || '').join('').trim();
-      parsed = JSON.parse(raw.replace(/```json|```/gi, '').trim());
+    const courseRes = await Courses.create({ 
+      course_name: 'New Course', 
+      color: '#6C2BD9' 
+    });
 
-    } else {
-      // ── PRODUCTION MODE: backend ────────────────────────────
-      setStep(2, 'active');
-
-      // Create course from parsed name (will be updated after parsing)
-      const courseRes = await Courses.create({ course_name: 'New Course', color: '#6C2BD9' });
-      if (!courseRes?.success) throw new Error(courseRes?.message || 'Could not create course.');
-      currentCourseId = courseRes.id;
-
-      setStep(2, 'done'); setStep(3, 'active');
-
-      const fileName = document.getElementById('file-name-bar')?.textContent || 'syllabus';
-      const syllabusRes = await Syllabi.parse(
-        currentCourseId,
-        currentText,
-        fileName,
-        null
-      );
-      if (!syllabusRes?.success) throw new Error(syllabusRes?.message || 'Parsing failed on server.');
-      parsed = syllabusRes.parsed;
-      raw = JSON.stringify(parsed);
-
-      setStep(3, 'done'); setStep(4, 'active');
-
-      // Update the course with the real name from parsing
-      if (parsed.course_name) {
-        await Courses.update(currentCourseId, {
-          course_name: parsed.course_name,
-          course_code: parsed.course_code || null,
-          instructor:  parsed.instructor  || null,
-          semester:    parsed.semester    || null,
-          summary:     parsed.summary     || null,
-        });
-      }
-      setStep(4, 'done');
+    if (!courseRes?.success) {
+      throw new Error(courseRes?.message || 'Could not create course.');
     }
 
+    currentCourseId = courseRes.id;
+
+    setStep(2, 'done');
+    setStep(3, 'active');
+
+    const fileName = document.getElementById('file-name-bar')?.textContent || 'syllabus';
+
+    const syllabusRes = await Syllabi.parse(
+      currentCourseId,
+      currentText,
+      fileName,
+      null
+    );
+
+    if (!syllabusRes?.success) {
+      throw new Error(syllabusRes?.message || 'Parsing failed on server.');
+    }
+
+    parsed = syllabusRes.parsed;
+    raw = JSON.stringify(parsed);
+
+    setStep(3, 'done');
+    setStep(4, 'active');
+
+    // Update course info
+    if (parsed.course_name) {
+      await Courses.update(currentCourseId, {
+        course_name: parsed.course_name,
+        course_code: parsed.course_code || null,
+        instructor: parsed.instructor || null,
+        semester: parsed.semester || null,
+        summary: parsed.summary || null,
+      });
+    }
+
+    setStep(4, 'done');
+
+    // ✅ THESE MUST BE INSIDE TRY
     lastParsed = parsed;
     finishSteps();
     setTimeout(() => showResults(parsed, raw), 500);
 
   } catch (err) {
     finishSteps();
-    setTimeout(() => showError(err.message + '<br><br>Check your connection and try again.'), 500);
+    setTimeout(() => 
+      showError(err.message + '<br><br>Check your connection and try again.'), 
+    500);
   }
 }
 
