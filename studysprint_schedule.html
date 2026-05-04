@@ -476,12 +476,19 @@ function escHtml(s) {
     .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
+// ── Format a raw date/ISO string → "Jul 15, 2026" ──
+function formatDeadline(raw) {
+  if (!raw) return 'TBD';
+  const d = /^\d{4}-\d{2}-\d{2}$/.test(raw)
+    ? new Date(raw + 'T00:00:00')
+    : new Date(raw);
+  if (isNaN(d.getTime())) return raw;
+  return `${MONTHS[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
+}
+
 // ── Load sprints from backend ─────────────────────
 async function loadRealSprints() {
-  const monday = getWeekStart();
-  // Advance to Monday (day 1) for the API
-  const mon = new Date(monday); mon.setDate(mon.getDate() + 1);
-  const weekStr = mon.toISOString().split('T')[0];
+  const weekStr = getWeekStart().toISOString().split('T')[0];
 
   const slotMap = { morning: 0, afternoon: 1, evening: 2 };
 
@@ -520,7 +527,7 @@ async function loadRealSprints() {
         color:  hexToName(sp.color),
         dur:    `${sp.duration_min} min`,
         pri:    sp.priority.charAt(0).toUpperCase() + sp.priority.slice(1),
-        dead:   sp.linked_deadline || 'TBD',
+        dead:   formatDeadline(sp.linked_deadline),
         reason: sp.ai_reason || 'AI-generated sprint.',
         done:   !!sp.is_done,
       });
