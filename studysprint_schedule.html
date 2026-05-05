@@ -167,6 +167,93 @@
   .sb-course-row { display: flex; align-items: center; margin-top: 3px; }
   .sb-course-name { font-size: 10px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   @keyframes fadeUp { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+  /* ── MOBILE RESPONSIVE (≤ 640px) ──────────────────────────────── */
+  @media (max-width: 640px) {
+
+    /* Nav: stack controls */
+    .topnav { padding: 0 14px; height: auto; flex-wrap: wrap; gap: 8px; padding-top: 10px; padding-bottom: 10px; }
+    .nav-left { flex: 1; min-width: 0; }
+    .nav-title { font-size: 15px; }
+    .nav-sub { display: none; }
+    .nav-right { width: 100%; justify-content: space-between; gap: 6px; }
+    .week-nav { flex: 1; justify-content: center; }
+    .week-label { font-size: 12px; }
+    .view-toggle { flex-shrink: 0; }
+    .vt-btn { padding: 6px 12px; font-size: 12px; }
+    .recal-btn { padding: 7px 10px; font-size: 12px; gap: 4px; }
+    .recal-btn span { display: none; }
+
+    /* Page padding */
+    .page { padding: 12px; }
+
+    /* Progress cards: 2x2 grid on mobile */
+    .progress-row { grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 14px; }
+    .prog-card { padding: 12px 13px; }
+    .prog-val { font-size: 18px; }
+    .prog-label { font-size: 10px; }
+
+    /* Alert banner: stack on mobile */
+    .alert-banner { flex-wrap: wrap; gap: 8px; padding: 10px 12px; }
+    .alert-text { font-size: 12px; width: 100%; }
+    .alert-fix { font-size: 12px; padding: 6px 12px; }
+
+    /* Calendar: hide on mobile, show list by default */
+    .cal-view.active { display: none; }
+    .list-view { display: block !important; }
+    .list-view.active { display: block; }
+
+    /* Hide week view button, keep list */
+    #vbtn-week { display: none; }
+    #vbtn-list { border-radius: var(--radius-sm); }
+
+    /* List view items */
+    .list-item { padding: 12px 13px; gap: 10px; }
+    .li-title { font-size: 13px; }
+    .li-meta { font-size: 11px; gap: 6px; }
+    .li-actions { flex-direction: column; gap: 4px; }
+    .li-action { font-size: 11px; padding: 5px 8px; text-align: center; }
+    .dg-date { font-size: 13px; }
+
+    /* Modal: full screen bottom sheet on mobile */
+    .modal-bg { align-items: flex-end; }
+    .modal {
+      width: 100%;
+      max-width: 100%;
+      border-radius: var(--radius) var(--radius) 0 0;
+      padding: 20px 18px 32px;
+      max-height: 90vh;
+      overflow-y: auto;
+      animation: slideUp 0.25s ease;
+    }
+    @keyframes slideUp { from{transform:translateY(100%)} to{transform:translateY(0)} }
+    .modal-title { font-size: 16px; }
+    .pom-ring { width: 100px; height: 100px; }
+    .pom-svg { width: 100px; height: 100px; }
+    .pom-time { font-size: 22px; }
+    .pom-btn { padding: 8px 14px; font-size: 12px; }
+    .modal-actions { flex-wrap: wrap; }
+    .modal-actions button { min-width: calc(50% - 4px); font-size: 12px; padding: 10px; }
+    .dur-edit-row { flex-wrap: wrap; gap: 6px; }
+
+    /* Toast: full width on mobile */
+    .toast { width: calc(100% - 32px); text-align: center; white-space: normal; bottom: 16px; }
+  }
+
+  /* ── TABLET (641px – 900px) ────────────────────────────────────── */
+  @media (min-width: 641px) and (max-width: 900px) {
+    .progress-row { grid-template-columns: repeat(2, 1fr); }
+    .topnav { padding: 0 16px; }
+    .page { padding: 16px; }
+    .cal-header-row { grid-template-columns: 50px repeat(7, 1fr); }
+    .cal-body-row { grid-template-columns: 50px repeat(7, 1fr); }
+    .cal-time { padding: 8px 6px 0; font-size: 10px; }
+    .cal-day-num { font-size: 16px; }
+    .cal-day-name { font-size: 10px; }
+    .sb-title { font-size: 10px; }
+    .sb-meta { font-size: 9px; }
+    .sb-course-name { font-size: 9px; }
+  }
+
 </style>
 </head>
 <body>
@@ -763,6 +850,10 @@ function pomStop() {
 }
 
 // ── Boot ──────────────────────────────────────────
+// On mobile, default to list view
+if (window.innerWidth <= 640) {
+  switchView('list');
+}
 updateWeekLabel();
 loadRealSprints();
 </script>
