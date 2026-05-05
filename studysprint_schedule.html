@@ -489,7 +489,8 @@ function formatDeadline(raw) {
 
 // ── Load sprints from backend ─────────────────────
 async function loadRealSprints() {
-  const weekStr = getWeekStart().toISOString().split('T')[0];
+  const ws0 = getWeekStart();
+  const weekStr = `${ws0.getFullYear()}-${String(ws0.getMonth()+1).padStart(2,'0')}-${String(ws0.getDate()).padStart(2,'0')}`;
 
   const slotMap = { morning: 0, afternoon: 1, evening: 2 };
 
@@ -583,5 +584,3 @@ loadRealSprints();
 </script>
 </body>
 </html>
-   
- 
