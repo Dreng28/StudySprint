@@ -664,7 +664,7 @@ function pomStart() {
     if (pomRemaining <= 0) {
       pomStop();
       document.getElementById('pom-ring').classList.add('done-ring');
-      document.getElementById('pom-label').textContent = '✅ Time's up! Great work!';
+      document.getElementById("pom-label").textContent = "✅ Time's up! Great work!";
       document.getElementById('pom-start').style.display = '';
       document.getElementById('pom-pause').style.display = 'none';
       showToast('⏱ Sprint timer done! Mark it complete?');
@@ -690,5 +690,3 @@ loadRealSprints();
 </script>
 </body>
 </html>
-   
- 
