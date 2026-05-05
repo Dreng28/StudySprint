@@ -9,6 +9,6 @@ router.use(protect);
 router.post('/',    parseSyllabus);
 router.get ('/',    getSyllabi);
 router.get ('/:id', getSyllabus);
-router.delete('/:id', authenticate, deleteSyllabus);
+router.delete('/:id', deleteSyllabus);
 
 module.exports = router;
