@@ -697,7 +697,7 @@ async function loadPreviousSyllabi() {
           <div class="prev-sub">${escHtml(s.file_name || '')} · Uploaded: ${uploaded}</div>
         </div>
         <span class="status-badge ${statusClass}">${statusText}</span>
-        <button class="view-btn-sm" onclick="viewSyllabus(${s.id})">View</button>`;
+        <button class=\"del-btn-sm\" onclick=\"deleteSyllabus(${s.id}, this)\">🗑 Delete</button><button class=\"view-btn-sm\" onclick=\"viewSyllabus(${s.id})\">View</button>`;
       container.appendChild(div);
     });
   } catch (_) {
@@ -756,5 +756,6 @@ function toggleJSON() {
 </script>
 </body>
 </html>
-   
+  
+ 
  
