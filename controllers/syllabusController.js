@@ -31,12 +31,16 @@ Return ONLY valid JSON:
   "assessments": [
     {
       "name": "",
-      "type": "",
+      "type": "other",
       "due_date": "",
       "weight_percent": null
     }
   ]
 }
+
+For the "type" field, use ONLY one of these exact values: "quiz", "exam", "assignment", "project", "lab", "other".
+For "due_date", use YYYY-MM-DD format. If no date is found, use null.
+For "weight_percent", use a number (e.g. 10) or null if not found.
 `
   });
 
@@ -87,7 +91,7 @@ const parseSyllabus = async (req, res) => {
       await db.query('DELETE FROM assessments WHERE course_id=? AND user_id=?', [course_id, req.user.id]);
       await db.query(
         'INSERT INTO assessments (course_id,user_id,name,type,due_date,weight_percent) VALUES ?',
-        [parsed.assessments.map(a => [course_id, req.user.id, a.name, a.type || 'other', toMysqlDate(a.due_date), a.weight_percent || null])]
+        [parsed.assessments.map(a => { const ALLOWED = ['quiz','exam','assignment','project','lab','other']; const t = (a.type||'').toLowerCase().trim(); const safeType = ALLOWED.includes(t) ? t : 'other'; return [course_id, req.user.id, a.name, safeType, toMysqlDate(a.due_date), a.weight_percent||null]; })]
       );
     }
 
