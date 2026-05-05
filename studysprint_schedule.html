@@ -137,6 +137,29 @@
   /* Toast */
   .toast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%); background: #1E1B4B; color: white; font-size: 13px; font-weight: 500; padding: 12px 22px; border-radius: 999px; z-index: 200; white-space: nowrap; box-shadow: 0 8px 24px rgba(0,0,0,0.2); animation: fadeUp 0.25s ease; }
 
+
+  /* Pomodoro timer */
+  .pom-ring { position: relative; width: 120px; height: 120px; margin: 0 auto 16px; }
+  .pom-svg { transform: rotate(-90deg); }
+  .pom-track { fill: none; stroke: #E5E7EB; stroke-width: 8; }
+  .pom-progress { fill: none; stroke: var(--purple); stroke-width: 8; stroke-linecap: round;
+    stroke-dasharray: 314; stroke-dashoffset: 0; transition: stroke-dashoffset 1s linear, stroke 0.3s; }
+  .pom-progress.running { stroke: var(--purple); }
+  .pom-progress.done-ring { stroke: var(--green); }
+  .pom-time { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    font-size: 26px; font-weight: 800; color: var(--text); letter-spacing: -1px; }
+  .pom-controls { display: flex; gap: 8px; justify-content: center; margin-bottom: 12px; }
+  .pom-btn { padding: 9px 20px; border-radius: var(--radius-sm); font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 13px; font-weight: 600; cursor: pointer; border: 1.5px solid var(--border); background: white; color: var(--text); }
+  .pom-btn.primary { background: linear-gradient(135deg, var(--purple), var(--purple-mid)); border: none; color: white; }
+  .pom-btn.danger  { border-color: var(--coral); color: var(--coral); }
+  .pom-btn.danger:hover { background: var(--coral); color: white; }
+  .pom-label { font-size: 12px; color: var(--text-muted); text-align: center; margin-bottom: 16px; }
+  .pom-divider { height: 1px; background: var(--border); margin: 14px 0; }
+  /* Color dot on sprint block */
+  .sb-course-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 5px; vertical-align: middle; flex-shrink: 0; }
+  .sb-course-row { display: flex; align-items: center; margin-top: 3px; }
+  .sb-course-name { font-size: 10px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   @keyframes fadeUp { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
 </style>
 </head>
@@ -230,6 +253,23 @@
     <div class="modal-row"><span class="modal-key">Priority</span><span class="modal-val" id="m-pri">—</span></div>
     <div class="modal-row"><span class="modal-key">Linked deadline</span><span class="modal-val" id="m-dead">—</span></div>
     <div class="modal-reason" id="m-reason">—</div>
+
+    <!-- Pomodoro Timer -->
+    <div class="pom-divider"></div>
+    <div class="pom-ring">
+      <svg class="pom-svg" width="120" height="120" viewBox="0 0 120 120">
+        <circle class="pom-track" cx="60" cy="60" r="50"/>
+        <circle class="pom-progress" id="pom-ring" cx="60" cy="60" r="50"/>
+      </svg>
+      <div class="pom-time" id="pom-time">45:00</div>
+    </div>
+    <div class="pom-label" id="pom-label">Ready to focus?</div>
+    <div class="pom-controls">
+      <button class="pom-btn primary" id="pom-start" onclick="pomStart()">▶ Start</button>
+      <button class="pom-btn" id="pom-pause" onclick="pomPause()" style="display:none;">⏸ Pause</button>
+      <button class="pom-btn danger" id="pom-reset" onclick="pomReset()">↺ Reset</button>
+    </div>
+
     <div class="modal-actions">
       <button class="ma-outline" onclick="markDoneModal()">Mark Complete</button>
       <button class="ma-outline" onclick="postponeModal()">Postpone 1 Day</button>
@@ -352,8 +392,13 @@ function buildCal() {
         .filter(s => s.day === d && s.slot === slotIdx)
         .forEach(sp => {
           const block = document.createElement('div');
-          block.className = `sprint-block ${sp.color}` + (sp.done ? ' done-block' : '');
+          block.className = 'sprint-block' + (sp.done ? ' done-block' : '');
+          block.style.cssText = `background:${sp.colorBg};border-left:3px solid ${sp.colorHex};`;
           block.innerHTML = `<div class="sb-title">${escHtml(sp.title)}</div>
+                             <div class="sb-course-row">
+                               <span class="sb-course-dot" style="background:${sp.colorHex};"></span>
+                               <span class="sb-course-name">${escHtml(sp.course)}</span>
+                             </div>
                              <div class="sb-meta">${escHtml(sp.dur)}</div>`;
           block.onclick = () => openModal(sp);
           cell.appendChild(block);
@@ -392,7 +437,7 @@ function buildList() {
         el.className = 'list-item';
         el.id = 'li-' + sp.id;
         el.innerHTML = `
-          <div class="li-bar" style="background:${colorBars[sp.color] || 'var(--purple)'};"></div>
+          <div class="li-bar" style="background:${sp.colorHex || 'var(--purple)'};"></div>
           <div class="li-check${sp.done ? ' done' : ''}" id="lic-${sp.id}" onclick="toggleDone(${sp.id},event)"></div>
           <div class="li-info">
             <div class="li-title${sp.done ? ' done' : ''}" id="lit-${sp.id}">${escHtml(sp.title)}</div>
@@ -436,9 +481,12 @@ function openModal(sp) {
     `<span style="background:${priBg[sp.pri] || ''};color:${priTxt[sp.pri] || ''};padding:3px 10px;border-radius:6px;font-size:12px;">${sp.pri}</span>`;
   document.getElementById('m-dead').textContent   = sp.dead || 'TBD';
   document.getElementById('m-reason').textContent = '💡 ' + (sp.reason || 'AI-generated sprint.');
+  // Reset pomodoro to sprint duration
+  const mins = parseInt(sp.dur) || 45;
+  pomReset(mins);
   document.getElementById('modal-bg').classList.add('open');
 }
-function closeModal()   { document.getElementById('modal-bg').classList.remove('open'); activeSprint = null; }
+function closeModal()   { pomStop(); document.getElementById('modal-bg').classList.remove('open'); activeSprint = null; }
 function markDoneModal(){ if (!activeSprint) return; toggleDone(activeSprint.id); closeModal(); }
 function postponeModal(){ if (!activeSprint) return; postponeById(activeSprint.id); closeModal(); }
 
@@ -510,28 +558,28 @@ async function loadRealSprints() {
       const spDate = new Date(sp.scheduled_date.slice(0, 10) + 'T00:00:00');
       const dayIdx = Math.round((spDate - ws) / (1000 * 60 * 60 * 24));
 
-      // Map course color hex → named color
-      const hexToName = (hex) => {
-        if (!hex) return 'purple';
-        const h = hex.toLowerCase();
-        if (h === '#6c2bd9' || h === '#8b5cf6') return 'purple';
-        if (h === '#10b981' || h === '#1d9e75') return 'green';
-        if (h === '#ef4444' || h === '#d85a30') return 'coral';
-        return 'amber';
+      // Derive background tint from course hex color
+      const hexToBg = (hex) => {
+        if (!hex) return '#F3F0FF';
+        const h = hex.replace('#','');
+        const r = parseInt(h.slice(0,2),16), g = parseInt(h.slice(2,4),16), b = parseInt(h.slice(4,6),16);
+        return `rgba(${r},${g},${b},0.10)`;
       };
+      const colorHex = sp.color || '#6C2BD9';
 
       sprints.push({
-        id:     sp.id,
-        day:    dayIdx,
-        slot:   slotMap[sp.scheduled_slot] ?? 0,
-        title:  sp.title,
-        course: sp.course_name || '—',
-        color:  hexToName(sp.color),
-        dur:    `${sp.duration_min} min`,
-        pri:    sp.priority.charAt(0).toUpperCase() + sp.priority.slice(1),
-        dead:   formatDeadline(sp.linked_deadline),
-        reason: sp.ai_reason || 'AI-generated sprint.',
-        done:   !!sp.is_done,
+        id:       sp.id,
+        day:      dayIdx,
+        slot:     slotMap[sp.scheduled_slot] ?? 0,
+        title:    sp.title,
+        course:   sp.course_name || '—',
+        colorHex: colorHex,
+        colorBg:  hexToBg(colorHex),
+        dur:      `${sp.duration_min} min`,
+        pri:      sp.priority.charAt(0).toUpperCase() + sp.priority.slice(1),
+        dead:     formatDeadline(sp.linked_deadline),
+        reason:   sp.ai_reason || 'AI-generated sprint.',
+        done:     !!sp.is_done,
       });
     });
   }
@@ -576,6 +624,64 @@ function checkBottleneck() {
     <div class="alert-text"><strong>Bottleneck detected:</strong> ${hotDates.join(', ')} has 3+ deadlines. Add review sessions to stay ahead.</div>
     <button class="alert-fix" onclick="applyFix()">Apply Fix</button>
     <button class="alert-close" onclick="this.closest('.alert-banner').style.display='none'">×</button>`;
+}
+
+
+// ── Pomodoro Timer ────────────────────────────────
+let pomTotal = 45 * 60;
+let pomRemaining = 45 * 60;
+let pomInterval = null;
+const CIRCUM = 314; // 2 * pi * 50
+
+function pomReset(mins) {
+  pomStop();
+  pomTotal = (mins || 45) * 60;
+  pomRemaining = pomTotal;
+  pomRender();
+  document.getElementById('pom-label').textContent = 'Ready to focus?';
+  document.getElementById('pom-start').style.display = '';
+  document.getElementById('pom-pause').style.display = 'none';
+  document.getElementById('pom-ring').classList.remove('done-ring');
+}
+
+function pomRender() {
+  const m = Math.floor(pomRemaining / 60);
+  const s = pomRemaining % 60;
+  document.getElementById('pom-time').textContent =
+    String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+  const pct = pomRemaining / pomTotal;
+  document.getElementById('pom-ring').style.strokeDashoffset = CIRCUM * (1 - pct);
+}
+
+function pomStart() {
+  if (pomInterval) return;
+  document.getElementById('pom-start').style.display = 'none';
+  document.getElementById('pom-pause').style.display = '';
+  document.getElementById('pom-label').textContent = '🔥 Stay focused!';
+  pomInterval = setInterval(() => {
+    pomRemaining--;
+    pomRender();
+    if (pomRemaining <= 0) {
+      pomStop();
+      document.getElementById('pom-ring').classList.add('done-ring');
+      document.getElementById('pom-label').textContent = '✅ Time's up! Great work!';
+      document.getElementById('pom-start').style.display = '';
+      document.getElementById('pom-pause').style.display = 'none';
+      showToast('⏱ Sprint timer done! Mark it complete?');
+    }
+  }, 1000);
+}
+
+function pomPause() {
+  pomStop();
+  document.getElementById('pom-start').style.display = '';
+  document.getElementById('pom-pause').style.display = 'none';
+  document.getElementById('pom-label').textContent = '⏸ Paused';
+}
+
+function pomStop() {
+  clearInterval(pomInterval);
+  pomInterval = null;
 }
 
 // ── Boot ──────────────────────────────────────────

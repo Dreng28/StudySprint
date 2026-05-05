@@ -12,6 +12,44 @@ const generateSprintsForCourse = async (userId, courseId) => {
   const scheduled   = [];
   const unscheduled = [];
   const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  // ── Daily load balancer: track sprints per date+slot ─────────────
+  const MAX_PER_DAY = 3;
+  const slotOrder   = ['morning', 'afternoon', 'evening'];
+  const dayLoad     = {}; // { 'YYYY-MM-DD': count }
+
+  const dateStr = (d) => {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  };
+
+  const nextAvailableDate = (fromDate, dueDate) => {
+    // Find the next date that hasn't hit MAX_PER_DAY, starting from fromDate
+    // and not exceeding dueDate
+    const limit = new Date(dueDate);
+    limit.setHours(0, 0, 0, 0);
+    const d = new Date(fromDate);
+    d.setHours(0, 0, 0, 0);
+    for (let tries = 0; tries < 60; tries++) {
+      const key = dateStr(d);
+      if ((dayLoad[key] || 0) < MAX_PER_DAY && d <= limit) return new Date(d);
+      d.setDate(d.getDate() + 1);
+      if (d > limit) {
+        // All days full — return due date as fallback
+        return new Date(limit);
+      }
+    }
+    return new Date(fromDate);
+  };
+
+  const assignSlot = (dateKey) => {
+    const count = dayLoad[dateKey] || 0;
+    dayLoad[dateKey] = count + 1;
+    return slotOrder[count % 3];
+  };
 
   for (const assessment of assessments) {
 
@@ -19,12 +57,13 @@ const generateSprintsForCourse = async (userId, courseId) => {
     if (!assessment.due_date) {
       const placeholderDate = new Date(today);
       placeholderDate.setDate(today.getDate() + 3);
+      const pKey = dateStr(placeholderDate);
       unscheduled.push([
         userId, courseId, assessment.id,
         `⚠ ${assessment.name} — Date not set yet`,
         30, 'high',
-        placeholderDate.toISOString().split('T')[0],
-        'morning', null,
+        pKey,
+        assignSlot(pKey), null,
         `No date was found in the syllabus for "${assessment.name}". ` +
         `This is a reminder to confirm the date with your professor. ` +
         `Once you add the date, regenerate your sprints to get a full study plan.`,
@@ -35,6 +74,7 @@ const generateSprintsForCourse = async (userId, courseId) => {
 
     // ── DATE IS SET — normal sprint generation ───────────────────────
     const dueDate  = new Date(assessment.due_date);
+    dueDate.setHours(0, 0, 0, 0);
     const daysLeft = Math.ceil((dueDate - today) / (1000 * 60 * 60 * 24));
     if (daysLeft < 0) continue;
 
@@ -42,18 +82,32 @@ const generateSprintsForCourse = async (userId, courseId) => {
     if ((assessment.weight_percent >= 20) || daysLeft <= 3) priority = 'high';
     if ((assessment.weight_percent || 0) < 10 && daysLeft > 14) priority = 'low';
 
+    // Duration scaled by weight
+    let duration = sprintDuration;
+    if (assessment.weight_percent >= 25) duration = Math.min(sprintDuration + 45, 120);
+    else if (assessment.weight_percent >= 15) duration = Math.min(sprintDuration + 15, 90);
+    else if ((assessment.weight_percent || 0) < 10) duration = Math.max(sprintDuration - 15, 30);
+
     const sprintCount = Math.min(Math.max(1, Math.floor(daysLeft / 2)), 5);
+
     for (let i = 0; i < sprintCount; i++) {
+      // Spread sprints evenly between today and due date
       const daysBeforeDue = Math.floor((daysLeft / sprintCount) * (i + 1));
-      const scheduledDate = new Date(today);
-      scheduledDate.setDate(today.getDate() + (daysLeft - daysBeforeDue));
-      const slots = ['morning', 'afternoon', 'evening'];
+      const idealDate = new Date(today);
+      idealDate.setDate(today.getDate() + (daysLeft - daysBeforeDue));
+      idealDate.setHours(0, 0, 0, 0);
+
+      // Find a balanced date near the ideal date
+      const scheduledDate = nextAvailableDate(idealDate, dueDate);
+      const key = dateStr(scheduledDate);
+      const slot = assignSlot(key);
+
       scheduled.push([
         userId, courseId, assessment.id,
         `${assessment.name} — Sprint ${i + 1}`,
-        sprintDuration, priority,
-        scheduledDate.toISOString().split('T')[0],
-        slots[i % 3],
+        duration, priority,
+        key,
+        slot,
         assessment.due_date,
         `Assessment weighted at ${assessment.weight_percent || '?'}%. ${daysLeft} days until deadline.`,
         0,
