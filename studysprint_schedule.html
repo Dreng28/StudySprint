@@ -263,6 +263,7 @@ const priTxt = { High:'var(--coral)',        Medium:'var(--amber)',       Low:'v
 function getWeekStart() {
   const d = new Date(BASE);
   d.setDate(d.getDate() + weekOffset * 7);
+  d.setHours(0, 0, 0, 0);
   return d;
 }
 function updateWeekLabel() {
