@@ -110,9 +110,7 @@
   .status-badge { font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 999px; margin-right: 10px; }
   .status-parsed { background: var(--green-light); color: var(--green); }
   .status-pending { background: var(--amber-light); color: var(--amber); }
-  .view-btn-sm { padding: 8px 16px; background: var(--text); color: white; border: none; border-radius: 8px; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; } 
-  .del-btn-sm { padding: 8px 14px; background: white; color: var(--coral); border: 1.5px solid #FECACA; border-radius: 8px; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; margin-right: 6px; transition: all 0.15s; }
-  .del-btn-sm:hover { background: var(--coral); color: white; border-color: var(--coral); }
+  .view-btn-sm { padding: 8px 16px; background: var(--text); color: white; border: none; border-radius: 8px; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; }
 
   /* Parsing overlay */
   .parse-overlay { display: none; }
@@ -543,9 +541,16 @@ async function callGemini() {
     // ── PRODUCTION MODE: backend ────────────
     setStep(2, 'active');
 
-    const courseRes = await Courses.create({ 
-      course_name: 'New Course', 
-      color: '#6C2BD9' 
+    // Pick a distinct color based on how many courses exist
+    const COURSE_COLORS = ['#6C2BD9','#10B981','#EF4444','#F59E0B','#3B82F6','#8B5CF6','#EC4899','#14B8A6'];
+    let colorIdx = 0;
+    try {
+      const existing = await Courses.list();
+      colorIdx = (existing?.courses?.length || 0) % COURSE_COLORS.length;
+    } catch(_) {}
+    const courseRes = await Courses.create({
+      course_name: 'New Course',
+      color: COURSE_COLORS[colorIdx]
     });
 
     if (!courseRes?.success) {
@@ -697,7 +702,7 @@ async function loadPreviousSyllabi() {
           <div class="prev-sub">${escHtml(s.file_name || '')} · Uploaded: ${uploaded}</div>
         </div>
         <span class="status-badge ${statusClass}">${statusText}</span>
-        <button class=\"del-btn-sm\" onclick=\"deleteSyllabus(${s.id}, this)\">🗑 Delete</button><button class=\"view-btn-sm\" onclick=\"viewSyllabus(${s.id})\">View</button>`;
+        <button class="view-btn-sm" onclick="viewSyllabus(${s.id})">View</button>`;
       container.appendChild(div);
     });
   } catch (_) {
@@ -713,22 +718,6 @@ async function viewSyllabus(id) {
       ? JSON.parse(res.syllabus.parsed_json)
       : res.syllabus.parsed_json;
     showResults(lastParsed, JSON.stringify(lastParsed, null, 2));
-  }
-}
-
-async function deleteSyllabus(id, btn) {
-  if (!confirm("Delete this syllabus and all its sprints? This cannot be undone.")) return;
-  btn.disabled = true;
-  btn.textContent = "Deleting…";
-  try {
-    const res = await apiFetch(`/syllabi/${id}`, { method: "DELETE" });
-    if (!res?.success) throw new Error(res?.message || "Delete failed.");
-    showToastUpload("Syllabus deleted successfully.");
-    await loadPreviousSyllabi();
-  } catch (err) {
-    showToastUpload(err.message, true);
-    btn.disabled = false;
-    btn.textContent = "🗑 Delete";
   }
 }
 
@@ -756,6 +745,3 @@ function toggleJSON() {
 </script>
 </body>
 </html>
-  
- 
- 

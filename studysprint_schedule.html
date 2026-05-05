@@ -507,9 +507,43 @@ async function recalibrate() {
   setTimeout(loadRealSprints, 800);
 }
 
-function applyFix() {
+async function applyFix() {
+  // Find bottleneck dates (3+ sprints sharing same deadline)
+  const deadlineCounts = {};
+  sprints.forEach(sp => {
+    if (sp.dead && sp.dead !== 'TBD') {
+      deadlineCounts[sp.dead] = (deadlineCounts[sp.dead] || 0) + 1;
+    }
+  });
+  const hotDeadlines = Object.entries(deadlineCounts)
+    .filter(([, count]) => count >= 3)
+    .map(([date]) => date);
+
+  if (!hotDeadlines.length) {
+    document.getElementById('alert-banner').style.display = 'none';
+    return;
+  }
+
+  // Regenerate sprints for all courses that have these deadlines
+  const affectedCourseIds = [...new Set(
+    sprints
+      .filter(sp => hotDeadlines.includes(sp.dead))
+      .map(sp => sp.courseId)
+      .filter(Boolean)
+  )];
+
+  showToast('Recalibrating affected courses…');
+  let regenerated = 0;
+  for (const cid of affectedCourseIds) {
+    try {
+      await Sprints.generate(cid);
+      regenerated++;
+    } catch(_) {}
+  }
+
   document.getElementById('alert-banner').style.display = 'none';
-  showToast('Fix applied! Extra review sessions added.');
+  showToast(regenerated > 0 ? `Schedule rebalanced for ${regenerated} course(s)!` : 'Schedule checked — no changes needed.');
+  setTimeout(loadRealSprints, 800);
 }
 
 function showToast(msg) {
@@ -569,6 +603,7 @@ async function loadRealSprints() {
 
       sprints.push({
         id:       sp.id,
+        courseId: sp.course_id,
         day:      dayIdx,
         slot:     slotMap[sp.scheduled_slot] ?? 0,
         title:    sp.title,
