@@ -156,6 +156,12 @@
   .pom-btn.danger:hover { background: var(--coral); color: white; }
   .pom-label { font-size: 12px; color: var(--text-muted); text-align: center; margin-bottom: 16px; }
   .pom-divider { height: 1px; background: var(--border); margin: 14px 0; }
+  .dur-edit-row { display: flex; align-items: center; gap: 8px; }
+  .dur-input { width: 72px; padding: 6px 10px; border: 1.5px solid var(--border); border-radius: 8px; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 13px; font-weight: 600; color: var(--text); text-align: center; outline: none; }
+  .dur-input:focus { border-color: var(--purple); }
+  .dur-save { padding: 6px 14px; background: var(--purple); color: white; border: none; border-radius: 8px; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+  .dur-save:hover { background: var(--purple-mid); }
+  .dur-saved { font-size: 11px; color: var(--green); font-weight: 600; display: none; margin-left: 4px; }
   /* Color dot on sprint block */
   .sb-course-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 5px; vertical-align: middle; flex-shrink: 0; }
   .sb-course-row { display: flex; align-items: center; margin-top: 3px; }
@@ -249,7 +255,15 @@
       </div>
       <button class="modal-close" onclick="closeModal()">×</button>
     </div>
-    <div class="modal-row"><span class="modal-key">Duration</span><span class="modal-val" id="m-dur">—</span></div>
+    <div class="modal-row">
+      <span class="modal-key">Duration</span>
+      <div class="dur-edit-row">
+        <input class="dur-input" id="m-dur-input" type="number" min="5" max="180" value="45"/>
+        <span style="font-size:13px;color:var(--text-muted);">min</span>
+        <button class="dur-save" onclick="saveDuration()">Save</button>
+        <span class="dur-saved" id="dur-saved">✓ Saved</span>
+      </div>
+    </div>
     <div class="modal-row"><span class="modal-key">Priority</span><span class="modal-val" id="m-pri">—</span></div>
     <div class="modal-row"><span class="modal-key">Linked deadline</span><span class="modal-val" id="m-dead">—</span></div>
     <div class="modal-reason" id="m-reason">—</div>
@@ -476,7 +490,8 @@ function openModal(sp) {
   activeSprint = sp;
   document.getElementById('m-title').textContent  = sp.title;
   document.getElementById('m-course').textContent = sp.course;
-  document.getElementById('m-dur').textContent    = sp.dur;
+  document.getElementById('m-dur-input').value    = parseInt(sp.dur) || 45;
+  document.getElementById('dur-saved').style.display = 'none';
   document.getElementById('m-pri').innerHTML =
     `<span style="background:${priBg[sp.pri] || ''};color:${priTxt[sp.pri] || ''};padding:3px 10px;border-radius:6px;font-size:12px;">${sp.pri}</span>`;
   document.getElementById('m-dead').textContent   = sp.dead || 'TBD';
@@ -484,7 +499,35 @@ function openModal(sp) {
   // Reset pomodoro to sprint duration
   const mins = parseInt(sp.dur) || 45;
   pomReset(mins);
+  document.getElementById('m-dur-input').value = mins;
   document.getElementById('modal-bg').classList.add('open');
+}
+async function saveDuration() {
+  if (!activeSprint) return;
+  const input = document.getElementById('m-dur-input');
+  const mins = Math.min(180, Math.max(5, parseInt(input.value) || 45));
+  input.value = mins;
+  try {
+    const res = await apiFetch(`/sprints/${activeSprint.id}/duration`, {
+      method: 'PATCH',
+      body: JSON.stringify({ duration_min: mins })
+    });
+    if (!res?.success) throw new Error(res?.message || 'Failed');
+    // Update local sprint object
+    activeSprint.dur = `${mins} min`;
+    const sp = sprints.find(s => s.id === activeSprint.id);
+    if (sp) sp.dur = `${mins} min`;
+    // Update pomodoro timer
+    pomReset(mins);
+    // Show saved indicator
+    const saved = document.getElementById('dur-saved');
+    saved.style.display = 'inline';
+    setTimeout(() => { saved.style.display = 'none'; }, 2000);
+    // Refresh calendar and list display
+    buildCal(); buildList(); updateProgress();
+  } catch (err) {
+    showToast('Could not save duration.');
+  }
 }
 function closeModal()   { pomStop(); document.getElementById('modal-bg').classList.remove('open'); activeSprint = null; }
 function markDoneModal(){ if (!activeSprint) return; toggleDone(activeSprint.id); closeModal(); }

@@ -258,6 +258,25 @@ const postponeSprint = async (req, res) => {
   }
 };
 
+// PATCH /api/sprints/:id/duration
+const updateDuration = async (req, res) => {
+  try {
+    const { duration_min } = req.body;
+    if (!duration_min || isNaN(duration_min))
+      return res.status(400).json({ success: false, message: 'duration_min is required.' });
+    const mins = Math.min(180, Math.max(5, parseInt(duration_min)));
+    const [result] = await db.query(
+      'UPDATE sprints SET duration_min=? WHERE id=? AND user_id=? AND is_done=0',
+      [mins, req.params.id, req.user.id]
+    );
+    if (!result.affectedRows)
+      return res.status(404).json({ success: false, message: 'Sprint not found or already completed.' });
+    return res.status(200).json({ success: true, message: `Duration updated to ${mins} min.`, duration_min: mins });
+  } catch (err) {
+    return res.status(500).json({ success: false, message: 'Server error.' });
+  }
+};
+
 // DELETE /api/sprints/:id
 const deleteSprint = async (req, res) => {
   try {
@@ -272,5 +291,5 @@ const deleteSprint = async (req, res) => {
 module.exports = {
   generateSprints, getSprints, getTodaySprints,
   getUnscheduled, setAssessmentDate,
-  completeSprint, postponeSprint, deleteSprint,
+  completeSprint, postponeSprint, deleteSprint, updateDuration,
 };
