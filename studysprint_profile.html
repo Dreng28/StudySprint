@@ -124,6 +124,56 @@
   @keyframes fadeUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
   .profile-banner { animation: fadeUp 0.35s ease both; }
   .card { animation: fadeUp 0.35s ease both; animation-delay: 0.1s; }
+  /* ── MOBILE RESPONSIVE (≤ 640px) ──────────────────────────────── */
+  @media (max-width: 640px) {
+    .topnav { padding: 0 14px; }
+    .nav-sub { display: none; }
+    .page { padding: 14px 12px 48px; }
+
+    /* Profile banner: stack vertically */
+    .profile-banner { flex-direction: column; padding: 20px 18px; gap: 16px; }
+    .profile-name { font-size: 20px; }
+    .profile-email { font-size: 12px; }
+    .profile-detail { font-size: 12px; }
+    .profile-actions { flex-wrap: wrap; gap: 8px; }
+    .edit-btn, .change-pw-btn { font-size: 12px; padding: 8px 14px; }
+    .member-badge { width: 100%; text-align: left; display: flex; align-items: center; gap: 12px; padding: 10px 14px; }
+    .member-badge svg { display: none; }
+    .member-label { font-size: 10px; margin-bottom: 0; }
+    .member-date { font-size: 16px; margin-bottom: 0; }
+    .member-sub { font-size: 11px; }
+
+    /* Two-col: single column on mobile */
+    .two-col { grid-template-columns: 1fr; gap: 14px; }
+
+    /* Cards */
+    .card { padding: 18px 16px; margin-bottom: 14px; }
+    .card-title { font-size: 15px; margin-bottom: 16px; }
+
+    /* Stats grid: 2x2 */
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    .stat-mini-val { font-size: 18px; }
+
+    /* Form actions: stack */
+    .form-actions { flex-direction: column; gap: 8px; }
+    .save-btn, .cancel-btn { width: 100%; justify-content: center; }
+
+    /* Settings nav items: compact */
+    .settings-nav-item { padding: 10px 12px; font-size: 13px; }
+
+    /* Logout btn */
+    .logout-btn { font-size: 13px; padding: 12px; }
+  }
+
+  /* ── TABLET (641px – 900px) ────────────────────────────────────── */
+  @media (min-width: 641px) and (max-width: 900px) {
+    .page { padding: 20px 16px 48px; }
+    .two-col { grid-template-columns: 1fr 280px; }
+    .profile-banner { padding: 24px 28px; }
+    .profile-name { font-size: 22px; }
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+
 </style>
 </head>
 <body>

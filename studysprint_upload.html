@@ -176,6 +176,64 @@
 
   @keyframes fadeUp { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
   .card { animation: fadeUp 0.35s ease both; }
+  /* ── MOBILE RESPONSIVE (≤ 640px) ──────────────────────────────── */
+  @media (max-width: 640px) {
+    .topnav { padding: 0 14px; }
+    .nav-sub { display: none; }
+    .page { padding: 14px 12px 48px; }
+
+    /* How it works banner: stack steps */
+    .how-banner { padding: 20px 18px; }
+    .how-title { font-size: 16px; margin-bottom: 14px; }
+    .how-steps { grid-template-columns: 1fr; gap: 8px; }
+    .how-step { padding: 12px 14px; display: flex; align-items: flex-start; gap: 12px; }
+    .step-num { margin-bottom: 0; flex-shrink: 0; }
+    .step-title { font-size: 13px; }
+    .step-desc { font-size: 11px; }
+
+    /* Cards */
+    .card { padding: 20px 16px; }
+    .card-title { font-size: 16px; }
+
+    /* Drop zone: smaller */
+    .drop-zone { padding: 32px 18px; }
+    .drop-zone-icon { width: 48px; height: 48px; border-radius: 12px; }
+    .drop-title { font-size: 14px; }
+    .drop-sub { font-size: 12px; }
+    .browse-btn { font-size: 13px; padding: 10px 20px; }
+
+    /* URL row: stack */
+    .url-row { flex-direction: column; gap: 8px; }
+    .fetch-btn { width: 100%; }
+
+    /* Result stats: 2x2 */
+    .result-stats { grid-template-columns: repeat(2, 1fr); }
+    .rs-val { font-size: 18px; }
+
+    /* Action bar: stack */
+    .action-bar { flex-direction: column; align-items: flex-start; gap: 12px; padding: 14px 16px; }
+    .action-bar-btns { width: 100%; justify-content: flex-end; }
+
+    /* Previously uploaded items */
+    .prev-item { flex-wrap: wrap; gap: 8px; padding: 12px 0; }
+    .prev-info { width: calc(100% - 54px); }
+    .prev-name { font-size: 13px; }
+    .status-badge { font-size: 11px; padding: 3px 8px; }
+    .del-btn-sm, .view-btn-sm { font-size: 12px; padding: 7px 12px; }
+
+    /* Result table: scrollable */
+    .result-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .result-table { min-width: 400px; }
+  }
+
+  /* ── TABLET (641px – 900px) ────────────────────────────────────── */
+  @media (min-width: 641px) and (max-width: 900px) {
+    .page { padding: 20px 16px 48px; }
+    .how-banner { padding: 24px; }
+    .card { padding: 24px 20px; }
+    .result-stats { grid-template-columns: repeat(2, 1fr); }
+  }
+
 </style>
 </head>
 <body>
