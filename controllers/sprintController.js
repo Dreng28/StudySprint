@@ -6,8 +6,16 @@ const generateSprintsForCourse = async (userId, courseId) => {
     'SELECT * FROM assessments WHERE course_id=? AND user_id=? ORDER BY due_date ASC',
     [courseId, userId]
   );
-  const [userRows] = await db.query('SELECT sprint_duration FROM users WHERE id=?', [userId]);
-  const sprintDuration = userRows[0]?.sprint_duration || 45;
+  const [userRows] = await db.query('SELECT sprint_duration, preferred_study_time FROM users WHERE id=?', [userId]);
+  const sprintDuration      = userRows[0]?.sprint_duration || 45;
+  const preferredStudyTime  = userRows[0]?.preferred_study_time || 'morning';
+
+  // Build slot order starting from preferred study time
+  const ALL_SLOTS = ['morning', 'afternoon', 'evening', 'late_night'];
+  const startIdx  = ALL_SLOTS.indexOf(preferredStudyTime);
+  const slotOrder = startIdx >= 0
+    ? [...ALL_SLOTS.slice(startIdx), ...ALL_SLOTS.slice(0, startIdx)].filter(s => ['morning','afternoon','evening'].includes(s))
+    : ['morning', 'afternoon', 'evening'];
 
   const scheduled   = [];
   const unscheduled = [];
@@ -16,7 +24,6 @@ const generateSprintsForCourse = async (userId, courseId) => {
 
   // ── Daily load balancer: track sprints per date+slot ─────────────
   const MAX_PER_DAY = 3;
-  const slotOrder   = ['morning', 'afternoon', 'evening'];
   const dayLoad     = {}; // { 'YYYY-MM-DD': count }
 
   const dateStr = (d) => {

@@ -196,8 +196,9 @@ const login = async (req, res) => {
         email:           user.email,
         student_id:      user.student_id,
         program:         user.program,
-        sprint_duration: user.sprint_duration,
-        study_mode:      user.study_mode,
+        sprint_duration:      user.sprint_duration,
+        study_mode:           user.study_mode,
+        preferred_study_time: user.preferred_study_time,
       },
     });
 
@@ -212,7 +213,7 @@ const getMe = async (req, res) => {
   try {
     const [rows] = await db.query(
       `SELECT id, full_name, email, student_id, program, sprint_duration, study_mode,
-              notif_email, notif_sprint, notif_deadline, notif_weekly, created_at
+              preferred_study_time, notif_email, notif_sprint, notif_deadline, notif_weekly, created_at
        FROM users WHERE id = ?`,
       [req.user.id]
     );
@@ -229,15 +230,16 @@ const getMe = async (req, res) => {
 const updateProfile = async (req, res) => {
   try {
     const { full_name, student_id, program, sprint_duration, study_mode,
-            notif_email, notif_sprint, notif_deadline, notif_weekly } = req.body;
+            preferred_study_time, notif_email, notif_sprint, notif_deadline, notif_weekly } = req.body;
     await db.query(
       `UPDATE users SET
         full_name=COALESCE(?,full_name), student_id=COALESCE(?,student_id),
         program=COALESCE(?,program), sprint_duration=COALESCE(?,sprint_duration),
-        study_mode=COALESCE(?,study_mode), notif_email=COALESCE(?,notif_email),
+        study_mode=COALESCE(?,study_mode), preferred_study_time=COALESCE(?,preferred_study_time),
+        notif_email=COALESCE(?,notif_email),
         notif_sprint=COALESCE(?,notif_sprint), notif_deadline=COALESCE(?,notif_deadline),
         notif_weekly=COALESCE(?,notif_weekly) WHERE id=?`,
-      [full_name, student_id, program, sprint_duration, study_mode,
+      [full_name, student_id, program, sprint_duration, study_mode, preferred_study_time,
        notif_email, notif_sprint, notif_deadline, notif_weekly, req.user.id]
     );
     return res.status(200).json({ success: true, message: 'Profile updated successfully.' });
