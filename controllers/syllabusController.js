@@ -1,6 +1,5 @@
 // controllers/syllabusController.js
 const db    = require('../config/db');
-const https = require('https');
 require('dotenv').config();
 
 const { GoogleGenAI } = require("@google/genai");
@@ -11,18 +10,14 @@ const ai = new GoogleGenAI({
 
 const callGemini = async (syllabusText) => {
   const result = await ai.models.generateContent({
-  model: "gemini-2.5-flash",
-  config: {
-    responseMimeType: "application/json"
-  },
-  contents: `
-You are an academic assistant.
+    model: "gemini-2.5-flash",
+    config: { responseMimeType: "application/json" },
+    contents: `You are an academic assistant. Extract structured syllabus data from this text and return ONLY valid JSON with no extra text or markdown.
 
-Extract structured syllabus data from this text:
-
+Text:
 ${syllabusText.slice(0, 12000)}
 
-Return ONLY valid JSON:
+Return this exact JSON structure:
 {
   "course_name": "",
   "course_code": "",
@@ -38,24 +33,35 @@ Return ONLY valid JSON:
   ]
 }
 
-For the "type" field, use ONLY one of these exact values: "quiz", "exam", "assignment", "project", "lab", "other".
-For "due_date", use YYYY-MM-DD format. If no date is found, use null.
-For "weight_percent", use a number (e.g. 10) or null if not found.
-`
+Rules:
+- For type use ONLY one of: quiz, exam, project, lab, assignment, other
+- For due_date use YYYY-MM-DD format or null if not found
+- For weight_percent use a number like 10 or null if not found
+- Return valid JSON only, no markdown, no backticks, no explanation`
   });
 
-  return JSON.parse(result.text.replace(/```json|```/gi, '').trim());
+  // Robustly extract JSON from response
+  let text = result.text || '';
+  // Strip any markdown code fences
+  text = text.replace(/```json\s*/gi, '').replace(/```\s*/gi, '').trim();
+  // Extract first JSON object if there's surrounding text
+  const match = text.match(/\{[\s\S]*\}/);
+  if (!match) throw new Error('No valid JSON found in Gemini response');
+  return JSON.parse(match[0]);
 };
 
 function toMysqlDate(value) {
   if (!value) return null;
-
   const d = new Date(value);
   if (Number.isNaN(d.getTime())) return null;
-
   return d.toISOString().slice(0, 10);
 }
 
+const ALLOWED_TYPES = ['quiz', 'exam', 'project', 'lab', 'assignment', 'other'];
+const sanitizeType = (t) => {
+  const raw = (t || '').toLowerCase().trim();
+  return ALLOWED_TYPES.includes(raw) ? raw : 'other';
+};
 
 const parseSyllabus = async (req, res) => {
   try {
@@ -84,14 +90,20 @@ const parseSyllabus = async (req, res) => {
     await db.query(
       `UPDATE courses SET course_name=COALESCE(?,course_name),course_code=COALESCE(?,course_code),
        instructor=COALESCE(?,instructor),semester=COALESCE(?,semester),summary=COALESCE(?,summary) WHERE id=?`,
-      [parsed.course_name, parsed.course_code, parsed.instructor, parsed.semester, parsed.summary, course_id]
+      [parsed.course_name, parsed.course_code, parsed.instructor, parsed.semester, parsed.summary||null, course_id]
     );
 
     if (parsed.assessments?.length) {
       await db.query('DELETE FROM assessments WHERE course_id=? AND user_id=?', [course_id, req.user.id]);
       await db.query(
         'INSERT INTO assessments (course_id,user_id,name,type,due_date,weight_percent) VALUES ?',
-        [parsed.assessments.map(a => { const ALLOWED = ['quiz','exam','assignment','project','lab','other']; const t = (a.type||'').toLowerCase().trim(); const safeType = ALLOWED.includes(t) ? t : 'other'; return [course_id, req.user.id, a.name, safeType, toMysqlDate(a.due_date), a.weight_percent||null]; })]
+        [parsed.assessments.map(a => [
+          course_id, req.user.id,
+          a.name,
+          sanitizeType(a.type),
+          toMysqlDate(a.due_date),
+          a.weight_percent || null
+        ])]
       );
     }
 
@@ -133,8 +145,6 @@ const deleteSyllabus = async (req, res) => {
     if (!syllabusRows.length) return res.status(404).json({ success: false, message: 'Syllabus not found.' });
 
     const courseId = syllabusRows[0].course_id;
-
-    // Delete related data in order
     await db.query('DELETE FROM sprints WHERE course_id=? AND user_id=?', [courseId, req.user.id]);
     await db.query('DELETE FROM assessments WHERE course_id=? AND user_id=?', [courseId, req.user.id]);
     await db.query('DELETE FROM syllabi WHERE id=? AND user_id=?', [req.params.id, req.user.id]);
