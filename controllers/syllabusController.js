@@ -124,4 +124,27 @@ const getSyllabus = async (req, res) => {
   } catch (err) { return res.status(500).json({ success: false, message: 'Server error.' }); }
 };
 
-module.exports = { parseSyllabus, getSyllabi, getSyllabus };
+const deleteSyllabus = async (req, res) => {
+  try {
+    const [syllabusRows] = await db.query(
+      'SELECT course_id FROM syllabi WHERE id=? AND user_id=?',
+      [req.params.id, req.user.id]
+    );
+    if (!syllabusRows.length) return res.status(404).json({ success: false, message: 'Syllabus not found.' });
+
+    const courseId = syllabusRows[0].course_id;
+
+    // Delete related data in order
+    await db.query('DELETE FROM sprints WHERE course_id=? AND user_id=?', [courseId, req.user.id]);
+    await db.query('DELETE FROM assessments WHERE course_id=? AND user_id=?', [courseId, req.user.id]);
+    await db.query('DELETE FROM syllabi WHERE id=? AND user_id=?', [req.params.id, req.user.id]);
+    await db.query('DELETE FROM courses WHERE id=? AND user_id=?', [courseId, req.user.id]);
+
+    return res.status(200).json({ success: true, message: 'Syllabus and related data deleted.' });
+  } catch (err) {
+    console.error('Delete syllabus error:', err);
+    return res.status(500).json({ success: false, message: 'Server error.' });
+  }
+};
+
+module.exports = { parseSyllabus, getSyllabi, getSyllabus, deleteSyllabus };

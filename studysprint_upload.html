@@ -110,7 +110,9 @@
   .status-badge { font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 999px; margin-right: 10px; }
   .status-parsed { background: var(--green-light); color: var(--green); }
   .status-pending { background: var(--amber-light); color: var(--amber); }
-  .view-btn-sm { padding: 8px 16px; background: var(--text); color: white; border: none; border-radius: 8px; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; }
+  .view-btn-sm { padding: 8px 16px; background: var(--text); color: white; border: none; border-radius: 8px; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; } 
+  .del-btn-sm { padding: 8px 14px; background: white; color: var(--coral); border: 1.5px solid #FECACA; border-radius: 8px; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; margin-right: 6px; transition: all 0.15s; }
+  .del-btn-sm:hover { background: var(--coral); color: white; border-color: var(--coral); }
 
   /* Parsing overlay */
   .parse-overlay { display: none; }
@@ -711,6 +713,22 @@ async function viewSyllabus(id) {
       ? JSON.parse(res.syllabus.parsed_json)
       : res.syllabus.parsed_json;
     showResults(lastParsed, JSON.stringify(lastParsed, null, 2));
+  }
+}
+
+async function deleteSyllabus(id, btn) {
+  if (!confirm("Delete this syllabus and all its sprints? This cannot be undone.")) return;
+  btn.disabled = true;
+  btn.textContent = "Deleting…";
+  try {
+    const res = await apiFetch(`/syllabi/${id}`, { method: "DELETE" });
+    if (!res?.success) throw new Error(res?.message || "Delete failed.");
+    showToastUpload("Syllabus deleted successfully.");
+    await loadPreviousSyllabi();
+  } catch (err) {
+    showToastUpload(err.message, true);
+    btn.disabled = false;
+    btn.textContent = "🗑 Delete";
   }
 }
 
