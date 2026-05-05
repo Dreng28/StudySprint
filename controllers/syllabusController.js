@@ -31,7 +31,9 @@ Return ONLY valid JSON:
   "assessments": [
     {
       "name": "",
-      "due_date": ""
+      "type": "",
+      "due_date": "",
+      "weight_percent": null
     }
   ]
 }
