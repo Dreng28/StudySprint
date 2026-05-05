@@ -157,6 +157,65 @@
   .stat-card:nth-child(3) { animation-delay: 0.15s; }
   .card { animation: fadeUp 0.4s ease both; animation-delay: 0.2s; }
   .quick-actions-card { animation: fadeUp 0.4s ease both; animation-delay: 0.3s; }
+  /* ── MOBILE RESPONSIVE (≤ 640px) ──────────────────────────────── */
+  @media (max-width: 640px) {
+
+    /* Nav */
+    .topnav { padding: 0 14px; }
+    .logo { font-size: 16px; }
+
+    /* Page */
+    .page { padding: 14px 12px 48px; }
+
+    /* Hero: stack vertically, reduce padding */
+    .hero { flex-direction: column; align-items: flex-start; padding: 22px 20px; gap: 14px; }
+    .hero-text h1 { font-size: 20px; }
+    .hero-text p { font-size: 13px; }
+    .hero-icon { width: 48px; height: 48px; }
+
+    /* Stat cards: 3 cols still but smaller */
+    .stats-row { grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px; }
+    .stat-card { padding: 14px 12px; }
+    .stat-num { font-size: 24px; }
+    .stat-label { font-size: 11px; }
+    .stat-icon { width: 32px; height: 32px; border-radius: 8px; }
+    .stat-icon svg { width: 16px; height: 16px; }
+    .stat-badge { font-size: 10px; padding: 2px 6px; }
+
+    /* Main grid: single column */
+    .main-grid { grid-template-columns: 1fr; gap: 14px; margin-bottom: 16px; }
+
+    /* Cards */
+    .card { padding: 18px 16px; }
+    .card-title { font-size: 14px; }
+    .sprint-name { font-size: 13px; }
+    .sprint-meta { flex-wrap: wrap; gap: 6px; }
+
+    /* Quick actions: 2 col grid */
+    .quick-actions-card { padding: 18px 16px; }
+    .qa-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .qa-btn { font-size: 12px; padding: 12px 10px; gap: 6px; }
+    .qa-btn svg { width: 14px; height: 14px; flex-shrink: 0; }
+
+    /* Notification panel: full width */
+    #notif-panel { width: calc(100vw - 32px); right: 16px; left: 16px; }
+
+    /* Sidebar overlay covers full screen */
+    #sidebar { width: 80vw; max-width: 280px; }
+  }
+
+  /* ── TABLET (641px – 900px) ────────────────────────────────────── */
+  @media (min-width: 641px) and (max-width: 900px) {
+    .page { padding: 20px 16px 40px; }
+    .hero { padding: 24px 28px; }
+    .hero-text h1 { font-size: 22px; }
+    .stats-row { gap: 12px; }
+    .stat-card { padding: 18px; }
+    .stat-num { font-size: 28px; }
+    .main-grid { gap: 16px; }
+    .qa-grid { grid-template-columns: repeat(3, 1fr); }
+  }
+
 </style>
 </head>
 <body>
