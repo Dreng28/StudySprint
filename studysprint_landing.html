@@ -179,7 +179,8 @@
     background: linear-gradient(135deg, var(--p), #EC4899, var(--amber));
     z-index: -1;
   }
-  #qr-canvas { display: block; border-radius: 8px; }
+  #qr-canvas, #qr-div { display: block; border-radius: 8px; }
+  #qr-div img, #qr-div canvas { display: block; border-radius: 8px; }
 
   /* ── Features ── */
   .features {
@@ -403,40 +404,31 @@
   <span>AI-Powered by Gemini · Deployed on Railway</span>
 </footer>
 
-<!-- QR Code Generator (pure JS, no library needed) -->
+<!-- QR Code via qrcodejs library (no external API calls) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script>
-// Minimal QR code generator for the app URL
 const APP_URL = 'https://studysprint-production-1587.up.railway.app/studysprint_login.html';
 
-// Use Google Charts QR API as a reliable fallback
-function generateQR() {
-  const canvas = document.getElementById('qr-canvas');
-  const ctx = canvas.getContext('2d');
-  const size = 140;
-  canvas.width = size;
-  canvas.height = size;
+// Replace canvas with a div for qrcodejs
+const canvas = document.getElementById('qr-canvas');
+const div = document.createElement('div');
+div.id = 'qr-div';
+canvas.parentNode.replaceChild(div, canvas);
 
-  // Load QR via Google Charts API
-  const img = new Image();
-  const encoded = encodeURIComponent(APP_URL);
-  img.crossOrigin = 'anonymous';
-  img.src = `https://chart.googleapis.com/chart?cht=qr&chs=${size}x${size}&chl=${encoded}&choe=UTF-8&chld=M|2`;
-  img.onload = () => {
-    ctx.drawImage(img, 0, 0, size, size);
-  };
-  img.onerror = () => {
-    // Fallback: draw a placeholder with the URL
-    ctx.fillStyle = '#fff';
-    ctx.fillRect(0, 0, size, size);
-    ctx.fillStyle = '#6C2BD9';
-    ctx.font = 'bold 11px sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText('studysprint-production', size/2, 65);
-    ctx.fillText('-1587.up.railway.app', size/2, 82);
-  };
-}
+new QRCode(div, {
+  text: APP_URL,
+  width: 140,
+  height: 140,
+  colorDark: '#1a0a2e',
+  colorLight: '#ffffff',
+  correctLevel: QRCode.CorrectLevel.M
+});
 
-generateQR();
+// Add border-radius to the generated img/canvas
+setTimeout(() => {
+  const el = div.querySelector('img') || div.querySelector('canvas');
+  if (el) el.style.borderRadius = '8px';
+}, 100);
 </script>
 </body>
 </html>
