@@ -507,7 +507,7 @@ async function loadRealSprints() {
   if (res?.success && res.sprints?.length) {
     const ws = getWeekStart();
     res.sprints.forEach(sp => {
-      const spDate = new Date(sp.scheduled_date + 'T00:00:00');
+      const spDate = new Date(sp.scheduled_date.slice(0, 10) + 'T00:00:00');
       const dayIdx = Math.round((spDate - ws) / (1000 * 60 * 60 * 24));
 
       // Map course color hex → named color
