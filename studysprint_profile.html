@@ -350,10 +350,10 @@
         </div>
         <div style="margin-bottom:16px;">
           <label class="pref-label">Preferred Study Time</label>
-          <select class="pref-select">
-            <option>Morning (6am – 12pm)</option>
-            <option selected>Afternoon (12pm – 6pm)</option>
-            <option>Evening (6pm – 12am)</option>
+          <select class="pref-select" id="sel-study-time">
+            <option value="morning">Morning (6am – 12pm)</option>
+            <option value="afternoon" selected>Afternoon (12pm – 6pm)</option>
+            <option value="evening">Evening (6pm – 12am)</option>
             <option>Late Night (12am – 6am)</option>
           </select>
         </div>
@@ -377,14 +377,14 @@
       <div class="card" id="panel-studyprefs">
         <div class="card-title" style="font-size:15px;">Study Preferences</div>
         <label class="pref-label">Sprint Duration</label>
-        <select class="pref-select">
+        <select class="pref-select" id="sel-sprint-duration">
           <option value="25">25 minutes</option>
           <option value="45" selected>45 minutes</option>
           <option value="60">60 minutes</option>
           <option value="90">90 minutes</option>
         </select>
         <label class="pref-label">Study Mode</label>
-        <select class="pref-select">
+        <select class="pref-select" id="sel-study-mode">
           <option value="intensive">Intensive</option>
           <option value="balanced" selected>Balanced</option>
           <option value="relaxed">Relaxed</option>
@@ -470,17 +470,18 @@ async function loadProfile() {
   if (toggles[3]) toggles[3].checked = !!u.notif_weekly;
 
   // Study preferences
-  const selects = document.querySelectorAll('.pref-select');
-  if (selects[0]) selects[0].value = String(u.sprint_duration || 45);
-  if (selects[1]) selects[1].value = u.study_mode || 'balanced';
+  const sprintSel = document.getElementById('sel-sprint-duration');
+  const modeSel   = document.getElementById('sel-study-mode');
+  const timeSel   = document.getElementById('sel-study-time');
+  if (sprintSel) sprintSel.value = String(u.sprint_duration || 45);
+  if (modeSel)   modeSel.value   = u.study_mode || 'balanced';
+  if (timeSel)   timeSel.value   = u.preferred_study_time || 'afternoon';
 }
 
 // ── Save profile ──────────────────────────────────
 async function saveProfile() {
   const inputs  = document.querySelectorAll('.field-input');
   const toggles = document.querySelectorAll('.toggle input');
-  const selects = document.querySelectorAll('.pref-select');
-
   const btn = document.querySelector('.save-btn');
   if (btn) { btn.disabled = true; btn.textContent = 'Saving…'; }
 
@@ -488,8 +489,8 @@ async function saveProfile() {
     full_name:       inputs[0]?.value?.trim(),
     student_id:      inputs[2]?.value?.trim(),
     program:         document.querySelector('.field-select')?.value,
-    sprint_duration: parseInt(selects[0]?.value) || 45,
-    study_mode:      selects[1]?.value || 'balanced',
+    sprint_duration: parseInt(document.getElementById('sel-sprint-duration')?.value) || 45,
+    study_mode:      document.getElementById('sel-study-mode')?.value || 'balanced',
     notif_email:     toggles[0]?.checked ? 1 : 0,
     notif_sprint:    toggles[1]?.checked ? 1 : 0,
     notif_deadline:  toggles[2]?.checked ? 1 : 0,
