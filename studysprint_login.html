@@ -164,6 +164,64 @@
   .modal-decline { flex:1; padding:12px; background:white; color:var(--text); border:1.5px solid var(--border); border-radius:var(--radius-sm); font-family:'Plus Jakarta Sans',sans-serif; font-size:14px; font-weight:600; cursor:pointer; }
   .modal-accept:hover  { opacity:.9; }
   .modal-decline:hover { border-color:var(--coral); color:var(--coral); }
+  /* ── MOBILE RESPONSIVE (≤ 480px) ──────────────────────────────── */
+  @media (max-width: 480px) {
+
+    body { padding: 0; align-items: flex-start; background: var(--surface); }
+
+    .login-card {
+      border-radius: 0;
+      box-shadow: none;
+      min-height: 100vh;
+    }
+
+    /* Header: tighter */
+    .card-header { padding: 28px 20px 22px; }
+    .logo-text { font-size: 24px; }
+    .header-sub { font-size: 12px; }
+
+    /* Tabs */
+    .tab { padding: 12px 8px; font-size: 13px; }
+
+    /* Form panels */
+    .form-panel { padding: 22px 20px 24px; }
+    .form-title { font-size: 18px; }
+    .form-sub { font-size: 12px; margin-bottom: 18px; }
+
+    /* Two-col fields: stack on mobile */
+    .two-col { grid-template-columns: 1fr; gap: 0; }
+
+    /* Fields */
+    .field-input { font-size: 16px; } /* prevents iOS zoom on focus */
+    .field-group { margin-bottom: 14px; }
+
+    /* Submit button */
+    .submit-btn { padding: 13px; font-size: 14px; }
+
+    /* T&C wrap */
+    .tc-text { font-size: 12px; }
+
+    /* T&C Modal: full screen on mobile */
+    .modal-bg { padding: 0; align-items: flex-end; }
+    .modal {
+      max-width: 100%;
+      max-height: 90vh;
+      border-radius: var(--radius) var(--radius) 0 0;
+    }
+    .modal-header { padding: 16px 18px; }
+    .modal-body { padding: 16px 18px; }
+    .modal-footer { padding: 14px 18px; }
+  }
+
+  /* ── SMALL TABLET (481px – 640px) ─────────────────────────────── */
+  @media (min-width: 481px) and (max-width: 640px) {
+    body { padding: 16px; }
+    .card-header { padding: 30px 28px 24px; }
+    .form-panel { padding: 24px 28px; }
+    .two-col { grid-template-columns: 1fr; gap: 0; }
+    .field-input { font-size: 16px; }
+  }
+
 </style>
 </head>
 <body>
