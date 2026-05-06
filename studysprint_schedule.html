@@ -632,48 +632,38 @@ async function postponeById(id) {
 }
 
 async function recalibrate() {
-  showToast('Recalibrating schedule…');
-  // Re-load sprints from backend after brief pause
-  setTimeout(loadRealSprints, 800);
+  const courseIds = [...new Set(sprints.map(sp => sp.courseId).filter(Boolean))];
+  if (!courseIds.length) {
+    showToast('No active courses found. Upload a syllabus first.');
+    return;
+  }
+  showToast('Recalibrating all courses…');
+  let done = 0;
+  for (const cid of courseIds) {
+    try { await Sprints.generate(cid); done++; } catch(_) {}
+  }
+  showToast(done > 0 ? `Recalibrated ${done} course(s)!` : 'Nothing to recalibrate.');
+  await loadRealSprints();
 }
 
 async function applyFix() {
-  // Find bottleneck dates (3+ sprints sharing same deadline)
-  const deadlineCounts = {};
-  sprints.forEach(sp => {
-    if (sp.dead && sp.dead !== 'TBD') {
-      deadlineCounts[sp.dead] = (deadlineCounts[sp.dead] || 0) + 1;
-    }
-  });
-  const hotDeadlines = Object.entries(deadlineCounts)
-    .filter(([, count]) => count >= 3)
-    .map(([date]) => date);
-
-  if (!hotDeadlines.length) {
+  // Get all unique course IDs from current week's sprints
+  const courseIds = [...new Set(sprints.map(sp => sp.courseId).filter(Boolean))];
+  if (!courseIds.length) {
     document.getElementById('alert-banner').style.display = 'none';
     return;
   }
 
-  // Regenerate sprints for all courses that have these deadlines
-  const affectedCourseIds = [...new Set(
-    sprints
-      .filter(sp => hotDeadlines.includes(sp.dead))
-      .map(sp => sp.courseId)
-      .filter(Boolean)
-  )];
+  document.getElementById('alert-banner').style.display = 'none';
+  showToast('Rebalancing schedule…');
 
-  showToast('Recalibrating affected courses…');
   let regenerated = 0;
-  for (const cid of affectedCourseIds) {
-    try {
-      await Sprints.generate(cid);
-      regenerated++;
-    } catch(_) {}
+  for (const cid of courseIds) {
+    try { await Sprints.generate(cid); regenerated++; } catch(_) {}
   }
 
-  document.getElementById('alert-banner').style.display = 'none';
-  showToast(regenerated > 0 ? `Schedule rebalanced for ${regenerated} course(s)!` : 'Schedule checked — no changes needed.');
-  setTimeout(loadRealSprints, 800);
+  showToast(regenerated > 0 ? `Schedule rebalanced for ${regenerated} course(s)!` : 'No changes needed.');
+  await loadRealSprints();
 }
 
 function showToast(msg) {
@@ -764,30 +754,36 @@ async function loadRealSprints() {
 }
 
 // ── Bottleneck detection ──────────────────────────
+// A bottleneck is 4+ sprints scheduled on the same calendar day
 function checkBottleneck() {
   const banner = document.getElementById('alert-banner');
   if (!sprints.length) { banner.style.display = 'none'; return; }
 
-  const deadlineCounts = {};
+  const dayCounts = {}; // day index → count
   sprints.forEach(sp => {
-    if (sp.dead && sp.dead !== 'TBD') {
-      deadlineCounts[sp.dead] = (deadlineCounts[sp.dead] || 0) + 1;
+    if (sp.day >= 0 && sp.day <= 6 && !sp.done) {
+      dayCounts[sp.day] = (dayCounts[sp.day] || 0) + 1;
     }
   });
 
-  const hotDates = Object.entries(deadlineCounts)
-    .filter(([, count]) => count >= 3)
-    .map(([date]) => date);
+  const ws = getWeekStart();
+  const hotDays = Object.entries(dayCounts)
+    .filter(([, count]) => count >= 4)
+    .map(([day]) => {
+      const d = new Date(ws);
+      d.setDate(ws.getDate() + parseInt(day));
+      return `${MONTHS[d.getMonth()]} ${d.getDate()}`;
+    });
 
-  if (!hotDates.length) { banner.style.display = 'none'; return; }
+  if (!hotDays.length) { banner.style.display = 'none'; return; }
 
   banner.style.display = 'flex';
   banner.innerHTML = `
     <div class="alert-icon">
       <svg width="14" height="14" fill="none" viewBox="0 0 14 14"><path d="M7 3v4.5M7 9.5v.5" stroke="white" stroke-width="1.8" stroke-linecap="round"/><circle cx="7" cy="7" r="6" stroke="white" stroke-width="1.4" fill="none"/></svg>
     </div>
-    <div class="alert-text"><strong>Bottleneck detected:</strong> ${hotDates.join(', ')} has 3+ deadlines. Add review sessions to stay ahead.</div>
-    <button class="alert-fix" onclick="applyFix()">Apply Fix</button>
+    <div class="alert-text"><strong>Heavy day detected:</strong> ${hotDays.join(', ')} has 4+ sprints. Consider spreading them out.</div>
+    <button class="alert-fix" onclick="applyFix()">Rebalance</button>
     <button class="alert-close" onclick="this.closest('.alert-banner').style.display='none'">×</button>`;
 }
 
