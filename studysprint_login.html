@@ -126,6 +126,21 @@
   @keyframes spin { to{transform:rotate(360deg)} }
 
   .forgot-row { text-align:right; margin-top:6px; }
+
+  /* Password strength meter */
+  .strength-bar { display:flex; gap:4px; margin-top:8px; }
+  .strength-seg { flex:1; height:4px; border-radius:2px; background:var(--border); transition:background .25s; }
+  .strength-label { font-size:11px; font-weight:600; margin-top:5px; }
+  .str-0 .strength-seg { background:var(--border); }
+  .str-1 .strength-seg:nth-child(1) { background:var(--coral); }
+  .str-2 .strength-seg:nth-child(-n+2) { background:var(--amber,#F59E0B); }
+  .str-3 .strength-seg:nth-child(-n+3) { background:#3B82F6; }
+  .str-4 .strength-seg { background:var(--green); }
+  .str-req { margin-top:8px; display:flex; flex-wrap:wrap; gap:4px 10px; }
+  .req-item { font-size:11px; display:flex; align-items:center; gap:4px; color:var(--text-muted); transition:color .2s; }
+  .req-item.met { color:var(--green); }
+  .req-item::before { content:'○'; font-size:10px; }
+  .req-item.met::before { content:'✓'; }
   .forgot-link { font-size:12.5px; font-weight:600; color:var(--purple); cursor:pointer; }
   .forgot-link:hover { text-decoration:underline; }
 
@@ -291,12 +306,36 @@
 
     <div class="two-col">
       <div class="field-group">
-        <label class="field-label">Full Name <span class="required">*</span></label>
+        <label class="field-label">First Name <span class="required">*</span></label>
         <div class="field-wrap">
           <svg class="field-icon" width="15" height="15" fill="none" viewBox="0 0 15 15"><circle cx="7.5" cy="5.5" r="3" stroke="currentColor" stroke-width="1.3" fill="none"/><path d="M1 14c0-3.314 2.91-6 6.5-6s6.5 2.686 6.5 6" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" fill="none"/></svg>
-          <input class="field-input" type="text" id="reg-name" placeholder="Full Name" oninput="validateReg()"/>
+          <input class="field-input" type="text" id="reg-firstname" placeholder="First Name" oninput="validateReg()"/>
         </div>
-        <div class="field-error" id="err-name">Full name is required</div>
+        <div class="field-error" id="err-firstname">First name is required</div>
+      </div>
+      <div class="field-group">
+        <label class="field-label">Last Name <span class="required">*</span></label>
+        <div class="field-wrap">
+          <svg class="field-icon" width="15" height="15" fill="none" viewBox="0 0 15 15"><circle cx="7.5" cy="5.5" r="3" stroke="currentColor" stroke-width="1.3" fill="none"/><path d="M1 14c0-3.314 2.91-6 6.5-6s6.5 2.686 6.5 6" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" fill="none"/></svg>
+          <input class="field-input" type="text" id="reg-lastname" placeholder="Last Name" oninput="validateReg()"/>
+        </div>
+        <div class="field-error" id="err-lastname">Last name is required</div>
+      </div>
+    </div>
+
+    <div class="two-col">
+      <div class="field-group">
+        <label class="field-label">Suffix <span style="color:var(--text-muted);font-weight:400;">(Optional)</span></label>
+        <div class="field-wrap">
+          <select class="field-input no-icon" id="reg-suffix" style="cursor:pointer;">
+            <option value="">None</option>
+            <option value="Jr.">Jr.</option>
+            <option value="Sr.">Sr.</option>
+            <option value="II">II</option>
+            <option value="III">III</option>
+            <option value="IV">IV</option>
+          </select>
+        </div>
       </div>
       <div class="field-group">
         <label class="field-label">Student ID</label>
@@ -324,25 +363,39 @@
       </div>
     </div>
 
-    <div class="two-col">
-      <div class="field-group">
-        <label class="field-label">Password <span class="required">*</span></label>
-        <div class="field-wrap">
-          <svg class="field-icon" width="15" height="15" fill="none" viewBox="0 0 15 15"><rect x="2.5" y="7" width="10" height="7" rx="2" stroke="currentColor" stroke-width="1.3" fill="none"/><path d="M5 7V5.5a2.5 2.5 0 015 0V7" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" fill="none"/></svg>
-          <input class="field-input" type="password" id="reg-password" placeholder="Min. 6 characters" oninput="validateReg()"/>
-          <button class="field-toggle" onclick="toggleVis('reg-password',this)" type="button">👁</button>
-        </div>
-        <div class="field-error" id="err-password">At least 6 characters required</div>
+    <div class="field-group">
+      <label class="field-label">Password <span class="required">*</span></label>
+      <div class="field-wrap">
+        <svg class="field-icon" width="15" height="15" fill="none" viewBox="0 0 15 15"><rect x="2.5" y="7" width="10" height="7" rx="2" stroke="currentColor" stroke-width="1.3" fill="none"/><path d="M5 7V5.5a2.5 2.5 0 015 0V7" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" fill="none"/></svg>
+        <input class="field-input" type="password" id="reg-password" placeholder="Create a strong password" oninput="validateReg(); updateStrength()"/>
+        <button class="field-toggle" onclick="toggleVis('reg-password',this)" type="button">👁</button>
       </div>
-      <div class="field-group">
-        <label class="field-label">Confirm Password <span class="required">*</span></label>
-        <div class="field-wrap">
-          <svg class="field-icon" width="15" height="15" fill="none" viewBox="0 0 15 15"><rect x="2.5" y="7" width="10" height="7" rx="2" stroke="currentColor" stroke-width="1.3" fill="none"/><path d="M5 7V5.5a2.5 2.5 0 015 0V7" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" fill="none"/></svg>
-          <input class="field-input" type="password" id="reg-confirm" placeholder="Re-enter password" oninput="validateReg()"/>
-          <button class="field-toggle" onclick="toggleVis('reg-confirm',this)" type="button">👁</button>
-        </div>
-        <div class="field-error" id="err-confirm">Passwords do not match</div>
+      <!-- Strength meter -->
+      <div class="strength-bar str-0" id="strength-bar">
+        <div class="strength-seg"></div>
+        <div class="strength-seg"></div>
+        <div class="strength-seg"></div>
+        <div class="strength-seg"></div>
       </div>
+      <div class="strength-label" id="strength-label" style="color:var(--text-muted);">Enter a password</div>
+      <div class="str-req">
+        <span class="req-item" id="req-len">8+ characters</span>
+        <span class="req-item" id="req-upper">Uppercase letter</span>
+        <span class="req-item" id="req-lower">Lowercase letter</span>
+        <span class="req-item" id="req-num">Number</span>
+        <span class="req-item" id="req-special">Special character (!@#$...)</span>
+      </div>
+      <div class="field-error" id="err-password">Password must meet all requirements</div>
+    </div>
+
+    <div class="field-group">
+      <label class="field-label">Confirm Password <span class="required">*</span></label>
+      <div class="field-wrap">
+        <svg class="field-icon" width="15" height="15" fill="none" viewBox="0 0 15 15"><rect x="2.5" y="7" width="10" height="7" rx="2" stroke="currentColor" stroke-width="1.3" fill="none"/><path d="M5 7V5.5a2.5 2.5 0 015 0V7" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" fill="none"/></svg>
+        <input class="field-input" type="password" id="reg-confirm" placeholder="Re-enter password" oninput="validateReg()"/>
+        <button class="field-toggle" onclick="toggleVis('reg-confirm',this)" type="button">👁</button>
+      </div>
+      <div class="field-error" id="err-confirm">Passwords do not match</div>
     </div>
 
     <!-- ── Terms & Conditions checkbox ── -->
@@ -536,28 +589,63 @@ async function resendVerification(email) {
   }
 }
 
+// ── Password strength checker ─────────────────────
+function getStrength(pw) {
+  const checks = {
+    len:     pw.length >= 8,
+    upper:   /[A-Z]/.test(pw),
+    lower:   /[a-z]/.test(pw),
+    num:     /[0-9]/.test(pw),
+    special: /[^A-Za-z0-9]/.test(pw),
+  };
+  const score = Object.values(checks).filter(Boolean).length;
+  return { score, checks };
+}
+
+function updateStrength() {
+  const pw = document.getElementById('reg-password').value;
+  const { score, checks } = getStrength(pw);
+  const bar   = document.getElementById('strength-bar');
+  const label = document.getElementById('strength-label');
+  const labels = ['', 'Weak', 'Fair', 'Good', 'Strong'];
+  const colors = ['', '#EF4444', '#F59E0B', '#3B82F6', '#10B981'];
+
+  bar.className = 'strength-bar str-' + (pw.length ? score : 0);
+  label.textContent = pw.length ? labels[score] || 'Weak' : 'Enter a password';
+  label.style.color = pw.length ? colors[score] || '#EF4444' : 'var(--text-muted)';
+
+  document.getElementById('req-len').classList.toggle('met', checks.len);
+  document.getElementById('req-upper').classList.toggle('met', checks.upper);
+  document.getElementById('req-lower').classList.toggle('met', checks.lower);
+  document.getElementById('req-num').classList.toggle('met', checks.num);
+  document.getElementById('req-special').classList.toggle('met', checks.special);
+}
+
 // ── REGISTER VALIDATION ───────────────────────────
 function validateReg() {
-  const name     = document.getElementById('reg-name').value.trim();
-  const email    = document.getElementById('reg-email').value.trim();
-  const password = document.getElementById('reg-password').value;
-  const confirm  = document.getElementById('reg-confirm').value;
+  const firstname = document.getElementById('reg-firstname').value.trim();
+  const lastname  = document.getElementById('reg-lastname').value.trim();
+  const email     = document.getElementById('reg-email').value.trim();
+  const password  = document.getElementById('reg-password').value;
+  const confirm   = document.getElementById('reg-confirm').value;
+  const { score }  = getStrength(password);
 
   let valid = true;
   const setErr = (id, inputId, show) => {
     document.getElementById(id).classList.toggle('show', show);
-    document.getElementById(inputId).classList.toggle('error', show);
+    document.getElementById(inputId)?.classList.toggle('error', show);
     if (show) valid = false;
   };
 
-  setErr('err-name',     'reg-name',     !name);
-  setErr('err-email',    'reg-email',    !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email));
-  setErr('err-password', 'reg-password', password.length > 0 && password.length < 6);
-  setErr('err-confirm',  'reg-confirm',  confirm.length > 0 && confirm !== password);
+  setErr('err-firstname', 'reg-firstname', !firstname);
+  setErr('err-lastname',  'reg-lastname',  !lastname);
+  setErr('err-email',     'reg-email',     !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email));
+  setErr('err-password',  'reg-password',  password.length > 0 && score < 4);
+  setErr('err-confirm',   'reg-confirm',   confirm.length > 0 && confirm !== password);
 
-  const allFilled = name &&
+  const allFilled = firstname && lastname &&
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) &&
-    password.length >= 6 &&
+    score === 4 &&
     confirm === password;
 
   document.getElementById('reg-btn').disabled = !(allFilled && tcAccepted);
@@ -590,7 +678,10 @@ async function handleRegister() {
     return;
   }
 
-  const name      = document.getElementById('reg-name').value.trim();
+  const firstname = document.getElementById('reg-firstname').value.trim();
+  const lastname  = document.getElementById('reg-lastname').value.trim();
+  const suffix    = document.getElementById('reg-suffix').value.trim();
+  const fullName  = [firstname, lastname, suffix].filter(Boolean).join(' ');
   const email     = document.getElementById('reg-email').value.trim();
   const studentId = document.getElementById('reg-studentid').value.trim();
   const program   = document.getElementById('reg-program').value.trim();
@@ -599,7 +690,7 @@ async function handleRegister() {
   const btn = document.getElementById('reg-btn');
   btn.classList.add('loading'); btn.disabled = true;
 
-  const res = await Auth.register(name, email, password, studentId, program, true);
+  const res = await Auth.register(fullName, email, password, studentId, program, true);
 
   btn.classList.remove('loading');
 
@@ -611,10 +702,14 @@ async function handleRegister() {
       '🎉 Account created! Check your email inbox for a verification link before signing in.';
     successEl?.classList.add('show');
     // Clear the form
-    ['reg-name','reg-email','reg-studentid','reg-program','reg-password','reg-confirm']
+    ['reg-firstname','reg-lastname','reg-email','reg-studentid','reg-program','reg-password','reg-confirm']
       .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
     tcAccepted = false;
     document.getElementById('tc-wrap').classList.remove('checked');
+    document.getElementById('reg-suffix').value = '';
+    document.getElementById('strength-bar').className = 'strength-bar str-0';
+    document.getElementById('strength-label').textContent = 'Enter a password';
+    document.querySelectorAll('.req-item').forEach(r => r.classList.remove('met'));
     btn.disabled = true;
   } else if (res?.success) {
     // Fallback: old backend without requiresVerify

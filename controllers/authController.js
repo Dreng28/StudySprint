@@ -44,8 +44,9 @@ const register = async (req, res) => {
 
     if (!full_name || !email || !password)
       return res.status(400).json({ success: false, message: 'Name, email, and password are required.' });
-    if (password.length < 6)
-      return res.status(400).json({ success: false, message: 'Password must be at least 6 characters.' });
+    const strongPassword = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9]).{8,}$/.test(password);
+    if (!strongPassword)
+      return res.status(400).json({ success: false, message: 'Password must be at least 8 characters and include uppercase, lowercase, number, and special character.' });
     if (!terms_accepted)
       return res.status(400).json({ success: false, message: 'You must accept the Terms & Conditions.' });
 
