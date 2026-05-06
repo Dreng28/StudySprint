@@ -162,6 +162,11 @@
   .dur-save { padding: 6px 14px; background: var(--purple); color: white; border: none; border-radius: 8px; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap; }
   .dur-save:hover { background: var(--purple-mid); }
   .dur-saved { font-size: 11px; color: var(--green); font-weight: 600; display: none; margin-left: 4px; }
+  /* Drag & drop */
+  .sprint-block[draggable="true"] { cursor: grab; }
+  .sprint-block[draggable="true"]:active { cursor: grabbing; }
+  .sprint-block.dragging { opacity: 0.35; transform: scale(0.97); box-shadow: none; }
+  .cal-cell.drag-over { background: var(--purple-light) !important; outline: 2px dashed var(--purple); outline-offset: -3px; border-radius: 6px; }
   /* Checkbox on sprint block */
   .sb-check { width: 16px; height: 16px; border-radius: 4px; border: 1.5px solid rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center; flex-shrink: 0; cursor: pointer; transition: all 0.15s; background: rgba(255,255,255,0.7); margin-bottom: 4px; }
   .sb-check:hover { border-color: var(--purple); background: var(--purple-pale); }
@@ -496,6 +501,11 @@ function buildCal() {
       const isToday = date.toDateString() === TODAY.toDateString();
       const cell    = document.createElement('div');
       cell.className = 'cal-cell' + (isToday ? ' today-col' : '');
+      cell.dataset.day  = d;
+      cell.dataset.slot = slotIdx;
+      cell.addEventListener('dragover',  onDragOver);
+      cell.addEventListener('dragleave', onDragLeave);
+      cell.addEventListener('drop',      onDrop);
       sprints
         .filter(s => s.day === d && s.slot === slotIdx)
         .forEach(sp => {
@@ -503,6 +513,8 @@ function buildCal() {
           block.className = 'sprint-block' + (sp.done ? ' done-block' : '');
           block.style.cssText = `background:${sp.colorBg};border-left:3px solid ${sp.colorHex};`;
           const checkId = `sbc-${sp.id}`;
+          block.draggable = true;
+          block.dataset.sprintId = sp.id;
           block.innerHTML = `
             <div class="sb-header">
               <div class="sb-title">${escHtml(sp.title)}</div>
@@ -517,6 +529,8 @@ function buildCal() {
             <div class="sb-meta">${escHtml(sp.dur)}</div>`;
           block.onclick = () => openModal(sp);
           block.querySelector(`#${checkId}`).onclick = (e) => { e.stopPropagation(); toggleDone(sp.id, e); };
+          block.addEventListener('dragstart', onDragStart);
+          block.addEventListener('dragend',   onDragEnd);
           cell.appendChild(block);
         });
       row.appendChild(cell);
@@ -680,6 +694,74 @@ async function applyFix() {
 
   showToast(regenerated > 0 ? `Schedule rebalanced for ${regenerated} course(s)!` : 'No changes needed.');
   await loadRealSprints();
+}
+
+// ── Drag & Drop ───────────────────────────────────
+let dragSprintId = null;
+
+function onDragStart(e) {
+  dragSprintId = parseInt(this.dataset.sprintId);
+  this.classList.add('dragging');
+  e.dataTransfer.effectAllowed = 'move';
+  e.dataTransfer.setData('text/plain', dragSprintId);
+}
+
+function onDragEnd() {
+  this.classList.remove('dragging');
+  document.querySelectorAll('.cal-cell.drag-over').forEach(c => c.classList.remove('drag-over'));
+}
+
+function onDragOver(e) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  this.classList.add('drag-over');
+}
+
+function onDragLeave() {
+  this.classList.remove('drag-over');
+}
+
+async function onDrop(e) {
+  e.preventDefault();
+  this.classList.remove('drag-over');
+
+  const newDay  = parseInt(this.dataset.day);
+  const newSlot = parseInt(this.dataset.slot);
+  const sp = sprints.find(s => s.id === dragSprintId);
+  if (!sp || (sp.day === newDay && sp.slot === newSlot)) return;
+
+  const oldDay = sp.day;
+  const oldSlot = sp.slot;
+
+  // Optimistic UI update
+  sp.day  = newDay;
+  sp.slot = newSlot;
+  buildCal();
+
+  // Calculate new scheduled date from day index
+  const ws = getWeekStart();
+  const newDate = new Date(ws);
+  newDate.setDate(ws.getDate() + newDay);
+  const y = newDate.getFullYear();
+  const m = String(newDate.getMonth() + 1).padStart(2, '0');
+  const d = String(newDate.getDate()).padStart(2, '0');
+  const dateStr = `${y}-${m}-${d}`;
+  const slots = ['morning', 'afternoon', 'evening'];
+
+  try {
+    const res = await apiFetch(`/sprints/${dragSprintId}/reschedule`, {
+      method: 'PATCH',
+      body: JSON.stringify({ scheduled_date: dateStr, scheduled_slot: slots[newSlot] })
+    });
+    if (!res?.success) throw new Error(res?.message || 'Failed');
+    showToast(`Sprint moved to ${slots[newSlot]}!`);
+  } catch (err) {
+    // Revert on failure
+    sp.day  = oldDay;
+    sp.slot = oldSlot;
+    buildCal();
+    showToast('Could not reschedule sprint.');
+  }
 }
 
 function showToast(msg) {

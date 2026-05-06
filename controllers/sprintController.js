@@ -258,6 +258,27 @@ const postponeSprint = async (req, res) => {
   }
 };
 
+// PATCH /api/sprints/:id/reschedule
+const rescheduleSprint = async (req, res) => {
+  try {
+    const { scheduled_date, scheduled_slot } = req.body;
+    if (!scheduled_date || !scheduled_slot)
+      return res.status(400).json({ success: false, message: 'scheduled_date and scheduled_slot are required.' });
+    const validSlots = ['morning', 'afternoon', 'evening'];
+    if (!validSlots.includes(scheduled_slot))
+      return res.status(400).json({ success: false, message: 'Invalid slot.' });
+    const [result] = await db.query(
+      'UPDATE sprints SET scheduled_date=?, scheduled_slot=?, is_postponed=1 WHERE id=? AND user_id=? AND is_done=0',
+      [scheduled_date, scheduled_slot, req.params.id, req.user.id]
+    );
+    if (!result.affectedRows)
+      return res.status(404).json({ success: false, message: 'Sprint not found or already completed.' });
+    return res.status(200).json({ success: true, message: 'Sprint rescheduled.' });
+  } catch (err) {
+    return res.status(500).json({ success: false, message: 'Server error.' });
+  }
+};
+
 // PATCH /api/sprints/:id/duration
 const updateDuration = async (req, res) => {
   try {
@@ -291,5 +312,5 @@ const deleteSprint = async (req, res) => {
 module.exports = {
   generateSprints, getSprints, getTodaySprints,
   getUnscheduled, setAssessmentDate,
-  completeSprint, postponeSprint, deleteSprint, updateDuration,
+  completeSprint, postponeSprint, deleteSprint, updateDuration, rescheduleSprint,
 };
