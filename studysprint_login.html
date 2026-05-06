@@ -607,10 +607,10 @@ function updateStrength() {
   const { score, checks } = getStrength(pw);
   const bar   = document.getElementById('strength-bar');
   const label = document.getElementById('strength-label');
-  const labels = ['', 'Weak', 'Fair', 'Good', 'Strong'];
-  const colors = ['', '#EF4444', '#F59E0B', '#3B82F6', '#10B981'];
+  const labels = ['', 'Weak', 'Fair', 'Good', 'Strong', 'Strong'];
+  const colors = ['', '#EF4444', '#F59E0B', '#3B82F6', '#10B981', '#10B981'];
 
-  bar.className = 'strength-bar str-' + (pw.length ? score : 0);
+  bar.className = 'strength-bar str-' + (pw.length ? Math.min(score, 4) : 0);
   label.textContent = pw.length ? labels[score] || 'Weak' : 'Enter a password';
   label.style.color = pw.length ? colors[score] || '#EF4444' : 'var(--text-muted)';
 
@@ -640,12 +640,12 @@ function validateReg() {
   setErr('err-firstname', 'reg-firstname', !firstname);
   setErr('err-lastname',  'reg-lastname',  !lastname);
   setErr('err-email',     'reg-email',     !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email));
-  setErr('err-password',  'reg-password',  password.length > 0 && score < 4);
+  setErr('err-password',  'reg-password',  password.length > 0 && score < 5);
   setErr('err-confirm',   'reg-confirm',   confirm.length > 0 && confirm !== password);
 
   const allFilled = firstname && lastname &&
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) &&
-    score === 4 &&
+    score === 5 &&
     confirm === password;
 
   document.getElementById('reg-btn').disabled = !(allFilled && tcAccepted);
