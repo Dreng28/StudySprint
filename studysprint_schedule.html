@@ -655,6 +655,7 @@ async function applyFix() {
   }
 
   document.getElementById('alert-banner').style.display = 'none';
+  localStorage.setItem('bottleneck_suppressed', Date.now() + 86400000);
   showToast('Rebalancing schedule…');
 
   let regenerated = 0;
@@ -754,10 +755,13 @@ async function loadRealSprints() {
 }
 
 // ── Bottleneck detection ──────────────────────────
-// A bottleneck is 4+ sprints scheduled on the same calendar day
+// A bottleneck is 5+ sprints scheduled on the same calendar day
 function checkBottleneck() {
   const banner = document.getElementById('alert-banner');
   if (!sprints.length) { banner.style.display = 'none'; return; }
+  // Suppress for 24 hours after user dismisses or rebalances
+  const suppressed = localStorage.getItem('bottleneck_suppressed');
+  if (suppressed && Date.now() < parseInt(suppressed)) { banner.style.display = 'none'; return; }
 
   const dayCounts = {}; // day index → count
   sprints.forEach(sp => {
@@ -768,7 +772,7 @@ function checkBottleneck() {
 
   const ws = getWeekStart();
   const hotDays = Object.entries(dayCounts)
-    .filter(([, count]) => count >= 4)
+    .filter(([, count]) => count >= 5)
     .map(([day]) => {
       const d = new Date(ws);
       d.setDate(ws.getDate() + parseInt(day));
@@ -784,7 +788,7 @@ function checkBottleneck() {
     </div>
     <div class="alert-text"><strong>Heavy day detected:</strong> ${hotDays.join(', ')} has 4+ sprints. Consider spreading them out.</div>
     <button class="alert-fix" onclick="applyFix()">Rebalance</button>
-    <button class="alert-close" onclick="this.closest('.alert-banner').style.display='none'">×</button>`;
+    <button class="alert-close" onclick="localStorage.setItem('bottleneck_suppressed', Date.now()+86400000); this.closest('.alert-banner').style.display='none'">×</button>`;
 }
 
 
