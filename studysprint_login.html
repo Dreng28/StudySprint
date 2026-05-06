@@ -8,7 +8,7 @@
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   :root {
-    --purple:#6C2BD9; --purple-mid:#8B5CF6; --purple-light:#EDE9FE; --purple-pale:#F5F3FF;
+    --orange:#C2460A; --orange-mid:#EA6C1A; --orange-light:#FEF0E6; --orange-pale:#FFF7F0;
     --green:#10B981; --green-light:#D1FAE5;
     --coral:#EF4444; --coral-light:#FEE2E2;
     --bg:#F0F2F8; --surface:#FFFFFF;
@@ -25,14 +25,14 @@
   .login-card {
     width:100%; max-width:500px;
     background:var(--surface); border-radius:24px;
-    overflow:hidden; box-shadow:0 8px 40px rgba(108,43,217,0.12);
+    overflow:hidden; box-shadow:0 8px 40px rgba(194,70,10,0.12);
     animation:fadeUp .5s ease both;
   }
   @keyframes fadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
 
   /* Header */
   .card-header {
-    background:linear-gradient(135deg,#6C2BD9 0%,#9333EA 60%,#C026D3 100%);
+    background:linear-gradient(135deg,#C2460A 0%,#DD5F0E 60%,#F97316 100%);
     padding:36px 32px 28px; text-align:center;
     position:relative; overflow:hidden;
   }
@@ -46,7 +46,7 @@
   /* Tabs */
   .tabs { display:flex; border-bottom:2px solid var(--border); }
   .tab { flex:1; padding:14px; text-align:center; font-size:14px; font-weight:600; color:var(--text-muted); cursor:pointer; border-bottom:2.5px solid transparent; margin-bottom:-2px; transition:all .15s; }
-  .tab.active { color:var(--purple); border-color:var(--purple); }
+  .tab.active { color:var(--orange); border-color:var(--orange); }
   .tab:hover:not(.active) { color:var(--text); }
 
   /* Form panels */
@@ -68,7 +68,7 @@
     font-size:14px; color:var(--text); outline:none;
     transition:border-color .15s, background .15s;
   }
-  .field-input:focus { border-color:var(--purple); background:white; }
+  .field-input:focus { border-color:var(--orange); background:white; }
   .field-input.error { border-color:var(--coral); }
   .field-input.no-icon { padding-left:14px; }
   .field-toggle { position:absolute; right:12px; top:50%; transform:translateY(-50%); background:none; border:none; cursor:pointer; color:var(--text-muted); font-size:15px; }
@@ -91,26 +91,26 @@
     margin-bottom:6px; cursor:pointer;
     transition:border-color .15s, background .15s;
   }
-  .tc-wrap:hover { border-color:var(--purple-mid); }
-  .tc-wrap.checked { border-color:var(--purple); background:var(--purple-pale); }
+  .tc-wrap:hover { border-color:var(--orange-mid); }
+  .tc-wrap.checked { border-color:var(--orange); background:var(--orange-pale); }
   .tc-box {
     width:20px; height:20px; min-width:20px;
     border-radius:5px; border:2px solid var(--border);
     display:flex; align-items:center; justify-content:center;
     margin-top:1px; transition:all .15s;
   }
-  .tc-wrap.checked .tc-box { background:var(--purple); border-color:var(--purple); }
+  .tc-wrap.checked .tc-box { background:var(--orange); border-color:var(--orange); }
   .tc-checkmark { display:none; }
   .tc-wrap.checked .tc-checkmark { display:block; }
   .tc-text { font-size:13px; color:var(--text-secondary); line-height:1.55; }
-  .tc-link { color:var(--purple); font-weight:600; cursor:pointer; text-decoration:underline; }
-  .tc-link:hover { color:var(--purple-mid); }
+  .tc-link { color:var(--orange); font-weight:600; cursor:pointer; text-decoration:underline; }
+  .tc-link:hover { color:var(--orange-mid); }
 
   /* Submit button */
   .submit-btn {
     width:100%; padding:14px; border:none;
     border-radius:var(--radius-sm);
-    background:linear-gradient(135deg,var(--purple),var(--purple-mid));
+    background:linear-gradient(135deg,var(--orange),var(--orange-mid));
     color:white; font-family:'Plus Jakarta Sans',sans-serif;
     font-size:15px; font-weight:700; cursor:pointer;
     display:flex; align-items:center; justify-content:center; gap:8px;
@@ -141,7 +141,7 @@
   .req-item.met { color:var(--green); }
   .req-item::before { content:'○'; font-size:10px; }
   .req-item.met::before { content:'✓'; }
-  .forgot-link { font-size:12.5px; font-weight:600; color:var(--purple); cursor:pointer; }
+  .forgot-link { font-size:12.5px; font-weight:600; color:var(--orange); cursor:pointer; }
   .forgot-link:hover { text-decoration:underline; }
 
   /* T&C Modal */
@@ -175,7 +175,7 @@
     padding:16px 24px; border-top:1px solid var(--border);
     display:flex; gap:10px; flex-shrink:0;
   }
-  .modal-accept  { flex:1; padding:12px; background:linear-gradient(135deg,var(--purple),var(--purple-mid)); color:white; border:none; border-radius:var(--radius-sm); font-family:'Plus Jakarta Sans',sans-serif; font-size:14px; font-weight:700; cursor:pointer; }
+  .modal-accept  { flex:1; padding:12px; background:linear-gradient(135deg,var(--orange),var(--orange-mid)); color:white; border:none; border-radius:var(--radius-sm); font-family:'Plus Jakarta Sans',sans-serif; font-size:14px; font-weight:700; cursor:pointer; }
   .modal-decline { flex:1; padding:12px; background:white; color:var(--text); border:1.5px solid var(--border); border-radius:var(--radius-sm); font-family:'Plus Jakarta Sans',sans-serif; font-size:14px; font-weight:600; cursor:pointer; }
   .modal-accept:hover  { opacity:.9; }
   .modal-decline:hover { border-color:var(--coral); color:var(--coral); }
@@ -243,7 +243,7 @@
 
 <div class="login-card">
 
-  <!-- Purple header -->
+  <!-- Orange header -->
   <div class="card-header">
     <div class="logo-wrap">
       <div class="logo-icon">✦</div>
@@ -563,7 +563,7 @@ async function handleLogin() {
     showErr('login',
       `${res.message} <br><br>
        <a href="#" onclick="resendVerification('${email}')" 
-          style="color:#6C2BD9;font-weight:600;text-decoration:underline;">
+          style="color:#C2460A;font-weight:600;text-decoration:underline;">
          Resend verification email
        </a>`
     );

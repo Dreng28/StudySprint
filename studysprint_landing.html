@@ -8,10 +8,10 @@
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   :root {
-    --p: #6C2BD9; --pm: #8B5CF6; --pl: #EDE9FE;
+    --o: #C2460A; --om: #EA6C1A; --ol: #FEF0E6;
     --bg: #0A0612; --surface: #120D1E; --surface2: #1A1030;
     --text: #F8F5FF; --muted: rgba(248,245,255,0.5);
-    --border: rgba(139,92,246,0.2);
+    --border: rgba(234,108,26,0.2);
     --green: #10B981; --amber: #F59E0B;
   }
 
@@ -38,8 +38,8 @@
     position: fixed; border-radius: 50%;
     filter: blur(100px); pointer-events: none; z-index: 0;
   }
-  .blob-1 { width: 600px; height: 600px; background: rgba(108,43,217,0.18); top: -200px; left: -150px; animation: drift 12s ease-in-out infinite alternate; }
-  .blob-2 { width: 500px; height: 500px; background: rgba(192,38,211,0.12); bottom: -150px; right: -100px; animation: drift 15s ease-in-out infinite alternate-reverse; }
+  .blob-1 { width: 600px; height: 600px; background: rgba(194,70,10,0.18); top: -200px; left: -150px; animation: drift 12s ease-in-out infinite alternate; }
+  .blob-2 { width: 500px; height: 500px; background: rgba(249,115,22,0.12); bottom: -150px; right: -100px; animation: drift 15s ease-in-out infinite alternate-reverse; }
   .blob-3 { width: 300px; height: 300px; background: rgba(16,185,129,0.08); top: 40%; left: 60%; animation: drift 10s ease-in-out infinite alternate; }
   @keyframes drift { from { transform: translate(0,0) scale(1); } to { transform: translate(30px,20px) scale(1.05); } }
 
@@ -57,14 +57,14 @@
   .nav-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
   .nav-logo-icon {
     width: 34px; height: 34px;
-    background: linear-gradient(135deg, var(--p), var(--pm));
+    background: linear-gradient(135deg, var(--o), var(--om));
     border-radius: 10px;
     display: flex; align-items: center; justify-content: center;
   }
   .nav-logo-text { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 20px; color: var(--text); }
   .nav-cta {
     padding: 9px 22px;
-    background: linear-gradient(135deg, var(--p), var(--pm));
+    background: linear-gradient(135deg, var(--o), var(--om));
     color: white;
     border: none; border-radius: 10px;
     font-family: 'Plus Jakarta Sans', sans-serif;
@@ -88,10 +88,10 @@
   .badge {
     display: inline-flex; align-items: center; gap: 8px;
     padding: 6px 16px;
-    background: rgba(108,43,217,0.15);
-    border: 1px solid rgba(139,92,246,0.3);
+    background: rgba(194,70,10,0.15);
+    border: 1px solid rgba(234,108,26,0.3);
     border-radius: 999px;
-    font-size: 12px; font-weight: 600; color: #A78BFA;
+    font-size: 12px; font-weight: 600; color: #FBA45C;
     letter-spacing: 0.06em; text-transform: uppercase;
     margin-bottom: 28px;
     animation: fadeUp 0.6s ease both;
@@ -111,7 +111,7 @@
   .hero-title .line-1 { display: block; color: var(--text); }
   .hero-title .line-2 {
     display: block;
-    background: linear-gradient(135deg, #A78BFA 0%, #EC4899 50%, #F59E0B 100%);
+    background: linear-gradient(135deg, #FBA45C 0%, #EC4899 50%, #F59E0B 100%);
     -webkit-background-clip: text; -webkit-text-fill-color: transparent;
     background-clip: text;
   }
@@ -132,16 +132,16 @@
   }
   .btn-primary {
     padding: 15px 32px;
-    background: linear-gradient(135deg, var(--p), var(--pm));
+    background: linear-gradient(135deg, var(--o), var(--om));
     color: white; border: none; border-radius: 12px;
     font-family: 'Plus Jakarta Sans', sans-serif;
     font-size: 16px; font-weight: 700;
     cursor: pointer; text-decoration: none;
     display: inline-flex; align-items: center; gap: 8px;
     transition: all 0.2s;
-    box-shadow: 0 0 40px rgba(108,43,217,0.4);
+    box-shadow: 0 0 40px rgba(194,70,10,0.4);
   }
-  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 0 60px rgba(108,43,217,0.6); }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 0 60px rgba(194,70,10,0.6); }
   .btn-primary svg { transition: transform 0.2s; }
   .btn-primary:hover svg { transform: translateX(3px); }
 
@@ -156,7 +156,7 @@
     display: inline-flex; align-items: center; gap: 8px;
     transition: all 0.2s;
   }
-  .btn-secondary:hover { border-color: rgba(139,92,246,0.5); background: rgba(139,92,246,0.05); }
+  .btn-secondary:hover { border-color: rgba(234,108,26,0.5); background: rgba(234,108,26,0.05); }
 
   /* QR Section */
   .qr-section {
@@ -168,7 +168,7 @@
     background: white;
     padding: 16px;
     border-radius: 16px;
-    box-shadow: 0 0 60px rgba(108,43,217,0.3);
+    box-shadow: 0 0 60px rgba(194,70,10,0.3);
     display: inline-block;
     position: relative;
   }
@@ -176,7 +176,7 @@
     content: '';
     position: absolute; inset: -2px;
     border-radius: 18px;
-    background: linear-gradient(135deg, var(--p), #EC4899, var(--amber));
+    background: linear-gradient(135deg, var(--o), #EC4899, var(--amber));
     z-index: -1;
   }
   #qr-canvas, #qr-div { display: block; border-radius: 8px; }
@@ -190,7 +190,7 @@
   }
   .section-label {
     text-align: center; font-size: 12px; font-weight: 600;
-    color: #A78BFA; letter-spacing: 0.1em; text-transform: uppercase;
+    color: #FBA45C; letter-spacing: 0.1em; text-transform: uppercase;
     margin-bottom: 12px;
   }
   .section-title {
@@ -213,7 +213,7 @@
     padding: 28px 24px;
     transition: border-color 0.2s, transform 0.2s;
   }
-  .feature-card:hover { border-color: rgba(139,92,246,0.4); transform: translateY(-4px); }
+  .feature-card:hover { border-color: rgba(234,108,26,0.4); transform: translateY(-4px); }
   .feature-icon {
     width: 48px; height: 48px;
     border-radius: 14px;
@@ -241,7 +241,7 @@
     content: '';
     position: absolute; top: -80px; left: 50%; transform: translateX(-50%);
     width: 300px; height: 300px;
-    background: rgba(108,43,217,0.15);
+    background: rgba(194,70,10,0.15);
     border-radius: 50%; filter: blur(60px);
   }
   .cta-title {
@@ -349,7 +349,7 @@
 
   <div class="features-grid">
     <div class="feature-card">
-      <div class="feature-icon" style="background:rgba(108,43,217,0.15);">📄</div>
+      <div class="feature-icon" style="background:rgba(194,70,10,0.15);">📄</div>
       <div class="feature-title">AI Syllabus Parsing</div>
       <div class="feature-desc">Upload a PDF or paste your syllabus text. Gemini AI extracts all assessments, deadlines, and weights automatically.</div>
     </div>
@@ -374,7 +374,7 @@
       <div class="feature-desc">See your weekly sprint completion, study hours, streaks, and upcoming deadlines at a glance on your dashboard.</div>
     </div>
     <div class="feature-card">
-      <div class="feature-icon" style="background:rgba(192,38,211,0.12);">📱</div>
+      <div class="feature-icon" style="background:rgba(249,115,22,0.12);">📱</div>
       <div class="feature-title">Mobile Friendly</div>
       <div class="feature-desc">Fully responsive across all devices. Study on your phone, tablet, or desktop — your schedule is always with you.</div>
     </div>
@@ -419,7 +419,7 @@ new QRCode(div, {
   text: APP_URL,
   width: 140,
   height: 140,
-  colorDark: '#1a0a2e',
+  colorDark: '#431407',
   colorLight: '#ffffff',
   correctLevel: QRCode.CorrectLevel.M
 });

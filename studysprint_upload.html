@@ -8,7 +8,7 @@
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   :root {
-    --purple: #6C2BD9; --purple-mid: #8B5CF6; --purple-light: #EDE9FE; --purple-pale: #F5F3FF;
+    --orange: #C2460A; --orange-mid: #EA6C1A; --orange-light: #FEF0E6; --orange-pale: #FFF7F0;
     --green: #10B981; --green-light: #D1FAE5;
     --coral: #EF4444; --coral-light: #FEE2E2;
     --amber: #F59E0B; --amber-light: #FEF3C7;
@@ -24,7 +24,7 @@
   .topnav { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 24px; height: 60px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 50; }
   .nav-left { display: flex; align-items: center; gap: 12px; }
   .back-btn { display: flex; align-items: center; gap: 6px; background: none; border: none; cursor: pointer; color: var(--text-secondary); font-family: 'Plus Jakarta Sans', sans-serif; font-size: 14px; font-weight: 500; padding: 6px 0; }
-  .back-btn:hover { color: var(--purple); }
+  .back-btn:hover { color: var(--orange); }
   .nav-title { font-size: 16px; font-weight: 700; color: var(--text); }
   .nav-sub { font-size: 12px; color: var(--text-muted); }
 
@@ -33,7 +33,7 @@
 
   /* How it works banner */
   .how-banner {
-    background: linear-gradient(135deg, #6C2BD9 0%, #9333EA 60%, #C026D3 100%);
+    background: linear-gradient(135deg, #C2460A 0%, #DD5F0E 60%, #F97316 100%);
     border-radius: var(--radius);
     padding: 28px 28px 24px;
     margin-bottom: 24px;
@@ -50,36 +50,36 @@
   .card-title { font-size: 18px; font-weight: 700; color: var(--text); margin-bottom: 20px; }
 
   /* API Key section */
-  .api-info { background: var(--purple-pale); border-radius: var(--radius-sm); padding: 14px 16px; margin-bottom: 18px; display: flex; gap: 12px; align-items: flex-start; border: 1px solid var(--purple-light); }
-  .api-info-icon { width: 32px; height: 32px; background: var(--purple); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-  .api-info-text { font-size: 13px; color: #4C1D95; line-height: 1.5; }
+  .api-info { background: var(--orange-pale); border-radius: var(--radius-sm); padding: 14px 16px; margin-bottom: 18px; display: flex; gap: 12px; align-items: flex-start; border: 1px solid var(--orange-light); }
+  .api-info-icon { width: 32px; height: 32px; background: var(--orange); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .api-info-text { font-size: 13px; color: #7C2D12; line-height: 1.5; }
   .api-info-text strong { font-weight: 600; }
   .field-label { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 8px; display: block; }
   .field-wrap { position: relative; margin-bottom: 10px; }
   .field-input { width: 100%; padding: 12px 44px 12px 14px; border-radius: var(--radius-sm); border: 1.5px solid var(--border); font-family: 'Plus Jakarta Sans', sans-serif; font-size: 14px; color: var(--text); background: var(--bg); outline: none; transition: border-color 0.15s, background 0.15s; letter-spacing: 0.04em; }
-  .field-input:focus { border-color: var(--purple); background: white; }
+  .field-input:focus { border-color: var(--orange); background: white; }
   .field-toggle { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: var(--text-muted); }
   .field-hint { font-size: 12px; color: var(--text-muted); margin-bottom: 16px; line-height: 1.5; }
-  .field-hint a { color: var(--purple); text-decoration: none; }
+  .field-hint a { color: var(--orange); text-decoration: none; }
   .dev-warning { background: #FEF2F2; border: 1px solid #FECACA; border-radius: var(--radius-sm); padding: 10px 14px; font-size: 12px; color: #7F1D1D; line-height: 1.5; margin-bottom: 18px; display: flex; gap: 8px; }
   .saved-bar { background: var(--green-light); border: 1px solid #A7F3D0; border-radius: var(--radius-sm); padding: 10px 14px; font-size: 13px; color: #064E3B; display: none; align-items: center; gap: 8px; margin-bottom: 14px; }
 
   /* Upload zone */
   .drop-zone {
-    border: 2px dashed #C4B5FD;
+    border: 2px dashed #FDBA74;
     border-radius: var(--radius-sm);
     padding: 48px 24px;
     text-align: center;
-    background: var(--purple-pale);
+    background: var(--orange-pale);
     cursor: pointer;
     transition: border-color 0.2s, background 0.2s;
     margin-bottom: 16px;
   }
-  .drop-zone:hover, .drop-zone.dragover { border-color: var(--purple); background: #EDE9FE; }
-  .drop-zone-icon { width: 60px; height: 60px; background: var(--purple-light); border-radius: 16px; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; }
+  .drop-zone:hover, .drop-zone.dragover { border-color: var(--orange); background: #FEF0E6; }
+  .drop-zone-icon { width: 60px; height: 60px; background: var(--orange-light); border-radius: 16px; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; }
   .drop-title { font-size: 16px; font-weight: 700; color: var(--text); margin-bottom: 6px; }
   .drop-sub { font-size: 13px; color: var(--text-secondary); margin-bottom: 16px; }
-  .browse-btn { display: inline-flex; align-items: center; gap: 8px; background: linear-gradient(135deg, var(--purple), var(--purple-mid)); color: white; border: none; padding: 11px 24px; border-radius: var(--radius-sm); font-family: 'Plus Jakarta Sans', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; transition: opacity 0.15s; margin-bottom: 10px; }
+  .browse-btn { display: inline-flex; align-items: center; gap: 8px; background: linear-gradient(135deg, var(--orange), var(--orange-mid)); color: white; border: none; padding: 11px 24px; border-radius: var(--radius-sm); font-family: 'Plus Jakarta Sans', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; transition: opacity 0.15s; margin-bottom: 10px; }
   .browse-btn:hover { opacity: 0.9; }
   .drop-format { font-size: 12px; color: var(--text-muted); }
   #file-input { display: none; }
@@ -92,18 +92,18 @@
   /* URL input */
   .url-row { display: flex; gap: 10px; }
   .url-input { flex: 1; padding: 12px 14px; border-radius: var(--radius-sm); border: 1.5px solid var(--border); font-family: 'Plus Jakarta Sans', sans-serif; font-size: 14px; color: var(--text); background: var(--bg); outline: none; }
-  .url-input:focus { border-color: var(--purple); background: white; }
+  .url-input:focus { border-color: var(--orange); background: white; }
   .fetch-btn { padding: 12px 20px; background: var(--text); color: white; border: none; border-radius: var(--radius-sm); font-family: 'Plus Jakarta Sans', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap; }
 
   /* Paste fallback */
   .paste-area { width: 100%; min-height: 100px; padding: 12px 14px; border-radius: var(--radius-sm); border: 1.5px solid var(--border); font-family: 'Plus Jakarta Sans', sans-serif; font-size: 13px; color: var(--text); background: var(--bg); outline: none; resize: vertical; line-height: 1.5; transition: border-color 0.15s; }
-  .paste-area:focus { border-color: var(--purple); background: white; }
-  .parse-btn { margin-top: 12px; display: inline-flex; align-items: center; gap: 8px; background: linear-gradient(135deg, var(--purple), var(--purple-mid)); color: white; border: none; padding: 12px 24px; border-radius: var(--radius-sm); font-family: 'Plus Jakarta Sans', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; }
+  .paste-area:focus { border-color: var(--orange); background: white; }
+  .parse-btn { margin-top: 12px; display: inline-flex; align-items: center; gap: 8px; background: linear-gradient(135deg, var(--orange), var(--orange-mid)); color: white; border: none; padding: 12px 24px; border-radius: var(--radius-sm); font-family: 'Plus Jakarta Sans', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; }
 
   /* Previously uploaded */
   .prev-item { display: flex; align-items: center; gap: 14px; padding: 14px 0; border-bottom: 1px solid var(--border); }
   .prev-item:last-child { border-bottom: none; }
-  .prev-icon { width: 40px; height: 40px; background: var(--purple-light); border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .prev-icon { width: 40px; height: 40px; background: var(--orange-light); border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
   .prev-info { flex: 1; }
   .prev-name { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 2px; }
   .prev-sub { font-size: 12px; color: var(--text-muted); }
@@ -120,16 +120,16 @@
   .parse-steps { margin-top: 16px; display: flex; flex-direction: column; gap: 10px; }
   .parse-step { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: var(--radius-sm); background: var(--bg); }
   .parse-step.done { background: var(--green-light); }
-  .parse-step.active-step { background: var(--purple-light); }
+  .parse-step.active-step { background: var(--orange-light); }
   .ps-icon { width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
   .ps-icon.done { background: var(--green); }
-  .ps-icon.active { background: var(--purple); }
+  .ps-icon.active { background: var(--orange); }
   .ps-icon.pending { background: #E5E7EB; }
   .mini-spin { width: 11px; height: 11px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.7s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
   .ps-label { font-size: 13px; color: var(--text); }
   .ps-label.muted { color: var(--text-muted); }
-  .spinner { width: 48px; height: 48px; border: 3px solid var(--purple-light); border-top-color: var(--purple); border-radius: 50%; animation: spin 0.85s linear infinite; margin: 0 auto 16px; }
+  .spinner { width: 48px; height: 48px; border: 3px solid var(--orange-light); border-top-color: var(--orange); border-radius: 50%; animation: spin 0.85s linear infinite; margin: 0 auto 16px; }
   .parse-heading { font-size: 17px; font-weight: 700; text-align: center; color: var(--text); margin-bottom: 6px; }
   .parse-sub { font-size: 13px; color: var(--text-secondary); text-align: center; margin-bottom: 20px; }
 
@@ -154,9 +154,9 @@
   .result-table th { font-size: 11px; font-weight: 600; color: var(--text-secondary); text-align: left; padding: 0 8px 10px; border-bottom: 1px solid var(--border); }
   .result-table td { padding: 10px 8px; border-bottom: 1px solid #F3F4F6; color: var(--text); }
   .result-table tr:last-child td { border-bottom: none; }
-  .w-pill { display: inline-block; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 999px; background: var(--purple-light); color: var(--purple); }
+  .w-pill { display: inline-block; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 999px; background: var(--orange-light); color: var(--orange); }
   .w-pill.miss { background: var(--amber-light); color: var(--amber); }
-  .json-box { background: #1E1B4B; border-radius: var(--radius-sm); padding: 14px; margin-top: 12px; display: none; }
+  .json-box { background: #431407; border-radius: var(--radius-sm); padding: 14px; margin-top: 12px; display: none; }
   .json-box.open { display: block; }
   .json-box pre { font-family: 'Courier New', monospace; font-size: 11.5px; color: #A5B4FC; line-height: 1.6; white-space: pre-wrap; word-break: break-all; }
   .toggle-json-btn { width: 100%; margin-top: 10px; padding: 10px; border: 1.5px solid var(--border); border-radius: var(--radius-sm); background: transparent; color: var(--text-secondary); font-family: 'Plus Jakarta Sans', sans-serif; font-size: 13px; cursor: pointer; }
@@ -164,10 +164,10 @@
   .action-bar-text { font-size: 13px; color: var(--text-secondary); }
   .action-bar-btns { display: flex; gap: 10px; }
   .btn-outline { padding: 10px 18px; border: 1.5px solid var(--border); border-radius: var(--radius-sm); background: white; color: var(--text); font-family: 'Plus Jakarta Sans', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; }
-  .btn-purple { padding: 10px 18px; border: none; border-radius: var(--radius-sm); background: linear-gradient(135deg, var(--purple), var(--purple-mid)); color: white; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+  .btn-orange { padding: 10px 18px; border: none; border-radius: var(--radius-sm); background: linear-gradient(135deg, var(--orange), var(--orange-mid)); color: white; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
 
   /* Save key btn */
-  .save-key-btn { display: inline-flex; align-items: center; gap: 8px; padding: 11px 22px; border: none; border-radius: var(--radius-sm); background: linear-gradient(135deg, var(--purple), var(--purple-mid)); color: white; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; transition: opacity 0.15s; }
+  .save-key-btn { display: inline-flex; align-items: center; gap: 8px; padding: 11px 22px; border: none; border-radius: var(--radius-sm); background: linear-gradient(135deg, var(--orange), var(--orange-mid)); color: white; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; transition: opacity 0.15s; }
   .save-key-btn:disabled { background: #9CA3AF; cursor: not-allowed; }
 
   /* Screen toggling */
@@ -319,7 +319,7 @@
         ondrop="handleDrop(event)"
         onclick="document.getElementById('file-input').click()">
         <div class="drop-zone-icon">
-          <svg width="28" height="28" fill="none" viewBox="0 0 28 28"><path d="M14 4v16M9 9l5-5 5 5" stroke="#6C2BD9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 20v2a2 2 0 002 2h16a2 2 0 002-2v-2" stroke="#6C2BD9" stroke-width="2" stroke-linecap="round"/></svg>
+          <svg width="28" height="28" fill="none" viewBox="0 0 28 28"><path d="M14 4v16M9 9l5-5 5 5" stroke="#C2460A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 20v2a2 2 0 002 2h16a2 2 0 002-2v-2" stroke="#C2460A" stroke-width="2" stroke-linecap="round"/></svg>
         </div>
         <div class="drop-title">Drag &amp; Drop Your PDF Here</div>
         <div class="drop-sub">or click to browse from your computer</div>
@@ -365,7 +365,7 @@
           <svg width="16" height="16" fill="none" viewBox="0 0 16 16"><rect x="2" y="1" width="10" height="14" rx="2" stroke="#EF4444" stroke-width="1.4" fill="none"/><path d="M9 1v4h5" stroke="#EF4444" stroke-width="1.4" stroke-linecap="round"/></svg>
         </div>
         <div><div style="font-size:13px;font-weight:600;color:var(--text);" id="file-name-bar">syllabus.pdf</div><div style="font-size:11.5px;color:var(--text-muted);" id="file-size-bar">Reading…</div></div>
-        <div style="margin-left:auto;font-size:12px;font-weight:600;color:var(--purple);background:var(--purple-light);padding:4px 12px;border-radius:999px;">Processing…</div>
+        <div style="margin-left:auto;font-size:12px;font-weight:600;color:var(--orange);background:var(--orange-light);padding:4px 12px;border-radius:999px;">Processing…</div>
       </div>
       <div class="spinner"></div>
       <div class="parse-heading" id="parse-heading">Sending to AI…</div>
@@ -426,7 +426,7 @@
         <div class="action-bar-text">Happy with the results? Generate your study schedule.</div>
         <div class="action-bar-btns">
           <button class="btn-outline" onclick="goTo('upload')">Re-upload</button>
-          <button class="btn-purple" onclick="generateSprints()">
+          <button class="btn-orange" onclick="generateSprints()">
             Generate Sprints
             <svg width="14" height="14" fill="none" viewBox="0 0 14 14"><path d="M2 7h10M7 2l5 5-5 5" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </button>
@@ -602,7 +602,7 @@ async function callGemini() {
     setStep(2, 'active');
 
     // Pick a distinct color based on how many courses exist
-    const COURSE_COLORS = ['#6C2BD9','#10B981','#EF4444','#F59E0B','#3B82F6','#8B5CF6','#EC4899','#14B8A6'];
+    const COURSE_COLORS = ['#C2460A','#10B981','#EF4444','#F59E0B','#3B82F6','#EA6C1A','#EC4899','#14B8A6'];
     let colorIdx = 0;
     try {
       const existing = await Courses.list();
@@ -708,7 +708,7 @@ async function generateSprints() {
     window.location.href = 'studysprint_schedule.html';
     return;
   }
-  const btn = document.querySelector('.btn-purple');
+  const btn = document.querySelector('.btn-orange');
   if (btn) { btn.disabled = true; btn.textContent = 'Generating…'; }
   try {
     const res = await Sprints.generate(currentCourseId);
@@ -723,7 +723,7 @@ async function generateSprints() {
 function showToastUpload(msg, isError = false) {
   const t = document.createElement('div');
   t.style.cssText = `position:fixed;bottom:28px;left:50%;transform:translateX(-50%);
-    background:${isError ? '#7F1D1D' : '#1E1B4B'};color:white;font-size:13px;font-weight:500;
+    background:${isError ? '#7F1D1D' : '#431407'};color:white;font-size:13px;font-weight:500;
     padding:12px 22px;border-radius:999px;z-index:200;white-space:nowrap;
     box-shadow:0 8px 24px rgba(0,0,0,0.2);`;
   t.textContent = msg;
@@ -753,8 +753,8 @@ async function loadPreviousSyllabi() {
       div.innerHTML = `
         <div class="prev-icon">
           <svg width="20" height="20" fill="none" viewBox="0 0 20 20">
-            <rect x="3" y="2" width="14" height="16" rx="2" stroke="#6C2BD9" stroke-width="1.5" fill="none"/>
-            <path d="M7 7h6M7 10h6M7 13h4" stroke="#6C2BD9" stroke-width="1.4" stroke-linecap="round"/>
+            <rect x="3" y="2" width="14" height="16" rx="2" stroke="#C2460A" stroke-width="1.5" fill="none"/>
+            <path d="M7 7h6M7 10h6M7 13h4" stroke="#C2460A" stroke-width="1.4" stroke-linecap="round"/>
           </svg>
         </div>
         <div class="prev-info">

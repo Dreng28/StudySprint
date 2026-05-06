@@ -8,10 +8,10 @@
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   :root {
-    --purple: #6C2BD9;
-    --purple-mid: #8B5CF6;
-    --purple-light: #EDE9FE;
-    --purple-pale: #F5F3FF;
+    --orange: #C2460A;
+    --orange-mid: #EA6C1A;
+    --orange-light: #FEF0E6;
+    --orange-pale: #FFF7F0;
     --green: #10B981;
     --green-light: #D1FAE5;
     --coral: #EF4444;
@@ -29,7 +29,7 @@
     --radius: 16px;
     --radius-sm: 10px;
     --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04);
-    --shadow-md: 0 4px 24px rgba(108,43,217,0.10);
+    --shadow-md: 0 4px 24px rgba(194,70,10,0.10);
   }
   body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
 
@@ -48,19 +48,19 @@
   }
   .nav-left { display: flex; align-items: center; gap: 16px; }
   .hamburger { background: none; border: none; cursor: pointer; color: var(--text-secondary); padding: 4px; }
-  .logo { display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 18px; color: var(--purple); text-decoration: none; }
-  .logo-icon { width: 28px; height: 28px; background: linear-gradient(135deg, var(--purple), var(--purple-mid)); border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+  .logo { display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 18px; color: var(--orange); text-decoration: none; }
+  .logo-icon { width: 28px; height: 28px; background: linear-gradient(135deg, var(--orange), var(--orange-mid)); border-radius: 8px; display: flex; align-items: center; justify-content: center; }
   .nav-right { display: flex; align-items: center; gap: 12px; }
   .nav-icon-btn { position: relative; width: 38px; height: 38px; border-radius: 50%; border: none; background: var(--bg); cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--text-secondary); }
   .notif-dot { position: absolute; top: 6px; right: 6px; width: 8px; height: 8px; background: var(--coral); border-radius: 50%; border: 2px solid white; }
-  .avatar-btn { width: 38px; height: 38px; border-radius: 50%; background: linear-gradient(135deg, var(--purple), var(--purple-mid)); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+  .avatar-btn { width: 38px; height: 38px; border-radius: 50%; background: linear-gradient(135deg, var(--orange), var(--orange-mid)); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; }
 
   /* ── Page ── */
   .page { max-width: 1100px; margin: 0 auto; padding: 28px 24px 48px; }
 
   /* ── Hero Banner ── */
   .hero {
-    background: linear-gradient(135deg, #6C2BD9 0%, #9333EA 50%, #C026D3 100%);
+    background: linear-gradient(135deg, #C2460A 0%, #DD5F0E 50%, #F97316 100%);
     border-radius: var(--radius);
     padding: 32px 36px;
     display: flex;
@@ -109,7 +109,7 @@
   .card { background: var(--surface); border-radius: var(--radius); padding: 24px; box-shadow: var(--shadow); }
   .card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
   .card-title { font-size: 16px; font-weight: 700; color: var(--text); }
-  .view-all { font-size: 13px; font-weight: 600; color: var(--purple); text-decoration: none; display: flex; align-items: center; gap: 3px; }
+  .view-all { font-size: 13px; font-weight: 600; color: var(--orange); text-decoration: none; display: flex; align-items: center; gap: 3px; }
 
   /* ── Sprint items ── */
   .sprint-item { padding: 14px 0; border-bottom: 1px solid var(--border); }
@@ -118,13 +118,13 @@
   .sprint-name { font-size: 14px; font-weight: 600; color: var(--text); }
   .sprint-pct { font-size: 13px; font-weight: 600; color: var(--text-secondary); }
   .sprint-meta { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
-  .course-tag { font-size: 11px; font-weight: 600; background: var(--purple-light); color: var(--purple); padding: 2px 8px; border-radius: 6px; }
+  .course-tag { font-size: 11px; font-weight: 600; background: var(--orange-light); color: var(--orange); padding: 2px 8px; border-radius: 6px; }
   .sprint-time { font-size: 12px; color: var(--text-muted); display: flex; align-items: center; gap: 4px; }
   .progress-track { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
-  .progress-fill { height: 100%; border-radius: 3px; background: linear-gradient(90deg, var(--purple), var(--purple-mid)); transition: width 0.6s ease; }
-  .progress-fill.low { background: linear-gradient(90deg, #C084FC, var(--purple-mid)); }
-  .view-all-btn { width: 100%; margin-top: 16px; padding: 12px; border: 1.5px solid var(--purple); border-radius: var(--radius-sm); background: transparent; color: var(--purple); font-family: 'Plus Jakarta Sans', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; transition: background 0.15s; }
-  .view-all-btn:hover { background: var(--purple-pale); }
+  .progress-fill { height: 100%; border-radius: 3px; background: linear-gradient(90deg, var(--orange), var(--orange-mid)); transition: width 0.6s ease; }
+  .progress-fill.low { background: linear-gradient(90deg, #C084FC, var(--orange-mid)); }
+  .view-all-btn { width: 100%; margin-top: 16px; padding: 12px; border: 1.5px solid var(--orange); border-radius: var(--radius-sm); background: transparent; color: var(--orange); font-family: 'Plus Jakarta Sans', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; transition: background 0.15s; }
+  .view-all-btn:hover { background: var(--orange-pale); }
 
   /* ── Activity ── */
   .activity-item { display: flex; align-items: flex-start; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border); }
@@ -133,7 +133,7 @@
   .act-green { background: var(--green-light); }
   .act-blue { background: var(--blue-light); }
   .act-amber { background: var(--amber-light); }
-  .act-purple { background: var(--purple-light); }
+  .act-orange { background: var(--orange-light); }
   .activity-info { flex: 1; }
   .activity-title { font-size: 13.5px; font-weight: 600; color: var(--text); margin-bottom: 2px; }
   .activity-sub { font-size: 12px; color: var(--text-secondary); margin-bottom: 2px; }
@@ -143,10 +143,10 @@
   .quick-actions-card { background: var(--surface); border-radius: var(--radius); padding: 24px; box-shadow: var(--shadow); }
   .qa-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 16px; }
   .qa-btn { padding: 14px 16px; border-radius: var(--radius-sm); font-family: 'Plus Jakarta Sans', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.15s; border: none; }
-  .qa-primary { background: linear-gradient(135deg, var(--purple), var(--purple-mid)); color: white; }
+  .qa-primary { background: linear-gradient(135deg, var(--orange), var(--orange-mid)); color: white; }
   .qa-primary:hover { opacity: 0.92; transform: translateY(-1px); }
   .qa-secondary { background: var(--bg); color: var(--text); border: 1.5px solid var(--border); }
-  .qa-secondary:hover { border-color: var(--purple); color: var(--purple); }
+  .qa-secondary:hover { border-color: var(--orange); color: var(--orange); }
 
   /* ── Animations ── */
   @keyframes fadeUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
@@ -249,13 +249,13 @@
   box-shadow:4px 0 24px rgba(0,0,0,0.12);z-index:200;transform:translateX(-100%);
   transition:transform 0.25s ease;display:flex;flex-direction:column;">
   <div style="padding:20px 20px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;">
-    <div style="width:28px;height:28px;background:linear-gradient(135deg,var(--purple),var(--purple-mid));border-radius:8px;display:flex;align-items:center;justify-content:center;">
+    <div style="width:28px;height:28px;background:linear-gradient(135deg,var(--orange),var(--orange-mid));border-radius:8px;display:flex;align-items:center;justify-content:center;">
       <svg width="16" height="16" fill="none" viewBox="0 0 16 16"><path d="M3 8l2.5 2.5L13 4" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
     </div>
-    <span style="font-size:18px;font-weight:800;color:var(--purple);">StudySprint</span>
+    <span style="font-size:18px;font-weight:800;color:var(--orange);">StudySprint</span>
   </div>
   <nav style="flex:1;padding:12px 10px;">
-    <a href="studysprint_dashboard.html" style="display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:10px;text-decoration:none;font-size:14px;font-weight:600;background:var(--purple-light);color:var(--purple);margin-bottom:2px;">🏠 Dashboard</a>
+    <a href="studysprint_dashboard.html" style="display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:10px;text-decoration:none;font-size:14px;font-weight:600;background:var(--orange-light);color:var(--orange);margin-bottom:2px;">🏠 Dashboard</a>
     <a href="studysprint_schedule.html"  style="display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:10px;text-decoration:none;font-size:14px;font-weight:600;color:var(--text-secondary);margin-bottom:2px;transition:all 0.15s;">📅 Schedule</a>
     <a href="studysprint_upload.html"    style="display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:10px;text-decoration:none;font-size:14px;font-weight:600;color:var(--text-secondary);margin-bottom:2px;transition:all 0.15s;">📤 Upload Syllabus</a>
     <a href="studysprint_profile.html"   style="display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:10px;text-decoration:none;font-size:14px;font-weight:600;color:var(--text-secondary);margin-bottom:2px;transition:all 0.15s;">👤 Profile & Settings</a>
@@ -295,8 +295,8 @@
   <div class="stats-row">
     <div class="stat-card">
       <div class="stat-top">
-        <div class="stat-icon" style="background:#EDE9FE;">
-          <svg width="22" height="22" fill="none" viewBox="0 0 22 22"><path d="M4 4h14v14H4z" stroke="#6C2BD9" stroke-width="1.5" fill="none" rx="2"/><path d="M8 11h6M8 14h4" stroke="#6C2BD9" stroke-width="1.5" stroke-linecap="round"/></svg>
+        <div class="stat-icon" style="background:#FEF0E6;">
+          <svg width="22" height="22" fill="none" viewBox="0 0 22 22"><path d="M4 4h14v14H4z" stroke="#C2460A" stroke-width="1.5" fill="none" rx="2"/><path d="M8 11h6M8 14h4" stroke="#C2460A" stroke-width="1.5" stroke-linecap="round"/></svg>
         </div>
         <span class="stat-badge active">Active</span>
       </div>
@@ -367,7 +367,7 @@
         </div>
       </div>
       <div class="activity-item">
-        <div class="activity-icon act-purple" style="font-size:14px;">🎯</div>
+        <div class="activity-icon act-orange" style="font-size:14px;">🎯</div>
         <div class="activity-info">
           <div class="activity-title">Study goal achieved</div>
           <div class="activity-sub">Weekly target: 15 hours</div>
@@ -439,7 +439,7 @@ if (_user) {
 function showToast(msg, isError = false) {
   const t = document.createElement('div');
   t.style.cssText = `position:fixed;bottom:28px;left:50%;transform:translateX(-50%);
-    background:${isError ? '#7F1D1D' : '#1E1B4B'};color:white;font-size:13px;font-weight:500;
+    background:${isError ? '#7F1D1D' : '#431407'};color:white;font-size:13px;font-weight:500;
     padding:12px 22px;border-radius:999px;z-index:300;white-space:nowrap;
     box-shadow:0 8px 24px rgba(0,0,0,0.2);`;
   t.textContent = msg;
@@ -516,8 +516,8 @@ async function loadDashboard() {
             </svg>
             ${escHtml(sp.scheduled_slot || '')}
           </span>
-          <span class="li-badge" style="background:${priBg[sp.priority]||'var(--purple-light)'};
-            color:${priTxt[sp.priority]||'var(--purple)'};font-size:11px;padding:2px 8px;border-radius:6px;">
+          <span class="li-badge" style="background:${priBg[sp.priority]||'var(--orange-light)'};
+            color:${priTxt[sp.priority]||'var(--orange)'};font-size:11px;padding:2px 8px;border-radius:6px;">
             ${escHtml(sp.priority || '')}
           </span>
         </div>
@@ -537,7 +537,7 @@ async function loadDashboard() {
     sprint_done:       { icon: '✓',  cls: 'act-green'  },
     syllabus_uploaded: { icon: '↑',  cls: 'act-blue'   },
     deadline_alert:    { icon: '!',  cls: 'act-amber'  },
-    goal_achieved:     { icon: '🎯', cls: 'act-purple' },
+    goal_achieved:     { icon: '🎯', cls: 'act-orange' },
   };
 
   if (!recent_activity.length) {
@@ -547,7 +547,7 @@ async function loadDashboard() {
     actCard.appendChild(empty);
   } else {
     recent_activity.slice(0, 4).forEach(act => {
-      const t = typeIcon[act.type] || { icon: '·', cls: 'act-purple' };
+      const t = typeIcon[act.type] || { icon: '·', cls: 'act-orange' };
       const div = document.createElement('div');
       div.className = 'activity-item';
       div.innerHTML = `
@@ -567,7 +567,7 @@ async function loadDashboard() {
     document.getElementById('notif-dot').style.display = 'block';
     notifList.innerHTML = '';
     recent_activity.slice(0, 5).forEach(act => {
-      const t = typeIcon[act.type] || { icon: '·', cls: 'act-purple' };
+      const t = typeIcon[act.type] || { icon: '·', cls: 'act-orange' };
       const item = document.createElement('div');
       item.style.cssText = 'display:flex;align-items:flex-start;gap:10px;padding:10px 18px;border-bottom:1px solid #F9FAFB;';
       item.innerHTML = `
