@@ -162,6 +162,13 @@
   .dur-save { padding: 6px 14px; background: var(--purple); color: white; border: none; border-radius: 8px; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap; }
   .dur-save:hover { background: var(--purple-mid); }
   .dur-saved { font-size: 11px; color: var(--green); font-weight: 600; display: none; margin-left: 4px; }
+  /* Checkbox on sprint block */
+  .sb-check { width: 16px; height: 16px; border-radius: 4px; border: 1.5px solid rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center; flex-shrink: 0; cursor: pointer; transition: all 0.15s; background: rgba(255,255,255,0.7); margin-bottom: 4px; }
+  .sb-check:hover { border-color: var(--purple); background: var(--purple-pale); }
+  .sb-check.checked { background: var(--green); border-color: var(--green); }
+  .sb-check.checked svg { display: block; }
+  .sb-check svg { display: none; }
+  .sb-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 4px; }
   /* Color dot on sprint block */
   .sb-course-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 5px; vertical-align: middle; flex-shrink: 0; }
   .sb-course-row { display: flex; align-items: center; margin-top: 3px; }
@@ -495,13 +502,21 @@ function buildCal() {
           const block = document.createElement('div');
           block.className = 'sprint-block' + (sp.done ? ' done-block' : '');
           block.style.cssText = `background:${sp.colorBg};border-left:3px solid ${sp.colorHex};`;
-          block.innerHTML = `<div class="sb-title">${escHtml(sp.title)}</div>
-                             <div class="sb-course-row">
-                               <span class="sb-course-dot" style="background:${sp.colorHex};"></span>
-                               <span class="sb-course-name">${escHtml(sp.course)}</span>
-                             </div>
-                             <div class="sb-meta">${escHtml(sp.dur)}</div>`;
+          const checkId = `sbc-${sp.id}`;
+          block.innerHTML = `
+            <div class="sb-header">
+              <div class="sb-title">${escHtml(sp.title)}</div>
+              <div class="sb-check${sp.done ? ' checked' : ''}" id="${checkId}" title="Mark complete">
+                <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M1.5 5l2.5 2.5 4.5-4.5" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </div>
+            </div>
+            <div class="sb-course-row">
+              <span class="sb-course-dot" style="background:${sp.colorHex};"></span>
+              <span class="sb-course-name">${escHtml(sp.course)}</span>
+            </div>
+            <div class="sb-meta">${escHtml(sp.dur)}</div>`;
           block.onclick = () => openModal(sp);
+          block.querySelector(`#${checkId}`).onclick = (e) => { e.stopPropagation(); toggleDone(sp.id, e); };
           cell.appendChild(block);
         });
       row.appendChild(cell);
