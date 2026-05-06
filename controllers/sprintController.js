@@ -124,6 +124,31 @@ const generateSprintsForCourse = async (userId, courseId) => {
   return { scheduled, unscheduled };
 };
 
+// POST /api/assessments — manual assessment entry
+const createAssessment = async (req, res) => {
+  try {
+    const { course_id, name, type, due_date, weight_percent } = req.body;
+    if (!course_id || !name || !type)
+      return res.status(400).json({ success: false, message: 'course_id, name, and type are required.' });
+
+    const [courseRows] = await db.query('SELECT id FROM courses WHERE id=? AND user_id=?', [course_id, req.user.id]);
+    if (!courseRows.length) return res.status(404).json({ success: false, message: 'Course not found.' });
+
+    const ALLOWED_TYPES = ['quiz','exam','assignment','project','lab','other'];
+    const safeType = ALLOWED_TYPES.includes((type||'').toLowerCase()) ? type.toLowerCase() : 'other';
+
+    const [result] = await db.query(
+      'INSERT INTO assessments (course_id, user_id, name, type, due_date, weight_percent) VALUES (?,?,?,?,?,?)',
+      [course_id, req.user.id, name, safeType, due_date || null, weight_percent || null]
+    );
+
+    return res.status(201).json({ success: true, message: 'Assessment added.', assessment_id: result.insertId });
+  } catch (err) {
+    console.error('Create assessment error:', err);
+    return res.status(500).json({ success: false, message: 'Server error.' });
+  }
+};
+
 // POST /api/sprints/generate
 const generateSprints = async (req, res) => {
   try {
@@ -311,6 +336,6 @@ const deleteSprint = async (req, res) => {
 
 module.exports = {
   generateSprints, getSprints, getTodaySprints,
-  getUnscheduled, setAssessmentDate,
+  getUnscheduled, setAssessmentDate, createAssessment,
   completeSprint, postponeSprint, deleteSprint, updateDuration, rescheduleSprint,
 };

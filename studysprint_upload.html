@@ -174,6 +174,38 @@
   .screen { display: none; }
   .screen.active { display: block; }
 
+  /* Upload tabs */
+  .upload-tabs { display: flex; gap: 0; margin-bottom: 20px; background: var(--bg); border-radius: var(--radius-sm); padding: 4px; }
+  .upload-tab { flex: 1; padding: 10px 12px; border: none; background: transparent; border-radius: 8px; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 13px; font-weight: 600; color: var(--text-muted); cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; gap: 6px; }
+  .upload-tab.active { background: var(--surface); color: var(--orange); box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+  .upload-tab:hover:not(.active) { color: var(--text); }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* Manual form */
+  .manual-form { display: flex; flex-direction: column; gap: 14px; }
+  .mf-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .mf-group { display: flex; flex-direction: column; gap: 6px; }
+  .mf-label { font-size: 13px; font-weight: 600; color: var(--text); }
+  .mf-label span { color: var(--coral); }
+  .mf-input { width: 100%; padding: 11px 14px; border-radius: var(--radius-sm); border: 1.5px solid var(--border); font-family: 'Plus Jakarta Sans', sans-serif; font-size: 14px; color: var(--text); background: var(--bg); outline: none; transition: border-color 0.15s; }
+  .mf-input:focus { border-color: var(--orange); background: white; }
+  .mf-select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' fill='none' viewBox='0 0 12 8' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%239CA3AF' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 36px; cursor: pointer; }
+  .mf-add-btn { width: 100%; padding: 13px; border: none; border-radius: var(--radius-sm); background: linear-gradient(135deg, var(--orange), var(--orange-mid)); color: white; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 14px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: opacity 0.15s; margin-top: 4px; }
+  .mf-add-btn:hover { opacity: 0.9; }
+  .mf-add-btn:disabled { background: #9CA3AF; cursor: not-allowed; opacity: 1; }
+  .mf-list { margin-top: 4px; display: flex; flex-direction: column; gap: 8px; }
+  .mf-item { display: flex; align-items: center; gap: 10px; padding: 12px 14px; background: var(--bg); border-radius: var(--radius-sm); border: 1px solid var(--border); }
+  .mf-item-info { flex: 1; }
+  .mf-item-name { font-size: 13px; font-weight: 600; color: var(--text); }
+  .mf-item-meta { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+  .mf-item-del { background: none; border: none; color: var(--coral); cursor: pointer; font-size: 16px; padding: 2px 6px; border-radius: 6px; }
+  .mf-item-del:hover { background: var(--coral-light); }
+  .mf-generate-btn { width: 100%; padding: 13px; border: none; border-radius: var(--radius-sm); background: linear-gradient(135deg, var(--orange), var(--orange-mid)); color: white; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 14px; font-weight: 700; cursor: pointer; display: none; align-items: center; justify-content: center; gap: 8px; margin-top: 8px; }
+  .mf-generate-btn.show { display: flex; }
+  .mf-course-select { margin-bottom: 16px; padding: 13px 14px; border-radius: var(--radius-sm); border: 1.5px solid var(--orange); font-family: 'Plus Jakarta Sans', sans-serif; font-size: 14px; color: var(--text); background: var(--bg); outline: none; width: 100%; cursor: pointer; }
+  .mf-info { background: var(--orange-pale); border: 1px solid var(--orange-light); border-radius: var(--radius-sm); padding: 12px 14px; font-size: 13px; color: #7C2D12; margin-bottom: 16px; line-height: 1.5; }
+
   @keyframes fadeUp { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
   .card { animation: fadeUp 0.35s ease both; }
   /* ── MOBILE RESPONSIVE (≤ 640px) ──────────────────────────────── */
@@ -309,10 +341,24 @@
   <!-- SCREEN: Upload -->
   <div class="screen" id="screen-upload">
     <div class="card">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
-        <div class="card-title" style="margin-bottom:0;">Upload Syllabus</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+        <div class="card-title" style="margin-bottom:0;">Add Course</div>
         <span style="font-size:12px;font-weight:600;color:var(--green);background:var(--green-light);padding:4px 12px;border-radius:999px;">✓ AI Connected</span>
       </div>
+      <!-- Tabs -->
+      <div class="upload-tabs">
+        <button class="upload-tab active" id="tab-ai" onclick="switchUploadTab('ai')">
+          <svg width="14" height="14" fill="none" viewBox="0 0 14 14"><circle cx="7" cy="7" r="6" stroke="currentColor" stroke-width="1.4" fill="none"/><path d="M4.5 7l2 2 3.5-3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          AI Upload
+        </button>
+        <button class="upload-tab" id="tab-manual" onclick="switchUploadTab('manual')">
+          <svg width="14" height="14" fill="none" viewBox="0 0 14 14"><path d="M2 4h10M2 7h7M2 10h5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+          Manual Entry
+        </button>
+      </div>
+
+      <!-- AI Upload Panel -->
+      <div class="tab-panel active" id="panel-ai">
       <div class="drop-zone" id="drop-zone"
         ondragover="event.preventDefault();this.classList.add('dragover')"
         ondragleave="this.classList.remove('dragover')"
@@ -346,7 +392,59 @@
         <svg width="14" height="14" fill="none" viewBox="0 0 14 14"><circle cx="7" cy="7" r="6" stroke="white" stroke-width="1.4" fill="none"/><path d="M4.5 7l2 2 3.5-3" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
         Parse with AI
       </button>
-    </div>
+      </div><!-- end panel-ai -->
+
+      <!-- Manual Entry Panel -->
+      <div class="tab-panel" id="panel-manual">
+        <div class="mf-info">✏️ Add assessments manually — no AI needed. Great for verbally announced deadlines or quickly adding a single quiz.</div>
+        <div class="mf-group" style="margin-bottom:4px;">
+          <label class="mf-label">Course <span>*</span></label>
+          <select class="mf-input mf-select mf-course-select" id="mf-course">
+            <option value="">Loading courses…</option>
+          </select>
+        </div>
+        <div class="manual-form">
+          <div class="mf-row">
+            <div class="mf-group">
+              <label class="mf-label">Assessment Name <span>*</span></label>
+              <input class="mf-input" type="text" id="mf-name" placeholder="e.g. Quiz 1 — Chapter 3" oninput="validateManual()"/>
+            </div>
+            <div class="mf-group">
+              <label class="mf-label">Type <span>*</span></label>
+              <select class="mf-input mf-select" id="mf-type" onchange="validateManual()">
+                <option value="">Select type…</option>
+                <option value="quiz">Quiz</option>
+                <option value="exam">Exam</option>
+                <option value="assignment">Assignment</option>
+                <option value="project">Project</option>
+                <option value="lab">Lab</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+          </div>
+          <div class="mf-row">
+            <div class="mf-group">
+              <label class="mf-label">Due Date <span>*</span></label>
+              <input class="mf-input" type="date" id="mf-date" onchange="validateManual()"/>
+            </div>
+            <div class="mf-group">
+              <label class="mf-label">Weight % <span style="color:var(--text-muted);font-weight:400;">(Optional)</span></label>
+              <input class="mf-input" type="number" id="mf-weight" placeholder="e.g. 20" min="1" max="100"/>
+            </div>
+          </div>
+          <button class="mf-add-btn" id="mf-add-btn" onclick="addManualAssessment()" disabled>
+            <svg width="14" height="14" fill="none" viewBox="0 0 14 14"><path d="M7 2v10M2 7h10" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>
+            Add Assessment
+          </button>
+        </div>
+        <!-- Added assessments list -->
+        <div class="mf-list" id="mf-list" style="margin-top:16px;"></div>
+        <button class="mf-generate-btn" id="mf-generate-btn" onclick="generateManualSprints()">
+          <svg width="14" height="14" fill="none" viewBox="0 0 14 14"><path d="M2 7h10M7 2l5 5-5 5" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Generate Sprints
+        </button>
+      </div><!-- end panel-manual -->
+    </div><!-- end card -->
 
     <!-- Previously uploaded -->
     <div class="card" id="prev-card" style="display:none;">
@@ -794,6 +892,143 @@ async function deleteSyllabus(id, btn) {
     showToastUpload(err.message, true);
     btn.disabled = false;
     btn.textContent = '🗑 Delete';
+  }
+}
+
+// ── Upload Tab Switcher ───────────────────────────
+function switchUploadTab(tab) {
+  document.getElementById('tab-ai').classList.toggle('active', tab === 'ai');
+  document.getElementById('tab-manual').classList.toggle('active', tab === 'manual');
+  document.getElementById('panel-ai').classList.toggle('active', tab === 'ai');
+  document.getElementById('panel-manual').classList.toggle('active', tab === 'manual');
+  if (tab === 'manual') loadCoursesForManual();
+}
+
+// ── Manual Entry ──────────────────────────────────
+let manualAssessments = [];
+
+async function loadCoursesForManual() {
+  const sel = document.getElementById('mf-course');
+  try {
+    const res = await Courses.list();
+    const courses = res?.courses || [];
+    if (!courses.length) {
+      sel.innerHTML = '<option value="">No courses yet — upload a syllabus first or add one below</option>';
+      // Allow creating a new course
+      sel.innerHTML += '<option value="__new__">+ Create new course</option>';
+      return;
+    }
+    sel.innerHTML = '<option value="">Select a course…</option>';
+    courses.forEach(c => {
+      sel.innerHTML += `<option value="${c.id}">${escHtml(c.course_name || 'Untitled')} ${c.course_code ? '('+escHtml(c.course_code)+')' : ''}</option>`;
+    });
+    sel.innerHTML += '<option value="__new__">+ Create new course</option>';
+  } catch(_) {
+    sel.innerHTML = '<option value="">Could not load courses</option>';
+  }
+}
+
+function validateManual() {
+  const name = document.getElementById('mf-name').value.trim();
+  const type = document.getElementById('mf-type').value;
+  const date = document.getElementById('mf-date').value;
+  document.getElementById('mf-add-btn').disabled = !(name && type && date);
+}
+
+async function addManualAssessment() {
+  const courseSelVal = document.getElementById('mf-course').value;
+  const name   = document.getElementById('mf-name').value.trim();
+  const type   = document.getElementById('mf-type').value;
+  const date   = document.getElementById('mf-date').value;
+  const weight = document.getElementById('mf-weight').value;
+
+  if (!name || !type || !date) return;
+
+  // Handle new course creation
+  let courseId = parseInt(courseSelVal);
+  if (courseSelVal === '__new__') {
+    const courseName = prompt('Enter course name:');
+    if (!courseName) return;
+    const COURSE_COLORS = ['#C2460A','#10B981','#EF4444','#F59E0B','#3B82F6','#EA6C1A','#EC4899','#14B8A6'];
+    let colorIdx = 0;
+    try { const ex = await Courses.list(); colorIdx = (ex?.courses?.length || 0) % COURSE_COLORS.length; } catch(_) {}
+    const cr = await Courses.create({ course_name: courseName, color: COURSE_COLORS[colorIdx] });
+    if (!cr?.success) { showToastUpload('Could not create course.', true); return; }
+    courseId = cr.id;
+    currentCourseId = courseId;
+    await loadCoursesForManual();
+    document.getElementById('mf-course').value = courseId;
+  }
+
+  if (!courseId) { showToastUpload('Please select a course first.', true); return; }
+  currentCourseId = courseId;
+
+  const btn = document.getElementById('mf-add-btn');
+  btn.disabled = true;
+  btn.textContent = 'Adding…';
+
+  try {
+    const res = await apiFetch('/assessments', {
+      method: 'POST',
+      body: JSON.stringify({ course_id: courseId, name, type, due_date: date, weight_percent: weight || null })
+    });
+    if (!res?.success) throw new Error(res?.message || 'Failed to add assessment.');
+
+    // Add to local list
+    manualAssessments.push({ id: res.assessment_id, name, type, date, weight });
+    renderManualList();
+
+    // Clear form
+    document.getElementById('mf-name').value = '';
+    document.getElementById('mf-type').value = '';
+    document.getElementById('mf-date').value = '';
+    document.getElementById('mf-weight').value = '';
+    validateManual();
+    showToastUpload(`"${name}" added!`);
+  } catch(err) {
+    showToastUpload(err.message, true);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<svg width="14" height="14" fill="none" viewBox="0 0 14 14"><path d="M7 2v10M2 7h10" stroke="white" stroke-width="2" stroke-linecap="round"/></svg> Add Assessment';
+    validateManual();
+  }
+}
+
+function renderManualList() {
+  const list = document.getElementById('mf-list');
+  const genBtn = document.getElementById('mf-generate-btn');
+  if (!manualAssessments.length) { list.innerHTML = ''; genBtn.classList.remove('show'); return; }
+  genBtn.classList.add('show');
+  list.innerHTML = manualAssessments.map((a, i) => `
+    <div class="mf-item">
+      <div class="mf-item-info">
+        <div class="mf-item-name">${escHtml(a.name)}</div>
+        <div class="mf-item-meta">${a.type} · ${a.date}${a.weight ? ' · '+a.weight+'%' : ''}</div>
+      </div>
+      <button class="mf-item-del" onclick="removeManualAssessment(${i})" title="Remove">✕</button>
+    </div>`).join('');
+}
+
+function removeManualAssessment(i) {
+  manualAssessments.splice(i, 1);
+  renderManualList();
+}
+
+async function generateManualSprints() {
+  if (!currentCourseId || !manualAssessments.length) return;
+  const btn = document.getElementById('mf-generate-btn');
+  btn.disabled = true;
+  btn.textContent = 'Generating…';
+  try {
+    const res = await Sprints.generate(currentCourseId);
+    if (!res?.success) throw new Error(res?.message || 'Sprint generation failed.');
+    manualAssessments = [];
+    window.location.href = 'studysprint_schedule.html';
+  } catch(err) {
+    showToastUpload(err.message, true);
+    btn.disabled = false;
+    btn.innerHTML = '<svg width="14" height="14" fill="none" viewBox="0 0 14 14"><path d="M2 7h10M7 2l5 5-5 5" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg> Generate Sprints';
+    btn.classList.add('show');
   }
 }
 

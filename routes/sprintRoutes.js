@@ -6,7 +6,7 @@ const {
   generateSprints, getSprints, getTodaySprints,
   getUnscheduled, setAssessmentDate,
   completeSprint, postponeSprint, deleteSprint,
-  updateDuration, rescheduleSprint,
+  updateDuration, rescheduleSprint, createAssessment,
 } = require('../controllers/sprintController');
 
 router.use(protect);
@@ -20,5 +20,6 @@ router.patch ('/:id/postpone',          postponeSprint);
 router.delete('/:id',                   deleteSprint);
 router.patch ('/:id/duration',          updateDuration);
 router.patch('/:id/reschedule', rescheduleSprint);
+router.post('/assessments', createAssessment);
 
 module.exports = router;
