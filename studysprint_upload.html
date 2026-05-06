@@ -968,7 +968,7 @@ async function addManualAssessment() {
   btn.textContent = 'Adding…';
 
   try {
-    const res = await apiFetch('/assessments', {
+    const res = await apiFetch('/sprints/assessments', {
       method: 'POST',
       body: JSON.stringify({ course_id: courseId, name, type, due_date: date, weight_percent: weight || null })
     });
@@ -1056,5 +1056,6 @@ function toggleJSON() {
 </script>
 </body>
 </html>
-   
+  
+ 
  
