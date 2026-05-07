@@ -204,6 +204,20 @@
   .mf-generate-btn { width: 100%; padding: 13px; border: none; border-radius: var(--radius-sm); background: linear-gradient(135deg, var(--orange), var(--orange-mid)); color: white; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 14px; font-weight: 700; cursor: pointer; display: none; align-items: center; justify-content: center; gap: 8px; margin-top: 8px; }
   .mf-generate-btn.show { display: flex; }
   .mf-course-select { margin-bottom: 16px; padding: 13px 14px; border-radius: var(--radius-sm); border: 1.5px solid var(--orange); font-family: 'Plus Jakarta Sans', sans-serif; font-size: 14px; color: var(--text); background: var(--bg); outline: none; width: 100%; cursor: pointer; }
+  /* New course modal */
+  .nc-modal-bg { position: fixed; inset: 0; background: rgba(17,24,39,0.5); display: flex; align-items: center; justify-content: center; z-index: 300; backdrop-filter: blur(4px); }
+  .nc-modal { background: white; border-radius: 16px; padding: 28px; width: 400px; max-width: 92vw; box-shadow: 0 20px 60px rgba(0,0,0,0.2); }
+  .nc-modal-title { font-size: 18px; font-weight: 700; color: var(--text); margin-bottom: 6px; }
+  .nc-modal-sub { font-size: 13px; color: var(--text-muted); margin-bottom: 20px; }
+  .nc-field { margin-bottom: 14px; }
+  .nc-label { font-size: 13px; font-weight: 600; color: var(--text-secondary); display: block; margin-bottom: 6px; }
+  .nc-input { width: 100%; padding: 12px 14px; border-radius: var(--radius-sm); border: 1.5px solid var(--border); font-family: 'Plus Jakarta Sans', sans-serif; font-size: 14px; color: var(--text); background: var(--bg); outline: none; transition: border-color 0.15s; }
+  .nc-input:focus { border-color: var(--orange); background: white; }
+  .nc-actions { display: flex; gap: 10px; margin-top: 20px; }
+  .nc-cancel { flex: 1; padding: 11px; border-radius: var(--radius-sm); border: 1.5px solid var(--border); background: white; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; }
+  .nc-cancel:hover { border-color: var(--orange); color: var(--orange); }
+  .nc-create { flex: 2; padding: 11px; border-radius: var(--radius-sm); border: none; background: linear-gradient(135deg, var(--orange), var(--orange-mid)); color: white; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 14px; font-weight: 700; cursor: pointer; }
+  .nc-create:disabled { background: #9CA3AF; cursor: not-allowed; }
   .mf-info { background: var(--orange-pale); border: 1px solid var(--orange-light); border-radius: var(--radius-sm); padding: 12px 14px; font-size: 13px; color: #7C2D12; margin-bottom: 16px; line-height: 1.5; }
 
   @keyframes fadeUp { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
@@ -928,6 +942,60 @@ async function loadCoursesForManual() {
   }
 }
 
+// ── New Course Modal ──────────────────────────────
+function openNewCourseModal() {
+  document.getElementById('nc-name').value = '';
+  document.getElementById('nc-code').value = '';
+  document.getElementById('nc-create-btn').disabled = true;
+  document.getElementById('nc-modal').style.display = 'flex';
+  setTimeout(() => document.getElementById('nc-name').focus(), 100);
+}
+
+function closeNewCourseModal() {
+  document.getElementById('nc-modal').style.display = 'none';
+  // Reset course select back to empty
+  document.getElementById('mf-course').value = '';
+}
+
+function validateNewCourse() {
+  const name = document.getElementById('nc-name').value.trim();
+  document.getElementById('nc-create-btn').disabled = !name;
+}
+
+async function submitNewCourse() {
+  const courseName = document.getElementById('nc-name').value.trim();
+  const courseCode = document.getElementById('nc-code').value.trim();
+  if (!courseName) return;
+
+  const btn = document.getElementById('nc-create-btn');
+  btn.disabled = true;
+  btn.textContent = 'Creating…';
+
+  try {
+    const COURSE_COLORS = ['#C2460A','#10B981','#EF4444','#F59E0B','#3B82F6','#EA6C1A','#EC4899','#14B8A6'];
+    let colorIdx = 0;
+    try { const ex = await Courses.list(); colorIdx = (ex?.courses?.length || 0) % COURSE_COLORS.length; } catch(_) {}
+
+    const cr = await Courses.create({
+      course_name: courseName,
+      course_code: courseCode || null,
+      color: COURSE_COLORS[colorIdx]
+    });
+    if (!cr?.success) throw new Error(cr?.message || 'Could not create course.');
+
+    currentCourseId = cr.id;
+    closeNewCourseModal();
+    await loadCoursesForManual();
+    document.getElementById('mf-course').value = cr.id;
+    showToastUpload(`Course "${courseName}" created!`);
+  } catch(err) {
+    showToastUpload(err.message, true);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '+ Create Course';
+  }
+}
+
 function validateManual() {
   const name = document.getElementById('mf-name').value.trim();
   const type = document.getElementById('mf-type').value;
@@ -947,17 +1015,9 @@ async function addManualAssessment() {
   // Handle new course creation
   let courseId = parseInt(courseSelVal);
   if (courseSelVal === '__new__') {
-    const courseName = prompt('Enter course name:');
-    if (!courseName) return;
-    const COURSE_COLORS = ['#C2460A','#10B981','#EF4444','#F59E0B','#3B82F6','#EA6C1A','#EC4899','#14B8A6'];
-    let colorIdx = 0;
-    try { const ex = await Courses.list(); colorIdx = (ex?.courses?.length || 0) % COURSE_COLORS.length; } catch(_) {}
-    const cr = await Courses.create({ course_name: courseName, color: COURSE_COLORS[colorIdx] });
-    if (!cr?.success) { showToastUpload('Could not create course.', true); return; }
-    courseId = cr.id;
-    currentCourseId = courseId;
-    await loadCoursesForManual();
-    document.getElementById('mf-course').value = courseId;
+    // Show styled modal instead of prompt()
+    openNewCourseModal();
+    return; // addManualAssessment will be called again after course is created
   }
 
   if (!courseId) { showToastUpload('Please select a course first.', true); return; }
@@ -968,7 +1028,7 @@ async function addManualAssessment() {
   btn.textContent = 'Adding…';
 
   try {
-    const res = await apiFetch('/sprints/assessments', {
+    const res = await apiFetch('/assessments', {
       method: 'POST',
       body: JSON.stringify({ course_id: courseId, name, type, due_date: date, weight_percent: weight || null })
     });
@@ -1054,8 +1114,26 @@ function toggleJSON() {
   btn.textContent = b.classList.contains('open') ? 'Hide Raw JSON ▲' : 'View Raw JSON ▼';
 }
 </script>
+<!-- New Course Modal -->
+<div class="nc-modal-bg" id="nc-modal" style="display:none;" onclick="if(event.target===this)closeNewCourseModal()">
+  <div class="nc-modal">
+    <div class="nc-modal-title">Create New Course</div>
+    <div class="nc-modal-sub">Enter your course details below.</div>
+    <div class="nc-field">
+      <label class="nc-label">Course Name <span style="color:var(--coral)">*</span></label>
+      <input class="nc-input" type="text" id="nc-name" placeholder="e.g. Software Engineering" oninput="validateNewCourse()"/>
+    </div>
+    <div class="nc-field">
+      <label class="nc-label">Course Code <span style="color:var(--text-muted);font-weight:400;">(Optional)</span></label>
+      <input class="nc-input" type="text" id="nc-code" placeholder="e.g. BSIT 401"/>
+    </div>
+    <div class="nc-actions">
+      <button class="nc-cancel" onclick="closeNewCourseModal()">Cancel</button>
+      <button class="nc-create" id="nc-create-btn" onclick="submitNewCourse()" disabled>
+        + Create Course
+      </button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
-  
- 
- 
