@@ -15,9 +15,12 @@ const getDashboard = async (req, res) => {
       [userId, today]);
 
     const [[{ due_this_week }]] = await db.query(
-      `SELECT COUNT(*) AS due_this_week FROM assessments
-       WHERE user_id=? AND due_date BETWEEN ? AND DATE_ADD(?,INTERVAL 7 DAY)`,
-      [userId, today, today]);
+      `SELECT COUNT(DISTINCT a.id) AS due_this_week FROM assessments a
+       WHERE a.user_id=? AND a.due_date BETWEEN ? AND DATE_ADD(?,INTERVAL 7 DAY)
+       AND EXISTS (
+         SELECT 1 FROM sprints s WHERE s.assessment_id=a.id AND s.user_id=? AND s.is_done=0
+       )`,
+      [userId, today, today, userId]);
 
     // ── Today's sprints ───────────────────────────
     const [todaySprints] = await db.query(
@@ -84,6 +87,19 @@ const getDashboard = async (req, res) => {
       'SELECT * FROM activity_log WHERE user_id=? ORDER BY created_at DESC LIMIT 10',
       [userId]);
 
+    // ── Weekly sprints by day (for chart) ────────────
+    const [weeklyRows] = await db.query(
+      `SELECT DAYOFWEEK(DATE(done_at)) AS dow, COUNT(*) AS cnt
+       FROM sprints WHERE user_id=? AND is_done=1 AND done_at>=?
+       GROUP BY dow`,
+      [userId, weekStartStr]);
+    // DAYOFWEEK: 1=Sun,2=Mon,...,7=Sat → remap to Mon(0)..Sun(6)
+    const weeklyByDay = [0,0,0,0,0,0,0];
+    weeklyRows.forEach(r => {
+      const idx = r.dow === 1 ? 6 : r.dow - 2; // Sun→6, Mon→0...Sat→5
+      weeklyByDay[idx] = r.cnt;
+    });
+
     // ── Streak calculation ────────────────────────
     const [streakRows] = await db.query(
       `SELECT DATE(done_at) AS day FROM sprints
@@ -121,6 +137,7 @@ const getDashboard = async (req, res) => {
       upcoming_deadlines:      deadlines,
       unscheduled_assessments: unscheduled,
       recent_activity:         activity,
+      weekly_by_day:           weeklyByDay,
     });
 
   } catch (err) {

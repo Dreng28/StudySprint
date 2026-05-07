@@ -214,7 +214,8 @@ const getMe = async (req, res) => {
   try {
     const [rows] = await db.query(
       `SELECT id, full_name, email, student_id, program, sprint_duration, study_mode,
-              preferred_study_time, notif_email, notif_sprint, notif_deadline, notif_weekly, created_at
+              preferred_study_time, notif_email, notif_sprint, notif_deadline, notif_weekly,
+              weekend_sprints, auto_reschedule, created_at
        FROM users WHERE id = ?`,
       [req.user.id]
     );
@@ -231,7 +232,8 @@ const getMe = async (req, res) => {
 const updateProfile = async (req, res) => {
   try {
     const { full_name, student_id, program, sprint_duration, study_mode,
-            preferred_study_time, notif_email, notif_sprint, notif_deadline, notif_weekly } = req.body;
+            preferred_study_time, notif_email, notif_sprint, notif_deadline, notif_weekly,
+            weekend_sprints, auto_reschedule } = req.body;
     await db.query(
       `UPDATE users SET
         full_name=COALESCE(?,full_name), student_id=COALESCE(?,student_id),
@@ -239,9 +241,12 @@ const updateProfile = async (req, res) => {
         study_mode=COALESCE(?,study_mode), preferred_study_time=COALESCE(?,preferred_study_time),
         notif_email=COALESCE(?,notif_email),
         notif_sprint=COALESCE(?,notif_sprint), notif_deadline=COALESCE(?,notif_deadline),
-        notif_weekly=COALESCE(?,notif_weekly) WHERE id=?`,
+        notif_weekly=COALESCE(?,notif_weekly),
+        weekend_sprints=COALESCE(?,weekend_sprints), auto_reschedule=COALESCE(?,auto_reschedule)
+        WHERE id=?`,
       [full_name, student_id, program, sprint_duration, study_mode, preferred_study_time,
-       notif_email, notif_sprint, notif_deadline, notif_weekly, req.user.id]
+       notif_email, notif_sprint, notif_deadline, notif_weekly,
+       weekend_sprints ?? null, auto_reschedule ?? null, req.user.id]
     );
     return res.status(200).json({ success: true, message: 'Profile updated successfully.' });
   } catch (err) {
