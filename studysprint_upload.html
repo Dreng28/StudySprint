@@ -926,7 +926,7 @@ async function loadCoursesForManual() {
   try {
     const res = await Courses.list();
     const courses = res?.courses || [];
-    if (!subjects.length) {
+    if (!courses.length) {
       sel.innerHTML = '<option value="">No subjects yet — upload a syllabus first or add one below</option>';
       // Allow creating a new course
       sel.innerHTML += '<option value="__new__">+ Create new subject</option>';
