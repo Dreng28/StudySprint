@@ -350,7 +350,7 @@
     <div class="modal-header">
       <div>
         <div class="modal-title" id="m-title">Sprint</div>
-        <div class="modal-course" id="m-course">Course</div>
+        <div class="modal-course" id="m-course">Subject</div>
       </div>
       <button class="modal-close" onclick="closeModal()">×</button>
     </div>
@@ -663,10 +663,10 @@ async function postponeById(id) {
 async function recalibrate() {
   const courseIds = [...new Set(sprints.map(sp => sp.courseId).filter(Boolean))];
   if (!courseIds.length) {
-    showToast('No active courses found. Upload a syllabus first.');
+    showToast('No active subjects found. Upload a syllabus first.');
     return;
   }
-  showToast('Recalibrating all courses…');
+  showToast('Recalibrating all subjects…');
   let done = 0;
   for (const cid of courseIds) {
     try { await Sprints.generate(cid); done++; } catch(_) {}

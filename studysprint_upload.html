@@ -356,7 +356,7 @@
   <div class="screen" id="screen-upload">
     <div class="card">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
-        <div class="card-title" style="margin-bottom:0;">Add Course</div>
+        <div class="card-title" style="margin-bottom:0;">Add Subject</div>
         <span style="font-size:12px;font-weight:600;color:var(--green);background:var(--green-light);padding:4px 12px;border-radius:999px;">✓ AI Connected</span>
       </div>
       <!-- Tabs -->
@@ -412,9 +412,9 @@
       <div class="tab-panel" id="panel-manual">
         <div class="mf-info">✏️ Add assessments manually — no AI needed. Great for verbally announced deadlines or quickly adding a single quiz.</div>
         <div class="mf-group" style="margin-bottom:4px;">
-          <label class="mf-label">Course <span>*</span></label>
+          <label class="mf-label">Subject <span>*</span></label>
           <select class="mf-input mf-select mf-course-select" id="mf-course">
-            <option value="">Loading courses…</option>
+            <option value="">Loading subjects…</option>
           </select>
         </div>
         <div class="manual-form">
@@ -713,7 +713,7 @@ async function callGemini() {
     // ── PRODUCTION MODE: backend ────────────
     setStep(2, 'active');
 
-    // Pick a distinct color based on how many courses exist
+    // Pick a distinct color based on how many subjects exist
     const COURSE_COLORS = ['#C2460A','#10B981','#EF4444','#F59E0B','#3B82F6','#EA6C1A','#EC4899','#14B8A6'];
     let colorIdx = 0;
     try {
@@ -721,7 +721,7 @@ async function callGemini() {
       colorIdx = (existing?.courses?.length || 0) % COURSE_COLORS.length;
     } catch(_) {}
     const courseRes = await Courses.create({
-      course_name: 'New Course',
+      course_name: 'New Subject',
       color: COURSE_COLORS[colorIdx]
     });
 
@@ -926,23 +926,23 @@ async function loadCoursesForManual() {
   try {
     const res = await Courses.list();
     const courses = res?.courses || [];
-    if (!courses.length) {
-      sel.innerHTML = '<option value="">No courses yet — upload a syllabus first or add one below</option>';
+    if (!subjects.length) {
+      sel.innerHTML = '<option value="">No subjects yet — upload a syllabus first or add one below</option>';
       // Allow creating a new course
-      sel.innerHTML += '<option value="__new__">+ Create new course</option>';
+      sel.innerHTML += '<option value="__new__">+ Create new subject</option>';
       return;
     }
     sel.innerHTML = '<option value="">Select a course…</option>';
-    courses.forEach(c => {
+    subjects.forEach(c => {
       sel.innerHTML += `<option value="${c.id}">${escHtml(c.course_name || 'Untitled')} ${c.course_code ? '('+escHtml(c.course_code)+')' : ''}</option>`;
     });
-    sel.innerHTML += '<option value="__new__">+ Create new course</option>';
+    sel.innerHTML += '<option value="__new__">+ Create new subject</option>';
   } catch(_) {
-    sel.innerHTML = '<option value="">Could not load courses</option>';
+    sel.innerHTML = '<option value="">Could not load subjects</option>';
   }
 }
 
-// ── New Course Modal ──────────────────────────────
+// ── New Subject Modal ──────────────────────────────
 function openNewCourseModal() {
   document.getElementById('nc-name').value = '';
   document.getElementById('nc-code').value = '';
@@ -987,12 +987,12 @@ async function submitNewCourse() {
     closeNewCourseModal();
     await loadCoursesForManual();
     document.getElementById('mf-course').value = cr.id;
-    showToastUpload(`Course "${courseName}" created!`);
+    showToastUpload(`Subject "${courseName}" created!`);
   } catch(err) {
     showToastUpload(err.message, true);
   } finally {
     btn.disabled = false;
-    btn.textContent = '+ Create Course';
+    btn.textContent = '+ Create Subject';
   }
 }
 
@@ -1114,23 +1114,23 @@ function toggleJSON() {
   btn.textContent = b.classList.contains('open') ? 'Hide Raw JSON ▲' : 'View Raw JSON ▼';
 }
 </script>
-<!-- New Course Modal -->
+<!-- New Subject Modal -->
 <div class="nc-modal-bg" id="nc-modal" style="display:none;" onclick="if(event.target===this)closeNewCourseModal()">
   <div class="nc-modal">
-    <div class="nc-modal-title">Create New Course</div>
+    <div class="nc-modal-title">Create New Subject</div>
     <div class="nc-modal-sub">Enter your course details below.</div>
     <div class="nc-field">
-      <label class="nc-label">Course Name <span style="color:var(--coral)">*</span></label>
+      <label class="nc-label">Subject Name <span style="color:var(--coral)">*</span></label>
       <input class="nc-input" type="text" id="nc-name" placeholder="e.g. Software Engineering" oninput="validateNewCourse()"/>
     </div>
     <div class="nc-field">
-      <label class="nc-label">Course Code <span style="color:var(--text-muted);font-weight:400;">(Optional)</span></label>
+      <label class="nc-label">Subject Code <span style="color:var(--text-muted);font-weight:400;">(Optional)</span></label>
       <input class="nc-input" type="text" id="nc-code" placeholder="e.g. BSIT 401"/>
     </div>
     <div class="nc-actions">
       <button class="nc-cancel" onclick="closeNewCourseModal()">Cancel</button>
       <button class="nc-create" id="nc-create-btn" onclick="submitNewCourse()" disabled>
-        + Create Course
+        + Create Subject
       </button>
     </div>
   </div>
