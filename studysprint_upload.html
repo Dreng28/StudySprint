@@ -932,8 +932,8 @@ async function loadCoursesForManual() {
       sel.innerHTML += '<option value="__new__">+ Create new subject</option>';
       return;
     }
-    sel.innerHTML = '<option value="">Select a course…</option>';
-    subjects.forEach(c => {
+    sel.innerHTML = '<option value="">Select a subject…</option>';
+    courses.forEach(c => {
       sel.innerHTML += `<option value="${c.id}">${escHtml(c.course_name || 'Untitled')} ${c.course_code ? '('+escHtml(c.course_code)+')' : ''}</option>`;
     });
     sel.innerHTML += '<option value="__new__">+ Create new subject</option>';
