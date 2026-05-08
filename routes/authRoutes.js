@@ -10,6 +10,7 @@ const {
   getMe,
   updateProfile,
   changePassword,
+  forgotPassword,
 } = require('../controllers/authController');
 
 router.post('/register',             register);
@@ -19,5 +20,6 @@ router.post('/resend-verification',  resendVerification);    // POST /api/auth/r
 router.get ('/me',                   protect, getMe);
 router.put ('/profile',              protect, updateProfile);
 router.put ('/change-password',      protect, changePassword);
+router.post('/forgot-password',      forgotPassword);
 
 module.exports = router;
