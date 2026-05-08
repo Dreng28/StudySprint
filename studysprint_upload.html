@@ -926,7 +926,7 @@ function switchUploadTab(tab) {
 let manualAssessments = [];
 
 async function loadCoursesForManual() {
-  const sel = document.getElementById('mf-course');
+  const sel = document.getElementById('mf-course'); if (!sel) return;
   try {
     const res = await Courses.list();
     const courses = res?.courses || [];
@@ -958,7 +958,7 @@ function openNewCourseModal() {
 function closeNewCourseModal() {
   document.getElementById('nc-modal').style.display = 'none';
   // Reset course select back to empty
-  document.getElementById('mf-course').value = '';
+  // mf-course replaced with text inputs
 }
 
 function validateNewCourse() {
@@ -990,7 +990,7 @@ async function submitNewCourse() {
     currentCourseId = cr.id;
     closeNewCourseModal();
     await loadCoursesForManual();
-    document.getElementById('mf-course').value = cr.id;
+    // mf-course replaced with text inputs
     showToastUpload(`Subject "${courseName}" created!`);
   } catch(err) {
     showToastUpload(err.message, true);
@@ -1010,46 +1010,55 @@ function validateManual() {
 }
 
 async function addManualAssessment() {
-  const courseSelVal = document.getElementById('mf-course').value;
+  const subjectName = document.getElementById('mf-subject-name').value.trim();
+  const subjectCode = document.getElementById('mf-subject-code').value.trim();
   const name   = document.getElementById('mf-name').value.trim();
   const type   = document.getElementById('mf-type').value;
   const date   = document.getElementById('mf-date').value;
   const weight = document.getElementById('mf-weight').value;
 
-  if (!name || !type || !date) return;
-
-  // Handle new course creation
-  let courseId = parseInt(courseSelVal);
-  if (courseSelVal === '__new__') {
-    // Show styled modal instead of prompt()
-    openNewCourseModal();
-    return; // addManualAssessment will be called again after course is created
-  }
-
-  if (!courseId) { showToastUpload('Please select a course first.', true); return; }
-  currentCourseId = courseId;
+  if (!subjectName || !name || !type || !date) return;
 
   const btn = document.getElementById('mf-add-btn');
   btn.disabled = true;
   btn.textContent = 'Adding…';
 
   try {
-    const res = await apiFetch('/assessments', {
+    // Find existing subject or create new one
+    let courseId = currentCourseId;
+    const existing = await Courses.list();
+    const match = (existing?.courses || []).find(c =>
+      c.course_name?.toLowerCase() === subjectName.toLowerCase()
+    );
+    if (match) {
+      courseId = match.id;
+    } else {
+      const COURSE_COLORS = ['#C2460A','#10B981','#EF4444','#F59E0B','#3B82F6','#EA6C1A','#EC4899','#14B8A6'];
+      const colorIdx = ((existing?.courses || []).length) % COURSE_COLORS.length;
+      const cr = await Courses.create({
+        course_name: subjectName,
+        course_code: subjectCode || null,
+        color: COURSE_COLORS[colorIdx]
+      });
+      if (!cr?.success) throw new Error(cr?.message || 'Could not create subject.');
+      courseId = cr.id;
+    }
+    currentCourseId = courseId;
+
+    const res = await apiFetch('/sprints/assessments', {
       method: 'POST',
       body: JSON.stringify({ course_id: courseId, name, type, due_date: date, weight_percent: weight || null })
     });
     if (!res?.success) throw new Error(res?.message || 'Failed to add assessment.');
 
-    // Add to local list
     manualAssessments.push({ id: res.assessment_id, name, type, date, weight });
     renderManualList();
 
-    // Clear form
+    // Clear assessment fields, keep subject name/code for next entry
     document.getElementById('mf-name').value = '';
     document.getElementById('mf-type').value = '';
     document.getElementById('mf-date').value = '';
     document.getElementById('mf-weight').value = '';
-    // Keep subject name/code so user can keep adding to same subject
     validateManual();
     showToastUpload(`"${name}" added!`);
   } catch(err) {
