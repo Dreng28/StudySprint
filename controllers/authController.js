@@ -278,4 +278,55 @@ const changePassword = async (req, res) => {
   }
 };
 
-module.exports = { register, login, verifyEmail, resendVerification, getMe, updateProfile, changePassword };
+// ── POST /api/auth/forgot-password ────────────────────────────────
+const forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email)
+      return res.status(400).json({ success: false, message: 'Email is required.' });
+
+    const [rows] = await db.query(
+      'SELECT id, full_name FROM users WHERE email = ? AND is_verified = 1',
+      [email]
+    );
+
+    // Always return success to prevent email enumeration
+    if (!rows.length)
+      return res.status(200).json({ success: true, message: 'If that email is registered, a reset link has been sent.' });
+
+    const user              = rows[0];
+    const reset_token       = crypto.randomBytes(32).toString('hex');
+    const reset_token_exp   = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+
+    await db.query(
+      'UPDATE users SET reset_token = ?, reset_token_exp = ? WHERE id = ?',
+      [reset_token, reset_token_exp, user.id]
+    );
+
+    const resetUrl = `${process.env.FRONTEND_URL}/studysprint_login.html?reset=${reset_token}`;
+
+    await resend.emails.send({
+      from: 'StudySprint <noreply@studysprint.study>',
+      to: email,
+      subject: 'Reset your StudySprint password',
+      html: `
+        <div style="font-family:sans-serif;max-width:520px;margin:0 auto;padding:32px;">
+          <h2>Hi ${user.full_name} 👋</h2>
+          <p>We received a request to reset your StudySprint password.</p>
+          <a href="${resetUrl}" style="display:inline-block;padding:14px 32px;background:#C2460A;color:white;text-decoration:none;border-radius:10px;font-weight:700;">
+            Reset My Password
+          </a>
+          <p style="color:#9CA3AF;font-size:13px;margin-top:24px;">This link expires in 1 hour. If you didn't request this, you can safely ignore this email.</p>
+        </div>
+      `,
+    });
+
+    return res.status(200).json({ success: true, message: 'If that email is registered, a reset link has been sent.' });
+
+  } catch (err) {
+    console.error('Forgot password error:', err);
+    return res.status(500).json({ success: false, message: 'Server error.' });
+  }
+};
+
+module.exports = { register, login, verifyEmail, resendVerification, getMe, updateProfile, changePassword, forgotPassword };
