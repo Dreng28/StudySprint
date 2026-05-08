@@ -411,11 +411,15 @@
       <!-- Manual Entry Panel -->
       <div class="tab-panel" id="panel-manual">
         <div class="mf-info">✏️ Add assessments manually — no AI needed. Great for verbally announced deadlines or quickly adding a single quiz.</div>
-        <div class="mf-group" style="margin-bottom:4px;">
-          <label class="mf-label">Subject <span>*</span></label>
-          <select class="mf-input mf-select mf-course-select" id="mf-course">
-            <option value="">Loading subjects…</option>
-          </select>
+        <div class="mf-row" style="margin-bottom:4px;">
+          <div class="mf-group">
+            <label class="mf-label">Subject Name <span>*</span></label>
+            <input class="mf-input" type="text" id="mf-subject-name" placeholder="e.g. Software Engineering" oninput="validateManual()"/>
+          </div>
+          <div class="mf-group">
+            <label class="mf-label">Subject Code <span style="color:var(--text-muted);font-weight:400;">(Optional)</span></label>
+            <input class="mf-input" type="text" id="mf-subject-code" placeholder="e.g. BSIT 401"/>
+          </div>
         </div>
         <div class="manual-form">
           <div class="mf-row">
@@ -915,7 +919,7 @@ function switchUploadTab(tab) {
   document.getElementById('tab-manual').classList.toggle('active', tab === 'manual');
   document.getElementById('panel-ai').classList.toggle('active', tab === 'ai');
   document.getElementById('panel-manual').classList.toggle('active', tab === 'manual');
-  if (tab === 'manual') loadCoursesForManual();
+  if (tab === 'manual') { /* subject entered as text */ }
 }
 
 // ── Manual Entry ──────────────────────────────────
@@ -997,10 +1001,12 @@ async function submitNewCourse() {
 }
 
 function validateManual() {
+  const subjectName = document.getElementById('mf-subject-name').value.trim();
+  const subjectCode = document.getElementById('mf-subject-code').value.trim();
   const name = document.getElementById('mf-name').value.trim();
   const type = document.getElementById('mf-type').value;
   const date = document.getElementById('mf-date').value;
-  document.getElementById('mf-add-btn').disabled = !(name && type && date);
+  document.getElementById('mf-add-btn').disabled = !(subjectName && name && type && date);
 }
 
 async function addManualAssessment() {
@@ -1043,6 +1049,7 @@ async function addManualAssessment() {
     document.getElementById('mf-type').value = '';
     document.getElementById('mf-date').value = '';
     document.getElementById('mf-weight').value = '';
+    // Keep subject name/code so user can keep adding to same subject
     validateManual();
     showToastUpload(`"${name}" added!`);
   } catch(err) {
