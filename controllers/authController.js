@@ -21,7 +21,7 @@ async function sendVerificationEmail(email, full_name, token) {
   const verifyUrl = `${process.env.FRONTEND_URL}/studysprint_login.html?verify=${token}`;
 
   await resend.emails.send({
-    from: 'StudySprint <onboarding@resend.dev>',
+    from: 'StudySprint <noreply@studysprint.study>',
     to: email,
     subject: 'Verify your StudySprint account',
     html: `
