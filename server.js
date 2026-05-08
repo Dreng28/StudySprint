@@ -26,6 +26,8 @@ app.use(cors({
     'http://localhost:5500',
     'http://127.0.0.1:5500',
     'https://studysprint-production-1587.up.railway.app',
+    'https://studysprint.study',
+    'https://www.studysprint.study',
   ],
   credentials: true,
 }));
@@ -41,6 +43,11 @@ app.get('/api/health', (req, res) => {
     version: '1.0.0',
     timestamp: new Date().toISOString(),
   });
+});
+
+// — Root redirect ─────────────────────────────────
+app.get('/', (req, res) => {
+  res.redirect('/studysprint_landing.html');
 });
 
 // ── API routes ────────────────────────────────────
