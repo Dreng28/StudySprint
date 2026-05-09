@@ -471,6 +471,14 @@
         <div style="font-size:13px;color:var(--text-muted);padding:16px 0;text-align:center;">Loading…</div>
       </div>
     </div>
+
+    <!-- Manually Added Subjects -->
+    <div class="card" id="manual-subjects-card" style="display:none;">
+      <div class="card-title">Manually Added Subjects</div>
+      <div id="manual-subjects-list">
+        <div style="font-size:13px;color:var(--text-muted);padding:16px 0;text-align:center;">Loading…</div>
+      </div>
+    </div>
   </div>
 
   <!-- SCREEN: Parsing -->
@@ -574,6 +582,7 @@ function goTo(name) {
   if (Auth.isLoggedIn()) {
     // Load previously uploaded syllabi in background
     loadPreviousSyllabi();
+  loadManualSubjects();
     goTo('upload');
   }
 })();
@@ -886,6 +895,62 @@ async function loadPreviousSyllabi() {
   }
 }
 
+// ── Load manually added subjects (courses without a syllabus) ──
+async function loadManualSubjects() {
+  const container = document.getElementById('manual-subjects-list');
+  const card      = document.getElementById('manual-subjects-card');
+  if (!container || !card) return;
+  try {
+    const [coursesRes, syllabiRes] = await Promise.all([Courses.list(), Syllabi.list()]);
+    const allCourses  = coursesRes?.courses || [];
+    const syllabiIds  = new Set((syllabiRes?.syllabi || []).map(s => s.course_id ?? s.id));
+
+    // Manually added = courses that have no corresponding syllabus
+    const manualCourses = allCourses.filter(c => !syllabiIds.has(c.id));
+
+    if (!manualCourses.length) { card.style.display = 'none'; return; }
+    card.style.display = 'block';
+    container.innerHTML = '';
+
+    manualCourses.forEach(c => {
+      const div = document.createElement('div');
+      div.className = 'prev-item';
+      const created = new Date(c.created_at).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
+      div.innerHTML = `
+        <div class="prev-icon" style="background:${c.color}22;border-radius:10px;display:flex;align-items:center;justify-content:center;width:40px;height:40px;flex-shrink:0;">
+          <svg width="20" height="20" fill="none" viewBox="0 0 20 20">
+            <path d="M4 5h12M4 9h8M4 13h6" stroke="${c.color || '#C2460A'}" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="prev-info">
+          <div class="prev-name">${escHtml(c.course_name || 'Untitled Subject')}</div>
+          <div class="prev-sub">${c.course_code ? escHtml(c.course_code) + ' · ' : ''}Manual entry · Added: ${created}</div>
+        </div>
+        <span class="status-badge" style="background:#EDE9FE;color:#6C2BD9;font-size:11px;font-weight:600;padding:4px 10px;border-radius:999px;">✎ Manual</span>
+        <button class="del-btn-sm" onclick="deleteManualSubject(${c.id}, '${escHtml(c.course_name || 'this subject')}', this)">🗑 Delete</button>`;
+      container.appendChild(div);
+    });
+  } catch (_) {
+    card.style.display = 'none';
+  }
+}
+
+async function deleteManualSubject(courseId, courseName, btn) {
+  if (!confirm(`Delete "${courseName}" and all its assessments and sprints? This cannot be undone.`)) return;
+  btn.disabled = true;
+  btn.textContent = 'Deleting…';
+  try {
+    const res = await apiFetch(`/courses/${courseId}`, { method: 'DELETE' });
+    if (!res?.success) throw new Error(res?.message || 'Delete failed.');
+    showToastUpload(`"${courseName}" deleted.`);
+    await loadManualSubjects();
+  } catch (err) {
+    showToastUpload(err.message, true);
+    btn.disabled = false;
+    btn.textContent = '🗑 Delete';
+  }
+}
+
 async function viewSyllabus(id) {
   const res = await Syllabi.get(id);
   if (res?.success && res.syllabus?.parsed_json) {
@@ -906,6 +971,7 @@ async function deleteSyllabus(id, btn) {
     if (!res?.success) throw new Error(res?.message || 'Delete failed.');
     showToastUpload('Syllabus deleted successfully.');
     await loadPreviousSyllabi();
+  loadManualSubjects();
   } catch (err) {
     showToastUpload(err.message, true);
     btn.disabled = false;
