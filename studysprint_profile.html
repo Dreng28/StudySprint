@@ -8,7 +8,7 @@
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   :root {
-    --purple: #6C2BD9; --purple-mid: #8B5CF6; --purple-light: #EDE9FE; --purple-pale: #F5F3FF;
+    --orange: #C2460A; --orange-mid: #EA6C1A; --orange-light: #FEF0E6; --orange-pale: #FFF7F0;
     --green: #10B981; --green-light: #D1FAE5;
     --coral: #EF4444; --coral-light: #FEE2E2;
     --amber: #F59E0B; --amber-light: #FEF3C7;
@@ -32,7 +32,7 @@
 
   /* Profile banner */
   .profile-banner {
-    background: linear-gradient(135deg, #6C2BD9 0%, #9333EA 60%, #C026D3 100%);
+    background: linear-gradient(135deg, #C2460A 0%, #DD5F0E 60%, #F97316 100%);
     border-radius: var(--radius);
     padding: 28px 32px;
     display: flex;
@@ -82,7 +82,7 @@
   .stat-mini { background: var(--bg); border-radius: var(--radius-sm); padding: 12px; text-align: center; }
   .stat-mini-icon { font-size: 11px; font-weight: 700; color: var(--text-muted); margin-bottom: 4px; display: flex; align-items: center; gap: 4px; }
   .stat-mini-val { font-size: 22px; font-weight: 800; color: var(--text); }
-  .stat-mini.purple .stat-mini-icon { color: var(--orange); }
+  .stat-mini.orange .stat-mini-icon { color: var(--orange); }
   .stat-mini.green  .stat-mini-icon { color: var(--green); }
   .stat-mini.blue   .stat-mini-icon { color: var(--blue); }
   .stat-mini.amber  .stat-mini-icon { color: var(--amber); }
@@ -258,9 +258,11 @@
             Program
           </label>
           <select class="field-select">
-            <option selected>BS Computer Science - 2nd Year</option>
-            <option>BS Information Technology</option>
-            <option>BS Computer Engineering</option>
+            <option value="BS Computer Science">BS Computer Science</option>
+            <option value="BS Information Technology">BS Information Technology</option>
+            <option value="BS Entertainment and Multimedia Computing">BS Entertainment and Multimedia Computing</option>
+            <option value="BS Computer Engineering">BS Computer Engineering</option>
+            <option value="Other">Other</option>
           </select>
         </div>
         <div class="form-actions">
@@ -279,7 +281,7 @@
           Academic Performance
         </div>
         <div class="stats-grid">
-          <div class="stat-mini purple">
+          <div class="stat-mini orange">
             <div class="stat-mini-icon">⚡ TOTAL SPRINTS</div>
             <div class="stat-mini-val" id="perf-sprints">—</div>
           </div>
@@ -297,14 +299,14 @@
           </div>
         </div>
         <div style="font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;">Weekly Performance</div>
-        <div class="chart-placeholder">
-          <div class="chart-bar" style="height:60%;"></div>
-          <div class="chart-bar" style="height:85%;background:var(--orange);"></div>
-          <div class="chart-bar" style="height:45%;"></div>
-          <div class="chart-bar" style="height:90%;background:var(--orange);"></div>
-          <div class="chart-bar" style="height:70%;"></div>
-          <div class="chart-bar" style="height:55%;"></div>
-          <div class="chart-bar" style="height:40%;"></div>
+        <div class="chart-placeholder" id="weekly-chart">
+          <div class="chart-bar" id="bar-0" style="height:0%;"></div>
+          <div class="chart-bar" id="bar-1" style="height:0%;"></div>
+          <div class="chart-bar" id="bar-2" style="height:0%;"></div>
+          <div class="chart-bar" id="bar-3" style="height:0%;"></div>
+          <div class="chart-bar" id="bar-4" style="height:0%;"></div>
+          <div class="chart-bar" id="bar-5" style="height:0%;"></div>
+          <div class="chart-bar" id="bar-6" style="height:0%;"></div>
         </div>
         <div class="chart-labels">
           <div class="chart-label">Mon</div>
@@ -412,7 +414,7 @@
             <div class="toggle-label">Weekend Sprints</div>
             <div style="font-size:12px;color:var(--text-muted);margin-top:2px;">Allow sprints to be scheduled on weekends</div>
           </div>
-          <label class="toggle"><input type="checkbox" checked/><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
+          <label class="toggle"><input type="checkbox" id="tog-weekend" checked/><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
         </div>
         <div class="toggle-row">
           <div>
@@ -465,7 +467,7 @@ function escHtml(s) {
 function showToast(msg, isError = false) {
   const t = document.createElement('div');
   t.style.cssText = `position:fixed;bottom:28px;left:50%;transform:translateX(-50%);
-    background:${isError ? '#7F1D1D' : '#1E1B4B'};color:white;font-size:13px;font-weight:500;
+    background:${isError ? '#7F1D1D' : '#431407'};color:white;font-size:13px;font-weight:500;
     padding:12px 22px;border-radius:999px;z-index:200;white-space:nowrap;
     box-shadow:0 8px 24px rgba(0,0,0,0.2);`;
   t.textContent = msg;
@@ -512,16 +514,19 @@ async function loadProfile() {
   const progSel = document.querySelector('.field-select');
   if (progSel && u.program) progSel.value = u.program;
 
-  // Notification toggles
-  const toggles = document.querySelectorAll('.toggle input');
-  if (toggles[0]) toggles[0].checked = !!u.notif_email;
-  if (toggles[1]) toggles[1].checked = !!u.notif_sprint;
-  if (toggles[2]) toggles[2].checked = !!u.notif_deadline;
-  if (toggles[3]) toggles[3].checked = !!u.notif_weekly;
-
-  // Schedule preference toggles
-  if (toggles[6]) toggles[6].checked = u.weekend_sprints !== undefined ? !!u.weekend_sprints : true;
-  if (toggles[7]) toggles[7].checked = !!u.auto_reschedule;
+  // Notification toggles — use IDs for reliability
+  const togEmail    = document.getElementById('tog-notif-email');
+  const togSprint   = document.getElementById('tog-notif-sprint');
+  const togDeadline = document.getElementById('tog-notif-deadline');
+  const togWeekly   = document.getElementById('tog-notif-weekly');
+  const togWeekend  = document.getElementById('tog-weekend');
+  const togAutoRes  = document.getElementById('tog-autoreschedule');
+  if (togEmail)    togEmail.checked    = !!u.notif_email;
+  if (togSprint)   togSprint.checked   = !!u.notif_sprint;
+  if (togDeadline) togDeadline.checked = !!u.notif_deadline;
+  if (togWeekly)   togWeekly.checked   = !!u.notif_weekly;
+  if (togWeekend)  togWeekend.checked  = u.weekend_sprints !== undefined ? !!u.weekend_sprints : true;
+  if (togAutoRes)  togAutoRes.checked  = !!u.auto_reschedule;
 
   // Study preferences
   const sprintSel = document.getElementById('sel-sprint-duration');
@@ -535,23 +540,22 @@ async function loadProfile() {
 // ── Save profile ──────────────────────────────────
 async function saveProfile() {
   const inputs  = document.querySelectorAll('.field-input');
-  const toggles = document.querySelectorAll('.toggle input');
   const btn = document.querySelector('.save-btn');
   if (btn) { btn.disabled = true; btn.textContent = 'Saving…'; }
 
   const res = await Auth.updateProfile({
-    full_name:       inputs[0]?.value?.trim(),
-    student_id:      inputs[2]?.value?.trim(),
-    program:         document.querySelector('.field-select')?.value,
+    full_name:            inputs[0]?.value?.trim(),
+    student_id:           inputs[2]?.value?.trim(),
+    program:              document.querySelector('.field-select')?.value,
     sprint_duration:      parseInt(document.getElementById('sel-sprint-duration')?.value) || 45,
     study_mode:           document.getElementById('sel-study-mode')?.value || 'balanced',
     preferred_study_time: document.getElementById('sel-study-time')?.value || 'afternoon',
-    notif_email:     toggles[0]?.checked ? 1 : 0,
-    notif_sprint:    toggles[1]?.checked ? 1 : 0,
-    notif_deadline:  toggles[2]?.checked ? 1 : 0,
-    notif_weekly:    toggles[3]?.checked ? 1 : 0,
-    weekend_sprints: toggles[6]?.checked ? 1 : 0,
-    auto_reschedule: toggles[7]?.checked ? 1 : 0,
+    notif_email:     document.getElementById('tog-notif-email')?.checked    ? 1 : 0,
+    notif_sprint:    document.getElementById('tog-notif-sprint')?.checked   ? 1 : 0,
+    notif_deadline:  document.getElementById('tog-notif-deadline')?.checked ? 1 : 0,
+    notif_weekly:    document.getElementById('tog-notif-weekly')?.checked   ? 1 : 0,
+    weekend_sprints: document.getElementById('tog-weekend')?.checked        ? 1 : 0,
+    auto_reschedule: document.getElementById('tog-autoreschedule')?.checked ? 1 : 0,
   });
 
   if (btn) { btn.disabled = false; btn.innerHTML = '<svg width="13" height="13" fill="none" viewBox="0 0 13 13"><path d="M2 6.5l3.5 3.5 5.5-5.5" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg> Save Changes'; }
@@ -659,6 +663,19 @@ async function loadStats() {
     const streakEl = document.querySelector('.prog-card.highlight .prog-val');
     if (streakEl && stats.streak !== undefined)
       streakEl.textContent = stats.streak > 0 ? `${stats.streak} Days 🔥` : '0 Days';
+
+    // Weekly performance chart — from weekly_sprints_by_day
+    if (res.weekly_by_day) {
+      const maxVal = Math.max(...res.weekly_by_day, 1);
+      res.weekly_by_day.forEach((count, i) => {
+        const bar = document.getElementById('bar-' + i);
+        if (bar) {
+          const pct = Math.round((count / maxVal) * 100);
+          bar.style.height = (pct || 4) + '%';
+          bar.style.background = count > 0 ? 'var(--orange)' : '';
+        }
+      });
+    }
 
   } catch (_) {}
 }
