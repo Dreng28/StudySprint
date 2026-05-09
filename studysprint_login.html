@@ -525,7 +525,7 @@ let tcAccepted = false;
   showLoginInfo('Verifying your email…');
 
   try {
-    const res = await fetch(`https://studysprint.study/api/auth/verify?token=${token}`);
+    const res = await fetch(`/api/auth/verify?token=${token}`);
     const data = await res.json();
     if (data.success) {
       showLoginSuccess('✅ Email verified! You can now sign in.');
@@ -613,7 +613,7 @@ async function resendVerification(email) {
   clearErr('login');
   showLoginInfo('Sending a new verification email…');
   try {
-    const res = await fetch('https://studysprint.study/api/auth/resend-verification', {
+    const res = await fetch('/api/auth/resend-verification', {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
       body:    JSON.stringify({ email }),
@@ -782,7 +782,7 @@ async function handleForgotPassword() {
   btn.textContent = 'Sending…';
 
   try {
-    const res = await fetch('https://studysprint.study/api/auth/forgot-password', {
+    const res = await fetch('/api/auth/forgot-password', {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
       body:    JSON.stringify({ email }),
