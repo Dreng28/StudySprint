@@ -506,14 +506,16 @@ function buildCal() {
       cell.addEventListener('dragover',  onDragOver);
       cell.addEventListener('dragleave', onDragLeave);
       cell.addEventListener('drop',      onDrop);
-      const cellSprints  = sprints.filter(s => s.day === d && s.slot === slotIdx);
-      const MAX_VISIBLE   = 3;
-      const visibleSprints = cellSprints.slice(0, MAX_VISIBLE);
-      const hiddenCount   = cellSprints.length - MAX_VISIBLE;
+      // Only show incomplete sprints in calendar grid; cap at 3 per cell
+      const cellAll     = sprints.filter(s => s.day === d && s.slot === slotIdx);
+      const cellPending = cellAll.filter(s => !s.done);
+      const MAX_VISIBLE = 3;
+      const visible     = cellPending.slice(0, MAX_VISIBLE);
+      const hidden      = cellPending.length - MAX_VISIBLE;
 
-      visibleSprints.forEach(sp => {
+      visible.forEach(sp => {
           const block = document.createElement('div');
-          block.className = 'sprint-block' + (sp.done ? ' done-block' : '');
+          block.className = 'sprint-block';
           block.style.cssText = `background:${sp.colorBg};border-left:3px solid ${sp.colorHex};`;
           const checkId = `sbc-${sp.id}`;
           block.draggable = true;
@@ -521,7 +523,7 @@ function buildCal() {
           block.innerHTML = `
             <div class="sb-header">
               <div class="sb-title">${escHtml(sp.title)}</div>
-              <div class="sb-check${sp.done ? ' checked' : ''}" id="${checkId}" title="Mark complete">
+              <div class="sb-check" id="${checkId}" title="Mark complete">
                 <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M1.5 5l2.5 2.5 4.5-4.5" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
               </div>
             </div>
@@ -536,14 +538,26 @@ function buildCal() {
           block.addEventListener('dragend',   onDragEnd);
           cell.appendChild(block);
         });
-        if (hiddenCount > 0) {
-          const more = document.createElement('div');
-          more.style.cssText = 'font-size:10px;color:var(--text-muted);font-weight:600;padding:2px 4px;text-align:center;cursor:pointer;';
-          more.textContent = `+${hiddenCount} more`;
-          more.title = 'Switch to List view to see all sprints';
-          more.onclick = () => switchView('list');
-          cell.appendChild(more);
-        }
+
+      // Show completed count as subtle indicator
+      const doneCount = cellAll.filter(s => s.done).length;
+      if (doneCount > 0) {
+        const doneEl = document.createElement('div');
+        doneEl.style.cssText = 'font-size:10px;color:var(--green);font-weight:600;padding:2px 4px;';
+        doneEl.textContent = `✓ ${doneCount} done`;
+        cell.appendChild(doneEl);
+      }
+
+      // Show overflow indicator
+      if (hidden > 0) {
+        const more = document.createElement('div');
+        more.style.cssText = 'font-size:10px;color:var(--text-muted);font-weight:600;padding:2px 4px;text-align:center;cursor:pointer;';
+        more.textContent = `+${hidden} more`;
+        more.title = 'Switch to List view to see all';
+        more.onclick = () => switchView('list');
+        cell.appendChild(more);
+      }
+
       row.appendChild(cell);
     }
     grid.appendChild(row);
@@ -663,22 +677,12 @@ function postponeModal(){ if (!activeSprint) return; postponeById(activeSprint.i
 async function postponeById(id) {
   const sp = sprints.find(s => s.id === id);
   if (!sp) return;
-
-  // Save to DB first
-  try { await Sprints.postpone(id, 1); } catch (_) {}
-
-  if (sp.day < 6) {
-    // Same week — move to next day
-    sp.day += 1;
-    buildCal(); buildList();
-    showToast('Sprint moved to next day');
-  } else {
-    // Saturday → move to Sunday of next week
-    showToast('Sprint moved to next week (Sunday)');
-    weekOffset += 1;
-    updateWeekLabel();
-    await loadRealSprints();
-  }
+  sp.day = Math.min(sp.day + 1, 6);
+  buildCal(); buildList();
+  showToast('Sprint moved to next day');
+  try {
+    await Sprints.postpone(id, 1);
+  } catch (_) { /* offline — UI updated already */ }
 }
 
 async function recalibrate() {
