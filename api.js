@@ -1,7 +1,7 @@
 // api.js — StudySprint shared API helper
 // Include this in every HTML page with: <script src="api.js"></script>
 
-const API_BASE = 'https://studysprint-production-1587.up.railway.app/api';
+const API_BASE = 'https://studysprint.study/api';
 
 // ── Token helpers ─────────────────────────────────
 const getToken  = ()      => localStorage.getItem('ss_token');
