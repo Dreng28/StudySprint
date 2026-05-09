@@ -329,4 +329,41 @@ const forgotPassword = async (req, res) => {
   }
 };
 
-module.exports = { register, login, verifyEmail, resendVerification, getMe, updateProfile, changePassword, forgotPassword };
+// ── POST /api/auth/reset-password ─────────────────────────────────
+const resetPassword = async (req, res) => {
+  try {
+    const { token, password } = req.body;
+    if (!token || !password)
+      return res.status(400).json({ success: false, message: 'Token and new password are required.' });
+
+    const strongPassword = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9]).{8,}$/.test(password);
+    if (!strongPassword)
+      return res.status(400).json({ success: false, message: 'Password must be at least 8 characters with uppercase, lowercase, number and special character.' });
+
+    const [rows] = await db.query(
+      'SELECT id, reset_token_exp FROM users WHERE reset_token = ?',
+      [token]
+    );
+
+    if (!rows.length)
+      return res.status(400).json({ success: false, message: 'Invalid or already used reset link.' });
+
+    if (new Date() > new Date(rows[0].reset_token_exp))
+      return res.status(400).json({ success: false, message: 'Reset link has expired. Please request a new one.' });
+
+    const password_hash = await bcrypt.hash(password, 12);
+
+    await db.query(
+      'UPDATE users SET password_hash = ?, reset_token = NULL, reset_token_exp = NULL WHERE id = ?',
+      [password_hash, rows[0].id]
+    );
+
+    return res.status(200).json({ success: true, message: 'Password reset successfully! You can now log in.' });
+
+  } catch (err) {
+    console.error('Reset password error:', err);
+    return res.status(500).json({ success: false, message: 'Server error.' });
+  }
+};
+
+module.exports = { register, login, verifyEmail, resendVerification, getMe, updateProfile, changePassword, forgotPassword, resetPassword };

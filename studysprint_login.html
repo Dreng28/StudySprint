@@ -459,6 +459,49 @@
   </div>
 </div>
 
+<!-- ══ Reset Password Modal ══════════════════════════ -->
+<div class="modal-bg" id="reset-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>🔐 Set New Password</h2>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:13px;color:var(--text-secondary);margin-bottom:18px;line-height:1.6;">
+        Choose a strong new password for your account.
+      </p>
+      <div class="alert error" id="reset-error" style="margin-bottom:12px;">
+        <svg width="14" height="14" fill="none" viewBox="0 0 14 14" style="flex-shrink:0;margin-top:1px;"><circle cx="7" cy="7" r="6" stroke="currentColor" stroke-width="1.4" fill="none"/><path d="M7 4.5v3M7 9.5v.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        <span id="reset-error-msg"></span>
+      </div>
+      <div class="alert success" id="reset-success" style="margin-bottom:12px;">
+        <svg width="14" height="14" fill="none" viewBox="0 0 14 14" style="flex-shrink:0;margin-top:1px;"><circle cx="7" cy="7" r="6" stroke="currentColor" stroke-width="1.4" fill="none"/><path d="M4 7l2 2 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span id="reset-success-msg"></span>
+      </div>
+      <div class="field-group">
+        <label class="field-label">New Password</label>
+        <div class="field-wrap">
+          <svg class="field-icon" width="15" height="15" fill="none" viewBox="0 0 15 15"><rect x="2.5" y="7" width="10" height="7" rx="2" stroke="currentColor" stroke-width="1.3" fill="none"/><path d="M5 7V5.5a2.5 2.5 0 015 0V7" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" fill="none"/></svg>
+          <input class="field-input" type="password" id="reset-password" placeholder="Create a strong password"/>
+          <button class="field-toggle" onclick="toggleVis('reset-password',this)" type="button">👁</button>
+        </div>
+      </div>
+      <div class="field-group" style="margin-bottom:0;">
+        <label class="field-label">Confirm New Password</label>
+        <div class="field-wrap">
+          <svg class="field-icon" width="15" height="15" fill="none" viewBox="0 0 15 15"><rect x="2.5" y="7" width="10" height="7" rx="2" stroke="currentColor" stroke-width="1.3" fill="none"/><path d="M5 7V5.5a2.5 2.5 0 015 0V7" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" fill="none"/></svg>
+          <input class="field-input" type="password" id="reset-confirm" placeholder="Re-enter new password"/>
+          <button class="field-toggle" onclick="toggleVis('reset-confirm',this)" type="button">👁</button>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="modal-accept" onclick="handleResetPassword()" type="button" id="reset-btn">
+        Set New Password
+      </button>
+    </div>
+  </div>
+</div>
+
 <!-- ══ Terms & Conditions Modal ══════════════════════ -->
 <div class="modal-bg" id="tc-modal">
   <div class="modal">
@@ -514,6 +557,72 @@ if (typeof Auth !== 'undefined' && Auth.isLoggedIn()) {
 }
 
 let tcAccepted = false;
+
+// ── Handle ?reset=token in URL (password reset link click) ──
+(function checkResetToken() {
+  const params = new URLSearchParams(window.location.search);
+  const token  = params.get('reset');
+  if (!token) return;
+
+  // Store token and open reset modal
+  window._resetToken = token;
+  document.getElementById('reset-modal').classList.add('open');
+
+  // Clean token from URL without reloading
+  window.history.replaceState({}, '', window.location.pathname);
+})();
+
+// ── RESET PASSWORD ────────────────────────────────
+async function handleResetPassword() {
+  const password = document.getElementById('reset-password').value;
+  const confirm  = document.getElementById('reset-confirm').value;
+  document.getElementById('reset-error').classList.remove('show');
+  document.getElementById('reset-success').classList.remove('show');
+
+  const strongPassword = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9]).{8,}$/.test(password);
+  if (!strongPassword) {
+    document.getElementById('reset-error-msg').textContent = 'Password must be at least 8 characters with uppercase, lowercase, number and special character.';
+    document.getElementById('reset-error').classList.add('show');
+    return;
+  }
+  if (password !== confirm) {
+    document.getElementById('reset-error-msg').textContent = 'Passwords do not match.';
+    document.getElementById('reset-error').classList.add('show');
+    return;
+  }
+
+  const btn = document.getElementById('reset-btn');
+  btn.disabled = true;
+  btn.textContent = 'Saving…';
+
+  try {
+    const res = await fetch('/api/auth/reset-password', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ token: window._resetToken, password }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      document.getElementById('reset-success-msg').textContent = '✅ Password reset! You can now sign in with your new password.';
+      document.getElementById('reset-success').classList.add('show');
+      btn.textContent = 'Done!';
+      // Close modal after 2 seconds
+      setTimeout(() => {
+        document.getElementById('reset-modal').classList.remove('open');
+      }, 2000);
+    } else {
+      document.getElementById('reset-error-msg').textContent = data.message || 'Reset failed. The link may have expired.';
+      document.getElementById('reset-error').classList.add('show');
+      btn.disabled = false;
+      btn.textContent = 'Set New Password';
+    }
+  } catch (e) {
+    document.getElementById('reset-error-msg').textContent = 'Could not reach the server. Please try again.';
+    document.getElementById('reset-error').classList.add('show');
+    btn.disabled = false;
+    btn.textContent = 'Set New Password';
+  }
+}
 
 // ── Handle ?verify=token in URL (email link click) ──
 (async function checkVerifyToken() {
@@ -613,7 +722,7 @@ async function resendVerification(email) {
   clearErr('login');
   showLoginInfo('Sending a new verification email…');
   try {
-    const res = await fetch('/api/auth/resend-verification', {
+    const res = await fetch('https://studysprint.study/api/auth/resend-verification', {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
       body:    JSON.stringify({ email }),
@@ -782,7 +891,7 @@ async function handleForgotPassword() {
   btn.textContent = 'Sending…';
 
   try {
-    const res = await fetch('/api/auth/forgot-password', {
+    const res = await fetch('https://studysprint.study/api/auth/forgot-password', {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
       body:    JSON.stringify({ email }),
