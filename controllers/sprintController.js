@@ -1,7 +1,7 @@
 // controllers/sprintController.js
 const db = require('../config/db');
 
-const generateSprintsForCourse = async (userId, courseId) => {
+const generateSprintsForCourse = async (userId, courseId, doneSprints = []) => {
   const [assessments] = await db.query(
     'SELECT * FROM assessments WHERE course_id=? AND user_id=? ORDER BY due_date ASC',
     [courseId, userId]
@@ -10,12 +10,9 @@ const generateSprintsForCourse = async (userId, courseId) => {
   const sprintDuration      = userRows[0]?.sprint_duration || 45;
   const preferredStudyTime  = userRows[0]?.preferred_study_time || 'morning';
 
-  // Build slot order starting from preferred study time
-  const ALL_SLOTS = ['morning', 'afternoon', 'evening', 'late_night'];
-  const startIdx  = ALL_SLOTS.indexOf(preferredStudyTime);
-  const slotOrder = startIdx >= 0
-    ? [...ALL_SLOTS.slice(startIdx), ...ALL_SLOTS.slice(0, startIdx)].filter(s => ['morning','afternoon','evening'].includes(s))
-    : ['morning', 'afternoon', 'evening'];
+  // Always assign sprints to preferred slot only
+  const VALID_SLOTS = ['morning', 'afternoon', 'evening'];
+  const preferred   = VALID_SLOTS.includes(preferredStudyTime) ? preferredStudyTime : 'morning';
 
   const scheduled   = [];
   const unscheduled = [];
@@ -23,7 +20,7 @@ const generateSprintsForCourse = async (userId, courseId) => {
   today.setHours(0, 0, 0, 0);
 
   // ── Daily load balancer: track sprints per date+slot ─────────────
-  const MAX_PER_DAY = 3;
+  const MAX_PER_DAY = 3;    // max sprints per day total
   const dayLoad     = {}; // { 'YYYY-MM-DD': count }
 
   const dateStr = (d) => {
@@ -32,6 +29,14 @@ const generateSprintsForCourse = async (userId, courseId) => {
     const day = String(d.getDate()).padStart(2, '0');
     return `${y}-${m}-${day}`;
   };
+
+  // Pre-load completed sprints so the balancer respects already-done days
+  for (const done of doneSprints) {
+    const key = done.scheduled_date instanceof Date
+      ? dateStr(done.scheduled_date)
+      : String(done.scheduled_date).slice(0, 10);
+    dayLoad[key] = (dayLoad[key] || 0) + 1;
+  }
 
   const nextAvailableDate = (fromDate, dueDate) => {
     // Find the next date that hasn't hit MAX_PER_DAY, starting from fromDate
@@ -53,9 +58,9 @@ const generateSprintsForCourse = async (userId, courseId) => {
   };
 
   const assignSlot = (dateKey) => {
-    const count = dayLoad[dateKey] || 0;
-    dayLoad[dateKey] = count + 1;
-    return slotOrder[count % 3];
+    // Always use preferred slot — never fall back to other slots
+    dayLoad[dateKey] = (dayLoad[dateKey] || 0) + 1;
+    return preferred;
   };
 
   for (const assessment of assessments) {
@@ -160,7 +165,12 @@ const generateSprints = async (req, res) => {
 
     await db.query('DELETE FROM sprints WHERE course_id=? AND user_id=? AND is_done=0', [course_id, req.user.id]);
 
-    const { scheduled, unscheduled } = await generateSprintsForCourse(req.user.id, course_id);
+    // Fetch completed sprints so the load balancer skips those days correctly
+    const [doneSprints] = await db.query(
+      'SELECT scheduled_date FROM sprints WHERE course_id=? AND user_id=? AND is_done=1',
+      [course_id, req.user.id]
+    );
+    const { scheduled, unscheduled } = await generateSprintsForCourse(req.user.id, course_id, doneSprints);
     const allSprints = [...scheduled, ...unscheduled];
 
     if (!allSprints.length) {
