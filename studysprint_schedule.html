@@ -677,12 +677,22 @@ function postponeModal(){ if (!activeSprint) return; postponeById(activeSprint.i
 async function postponeById(id) {
   const sp = sprints.find(s => s.id === id);
   if (!sp) return;
-  sp.day = Math.min(sp.day + 1, 6);
-  buildCal(); buildList();
-  showToast('Sprint moved to next day');
-  try {
-    await Sprints.postpone(id, 1);
-  } catch (_) { /* offline — UI updated already */ }
+
+  // Save to DB first
+  try { await Sprints.postpone(id, 1); } catch (_) {}
+
+  if (sp.day < 6) {
+    // Same week — move to next day
+    sp.day += 1;
+    buildCal(); buildList();
+    showToast('Sprint moved to next day');
+  } else {
+    // Saturday (day 6) → move to Sunday of next week
+    weekOffset += 1;
+    updateWeekLabel();
+    showToast('Sprint moved to Sunday (next week)');
+    await loadRealSprints();
+  }
 }
 
 async function recalibrate() {
