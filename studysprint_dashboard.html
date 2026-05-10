@@ -216,6 +216,34 @@
     .qa-grid { grid-template-columns: repeat(3, 1fr); }
   }
 
+
+  /* ── Gamification Card ── */
+  .xp-card { background: linear-gradient(135deg, #431407 0%, #C2460A 60%, #EA6C1A 100%); border-radius: var(--radius); padding: 24px; box-shadow: var(--shadow-md); color: white; margin-bottom: 24px; position: relative; overflow: hidden; }
+  .xp-card::before { content: ''; position: absolute; top: -30px; right: -30px; width: 160px; height: 160px; background: rgba(255,255,255,0.06); border-radius: 50%; }
+  .xp-card::after  { content: ''; position: absolute; bottom: -50px; left: 40px; width: 120px; height: 120px; background: rgba(255,255,255,0.04); border-radius: 50%; }
+  .xp-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; position: relative; z-index: 1; }
+  .xp-level-badge { background: rgba(255,255,255,0.18); border-radius: 999px; padding: 5px 14px; font-size: 12px; font-weight: 700; letter-spacing: 0.5px; backdrop-filter: blur(4px); }
+  .xp-streak { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; }
+  .xp-name { font-size: 22px; font-weight: 800; margin-bottom: 4px; position: relative; z-index: 1; }
+  .xp-count { font-size: 13px; color: rgba(255,255,255,0.75); margin-bottom: 14px; position: relative; z-index: 1; }
+  .xp-bar-track { height: 10px; background: rgba(255,255,255,0.18); border-radius: 5px; overflow: hidden; margin-bottom: 6px; position: relative; z-index: 1; }
+  .xp-bar-fill { height: 100%; background: rgba(255,255,255,0.85); border-radius: 5px; transition: width 1s ease; }
+  .xp-bar-labels { display: flex; justify-content: space-between; font-size: 11px; color: rgba(255,255,255,0.65); position: relative; z-index: 1; }
+
+  /* ── Badges ── */
+  .badges-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 6px; position: relative; z-index: 1; }
+  .badge-pill { display: flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.15); border-radius: 999px; padding: 5px 12px; font-size: 12px; font-weight: 600; backdrop-filter: blur(4px); cursor: pointer; transition: background 0.15s; position: relative; }
+  .badge-pill:hover { background: rgba(255,255,255,0.25); }
+  .badge-pill .badge-tooltip { display: none; position: absolute; bottom: calc(100% + 6px); left: 50%; transform: translateX(-50%); background: rgba(17,24,39,0.92); color: white; font-size: 11px; padding: 5px 10px; border-radius: 8px; white-space: nowrap; pointer-events: none; z-index: 10; }
+  .badge-pill:hover .badge-tooltip { display: block; }
+  .badge-locked { opacity: 0.35; filter: grayscale(1); }
+  .badges-section-title { font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.65); letter-spacing: 0.5px; margin-bottom: 8px; margin-top: 18px; position: relative; z-index: 1; }
+
+  @media (max-width: 640px) {
+    .xp-name { font-size: 18px; }
+    .badge-pill { font-size: 11px; padding: 4px 10px; }
+  }
+
 </style>
 </head>
 <body>
@@ -393,6 +421,28 @@
         <svg width="16" height="16" fill="none" viewBox="0 0 16 16"><path d="M2 12l4-4 3 3 5-7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
         Generate Report
       </button>
+    </div>
+  </div>
+
+
+  <!-- XP / Level / Badges Card -->
+  <div class="xp-card" id="xp-card" style="display:none;">
+    <div class="xp-top">
+      <div class="xp-level-badge" id="xp-level-badge">Level 1</div>
+      <div class="xp-streak" id="xp-streak-display">🔥 0 Days</div>
+    </div>
+    <div class="xp-name" id="xp-level-name">Freshman</div>
+    <div class="xp-count" id="xp-count">0 XP</div>
+    <div class="xp-bar-track">
+      <div class="xp-bar-fill" id="xp-bar-fill" style="width:0%"></div>
+    </div>
+    <div class="xp-bar-labels">
+      <span id="xp-bar-left">0 XP</span>
+      <span id="xp-bar-right">Next: 500 XP</span>
+    </div>
+    <div class="badges-section-title">BADGES EARNED</div>
+    <div class="badges-row" id="badges-row">
+      <span style="font-size:12px;color:rgba(255,255,255,0.5);">Complete sprints to earn badges!</span>
     </div>
   </div>
 
@@ -628,6 +678,57 @@ async function loadDashboard() {
         </div>`;
       actCard.appendChild(div);
     });
+  }
+
+  // ── Gamification: XP / Level / Badges ───────────
+  const s = stats;
+  if (s.xp !== undefined) {
+    const xpCard = document.getElementById('xp-card');
+    xpCard.style.display = 'block';
+
+    document.getElementById('xp-level-badge').textContent   = `Level ${s.level}`;
+    document.getElementById('xp-level-name').textContent    = s.level_name || 'Freshman';
+    document.getElementById('xp-streak-display').textContent = `🔥 ${s.streak || 0} Day${s.streak !== 1 ? 's' : ''}`;
+    document.getElementById('xp-count').textContent         = `${s.xp.toLocaleString()} XP`;
+    document.getElementById('xp-bar-fill').style.width      = `${s.level_pct || 0}%`;
+    document.getElementById('xp-bar-left').textContent      = `${s.xp_into?.toLocaleString() || 0} XP`;
+    document.getElementById('xp-bar-right').textContent     = s.next_level
+      ? `Next: ${s.next_level} — ${s.xp_for_next?.toLocaleString()} XP`
+      : '🏆 Max Level!';
+
+    // Badges
+    const ALL_BADGES = [
+      { id: 'first_sprint',   emoji: '🔥', name: 'First Sprint',    desc: 'Complete your first sprint'   },
+      { id: 'streak_3',       emoji: '📅', name: '3-Day Streak',    desc: '3 days in a row'              },
+      { id: 'streak_7',       emoji: '🌟', name: 'Week Warrior',    desc: '7-day streak'                 },
+      { id: 'sprints_10',     emoji: '💪', name: '10 Sprints Done', desc: 'Complete 10 sprints'          },
+      { id: 'sprints_50',     emoji: '🎯', name: 'Dedicated',       desc: 'Complete 50 sprints'          },
+      { id: 'sprints_100',    emoji: '🏆', name: 'Century',         desc: 'Complete 100 sprints'         },
+      { id: 'completion_80',  emoji: '⭐', name: 'High Achiever',   desc: '80%+ completion rate'         },
+      { id: 'subject_master', emoji: '📚', name: 'Subject Master',  desc: 'Upload 3 or more subjects'   },
+    ];
+    const earnedIds  = new Set((s.badges || []).map(b => b.id));
+    const badgesRow  = document.getElementById('badges-row');
+    badgesRow.innerHTML = '';
+    ALL_BADGES.forEach(b => {
+      const earned = earnedIds.has(b.id);
+      const pill   = document.createElement('div');
+      pill.className = `badge-pill${earned ? '' : ' badge-locked'}`;
+      pill.innerHTML = `
+        <span>${b.emoji}</span>
+        <span>${b.name}</span>
+        <div class="badge-tooltip">${b.desc}</div>`;
+      badgesRow.appendChild(pill);
+    });
+
+    // Show level-up toast if newly leveled
+    const prevLevel = parseInt(localStorage.getItem('ss_level') || '1');
+    if (s.level > prevLevel) {
+      showToast(`🎉 Level Up! You're now Level ${s.level} — ${s.level_name}!`);
+      localStorage.setItem('ss_level', s.level);
+    } else {
+      localStorage.setItem('ss_level', s.level);
+    }
   }
 
   // Notification panel

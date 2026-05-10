@@ -117,6 +117,65 @@ const getDashboard = async (req, res) => {
       } else break;
     }
 
+    // ── XP & Level system ────────────────────────
+    const LEVELS = [
+      { level: 1,  name: 'Freshman',          xp: 0     },
+      { level: 2,  name: 'Studier',            xp: 500   },
+      { level: 3,  name: 'Focused',            xp: 1500  },
+      { level: 4,  name: 'Scholar',            xp: 3000  },
+      { level: 5,  name: 'Achiever',           xp: 5000  },
+      { level: 6,  name: 'Honor Student',      xp: 8000  },
+      { level: 7,  name: "Dean's Lister",      xp: 12000 },
+      { level: 8,  name: 'Academic',           xp: 17000 },
+      { level: 9,  name: 'Valedictorian',      xp: 23000 },
+      { level: 10, name: 'StudySprint Legend', xp: 30000 },
+    ];
+
+    const [xpRows] = await db.query(
+      'SELECT duration_min, priority FROM sprints WHERE user_id=? AND is_done=1',
+      [userId]
+    );
+    const priorityMult = { high: 1.5, medium: 1.0, low: 0.8 };
+    let totalXp = xpRows.reduce((sum, s) => {
+      const mult = priorityMult[s.priority] || 1.0;
+      return sum + Math.round((s.duration_min || 45) * mult);
+    }, 0);
+    totalXp += streak * 10;
+
+    let currentLevel = LEVELS[0];
+    let nextLevel    = LEVELS[1];
+    for (let i = LEVELS.length - 1; i >= 0; i--) {
+      if (totalXp >= LEVELS[i].xp) {
+        currentLevel = LEVELS[i];
+        nextLevel    = LEVELS[i + 1] || null;
+        break;
+      }
+    }
+    const xpIntoLevel = totalXp - currentLevel.xp;
+    const xpForNext   = nextLevel ? nextLevel.xp - currentLevel.xp : 0;
+    const levelPct    = nextLevel ? Math.round((xpIntoLevel / xpForNext) * 100) : 100;
+
+    // ── Badge system ──────────────────────────────
+    const BADGE_DEFS = [
+      { id: 'first_sprint',   emoji: '\uD83D\uDD25', name: 'First Sprint',    desc: 'Complete your first sprint',    check: () => total_sprints >= 1    },
+      { id: 'streak_3',       emoji: '\uD83D\uDCC5', name: '3-Day Streak',    desc: '3 days in a row',               check: () => streak >= 3           },
+      { id: 'streak_7',       emoji: '\uD83C\uDF1F', name: 'Week Warrior',    desc: '7-day streak',                  check: () => streak >= 7           },
+      { id: 'sprints_10',     emoji: '\uD83D\uDCAA', name: '10 Sprints Done', desc: 'Complete 10 sprints',           check: () => total_sprints >= 10   },
+      { id: 'sprints_50',     emoji: '\uD83C\uDFAF', name: 'Dedicated',       desc: 'Complete 50 sprints',           check: () => total_sprints >= 50   },
+      { id: 'sprints_100',    emoji: '\uD83C\uDFC6', name: 'Century',         desc: 'Complete 100 sprints',          check: () => total_sprints >= 100  },
+      { id: 'completion_80',  emoji: '\u2B50',        name: 'High Achiever',   desc: '80%+ completion rate',          check: () => completion_rate >= 80 },
+      { id: 'subject_master', emoji: '\uD83D\uDCDA', name: 'Subject Master',  desc: 'Upload 3 or more subjects',    check: () => active_courses >= 3   },
+    ];
+
+    const earnedBadges = BADGE_DEFS
+      .filter(b => b.check())
+      .map(b => ({ id: b.id, emoji: b.emoji, name: b.name, desc: b.desc }));
+
+    await db.query(
+      'UPDATE users SET xp=?, level=?, badges=? WHERE id=?',
+      [totalXp, currentLevel.level, JSON.stringify(earnedBadges), userId]
+    );
+
     return res.status(200).json({
       success: true,
       stats: {
@@ -132,6 +191,15 @@ const getDashboard = async (req, res) => {
         completion_rate,
         total_study_min:  Math.round(total_study_min),
         avg_duration_min: Math.round(avg_duration_min),
+        // Gamification
+        xp:           totalXp,
+        level:        currentLevel.level,
+        level_name:   currentLevel.name,
+        next_level:   nextLevel ? nextLevel.name : null,
+        xp_into:      xpIntoLevel,
+        xp_for_next:  xpForNext,
+        level_pct:    levelPct,
+        badges:       earnedBadges,
       },
       today_sprints:           todaySprints,
       upcoming_deadlines:      deadlines,
