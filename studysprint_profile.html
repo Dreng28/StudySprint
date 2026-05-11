@@ -21,7 +21,7 @@
   body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
 
   /* Nav */
-  .topnav { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 24px; height: 60px; display: flex; align-items: center; gap: 12px; position: sticky; top: 0; z-index: 50; }
+  .topnav { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 24px; height: 60px; display: flex; align-items: center; justify-content: space-between; gap: 12px; position: sticky; top: 0; z-index: 50; }
   .back-btn { display: flex; align-items: center; gap: 6px; background: none; border: none; cursor: pointer; color: var(--text-secondary); font-family: 'Plus Jakarta Sans', sans-serif; font-size: 14px; font-weight: 500; }
   .back-btn:hover { color: var(--orange); }
   .nav-title { font-size: 16px; font-weight: 700; color: var(--text); }
@@ -180,13 +180,33 @@
 
 <!-- Nav -->
 <nav class="topnav">
-  <button class="back-btn" onclick="window.location='studysprint_dashboard.html'">
-    <svg width="16" height="16" fill="none" viewBox="0 0 16 16"><path d="M10 3L5 8l5 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-  </button>
+  <!-- Left: back button + CCS logo -->
+  <div style="display:flex;align-items:center;gap:12px;">
+    <button class="back-btn" onclick="window.location='studysprint_dashboard.html'">
+      <svg width="16" height="16" fill="none" viewBox="0 0 16 16"><path d="M10 3L5 8l5 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <img src="assets/ccs-logo.png" alt="Gordon College CCS"
+         style="width:34px;height:34px;border-radius:50%;object-fit:cover;flex-shrink:0;"
+         onerror="this.style.display='none'"/>
+    <div style="line-height:1.25;">
+      <div style="font-size:10px;font-weight:700;color:var(--text);white-space:nowrap;">Gordon College</div>
+      <div style="font-size:9px;color:var(--text-secondary);white-space:nowrap;">College of Computer Studies</div>
+    </div>
+  </div>
+  <!-- Center: page title -->
   <div>
     <div class="nav-title">User Profile &amp; Settings</div>
     <div class="nav-sub">Manage your account and preferences</div>
   </div>
+  <!-- Right: StudySprint logo -->
+  <a href="studysprint_dashboard.html" style="display:flex;align-items:center;gap:7px;text-decoration:none;">
+    <div style="width:26px;height:26px;background:linear-gradient(135deg,#C2460A,#EA6C1A);border-radius:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <polygon points="10,2 5,9 8,9 6,14 11,7 8,7 10,2" fill="white"/>
+      </svg>
+    </div>
+    <span style="font-size:15px;font-weight:800;color:#C2460A;font-family:'Plus Jakarta Sans',sans-serif;">StudySprint</span>
+  </a>
 </nav>
 
 <div class="page">
@@ -441,6 +461,14 @@
           <option value="balanced" selected>Balanced</option>
           <option value="relaxed">Relaxed</option>
         </select>
+        <button onclick="savePreferences()"
+          style="width:100%;margin-top:4px;padding:11px;border-radius:var(--radius-sm);border:none;
+                 background:linear-gradient(135deg,var(--orange),var(--orange-mid));color:white;
+                 font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;
+                 display:flex;align-items:center;justify-content:center;gap:6px;">
+          <svg width="13" height="13" fill="none" viewBox="0 0 13 13"><path d="M2 6.5l3.5 3.5 5.5-5.5" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Save Preferences
+        </button>
       </div>
 
       <!-- Logout -->
@@ -535,6 +563,31 @@ async function loadProfile() {
   if (sprintSel) sprintSel.value = String(u.sprint_duration || 45);
   if (modeSel)   modeSel.value   = u.study_mode || 'balanced';
   if (timeSel)   timeSel.value   = u.preferred_study_time || 'afternoon';
+}
+
+// ── Save preferences (Study Preferences panel) ────
+async function savePreferences() {
+  const sprintDuration = parseInt(document.getElementById('sel-sprint-duration')?.value) || 45;
+  const studyMode      = document.getElementById('sel-study-mode')?.value || 'balanced';
+  const studyTime      = document.getElementById('sel-study-time')?.value || 'afternoon';
+
+  const res = await Auth.updateProfile({
+    sprint_duration:      sprintDuration,
+    study_mode:           studyMode,
+    preferred_study_time: studyTime,
+    // preserve existing toggle states
+    notif_email:     document.getElementById('tog-notif-email')?.checked    ? 1 : 0,
+    notif_sprint:    document.getElementById('tog-notif-sprint')?.checked   ? 1 : 0,
+    notif_deadline:  document.getElementById('tog-notif-deadline')?.checked ? 1 : 0,
+    notif_weekly:    document.getElementById('tog-notif-weekly')?.checked   ? 1 : 0,
+    weekend_sprints: document.getElementById('tog-weekend')?.checked        ? 1 : 0,
+    auto_reschedule: document.getElementById('tog-autoreschedule')?.checked ? 1 : 0,
+  });
+
+  showToast(
+    res?.success ? `Sprint duration set to ${sprintDuration} min. Saved!` : (res?.message || 'Save failed.'),
+    !res?.success
+  );
 }
 
 // ── Save profile ──────────────────────────────────
