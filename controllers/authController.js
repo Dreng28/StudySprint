@@ -366,4 +366,125 @@ const resetPassword = async (req, res) => {
   }
 };
 
-module.exports = { register, login, verifyEmail, resendVerification, getMe, updateProfile, changePassword, forgotPassword, resetPassword };
+
+// ── POST /api/auth/gc-setup ───────────────────────────────────────
+// Gordon College institutional email — auto-provision account & send setup link
+const gcSetup = async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email)
+      return res.status(400).json({ success: false, message: 'Email is required.' });
+
+    // Enforce GC domain
+    if (!email.toLowerCase().endsWith('@gordoncollege.edu.ph'))
+      return res.status(400).json({ success: false, message: 'Only @gordoncollege.edu.ph emails are accepted.' });
+
+    // Derive a display name from the email prefix (e.g. "john.doe2024" → "John Doe")
+    const prefix    = email.split('@')[0];
+    // Remove trailing digits (enrollment year) and split on dots/underscores
+    const nameParts = prefix.replace(/\d+$/, '').split(/[._-]/);
+    const full_name = nameParts
+      .map(p => p.charAt(0).toUpperCase() + p.slice(1))
+      .join(' ') || 'GC Student';
+
+    // Check if account already exists
+    const [existing] = await db.query('SELECT id, is_verified, password_hash FROM users WHERE email = ?', [email]);
+
+    let userId;
+
+    if (existing.length > 0) {
+      userId = existing[0].id;
+      // If already fully set up (verified + has password), just send a login link / remind them
+      if (existing[0].is_verified && existing[0].password_hash) {
+        // Still send a reset link so they can log in easily
+        const reset_token     = crypto.randomBytes(32).toString('hex');
+        const reset_token_exp = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+        await db.query(
+          'UPDATE users SET reset_token = ?, reset_token_exp = ? WHERE id = ?',
+          [reset_token, reset_token_exp, userId]
+        );
+        const setupUrl = `${process.env.FRONTEND_URL}/studysprint_login.html?gc_setup=${reset_token}`;
+        await resend.emails.send({
+          from: 'StudySprint <noreply@studysprint.study>',
+          to: email,
+          subject: 'Sign in to StudySprint',
+          html: gcEmailHtml(full_name, setupUrl,
+            'You already have a StudySprint account. Click below to set a new password and sign in.',
+            'Sign In to StudySprint'),
+        });
+        return res.status(200).json({
+          success: true,
+          message: '✅ A sign-in link has been sent to your Gordon College email!'
+        });
+      }
+    } else {
+      // Auto-create the account (no password yet, not verified)
+      const [result] = await db.query(
+        `INSERT INTO users
+          (full_name, email, password_hash, student_id, program,
+           terms_accepted, terms_accepted_at, is_verified, verify_token, verify_token_exp)
+         VALUES (?, ?, '', NULL, 'Gordon College — CCS', 1, NOW(), 0, NULL, NULL)`,
+        [full_name, email]
+      );
+      userId = result.insertId;
+    }
+
+    // Generate a setup token (reusing reset_token column)
+    const setup_token     = crypto.randomBytes(32).toString('hex');
+    const setup_token_exp = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+
+    await db.query(
+      'UPDATE users SET reset_token = ?, reset_token_exp = ?, is_verified = 1 WHERE id = ?',
+      [setup_token, setup_token_exp, userId]
+    );
+
+    const setupUrl = `${process.env.FRONTEND_URL}/studysprint_login.html?gc_setup=${setup_token}`;
+
+    await resend.emails.send({
+      from: 'StudySprint <noreply@studysprint.study>',
+      to: email,
+      subject: 'Set up your StudySprint account',
+      html: gcEmailHtml(full_name, setupUrl,
+        'Your Gordon College email has been recognized. Click below to set your password and start planning your study schedule.',
+        'Set Up My Account'),
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: '✅ Setup link sent! Check your Gordon College email inbox.',
+    });
+
+  } catch (err) {
+    console.error('GC Setup error:', err);
+    return res.status(500).json({ success: false, message: 'Server error.' });
+  }
+};
+
+// ── GC email HTML template ────────────────────────────────────────
+function gcEmailHtml(name, url, intro, btnText) {
+  return `
+    <div style="font-family:sans-serif;max-width:520px;margin:0 auto;padding:32px;">
+      <div style="background:linear-gradient(135deg,#C2460A,#EA6C1A);padding:24px 32px;border-radius:12px 12px 0 0;text-align:center;">
+        <span style="font-size:28px;font-weight:800;color:white;letter-spacing:-0.02em;">StudySprint</span>
+        <div style="font-size:13px;color:rgba(255,255,255,0.8);margin-top:4px;">AI-Powered Academic Study Scheduler</div>
+      </div>
+      <div style="background:#fff;padding:32px;border:1px solid #E5E7EB;border-top:none;border-radius:0 0 12px 12px;">
+        <h2 style="margin:0 0 12px;color:#1a1a1a;">Hi ${name} 👋</h2>
+        <p style="color:#6B7280;line-height:1.6;margin-bottom:24px;">${intro}</p>
+        <a href="${url}" style="display:inline-block;padding:14px 32px;background:#C2460A;color:white;text-decoration:none;border-radius:10px;font-weight:700;font-size:15px;">
+          ${btnText}
+        </a>
+        <p style="color:#9CA3AF;font-size:12px;margin-top:24px;">
+          This link expires in 24 hours and can only be used once.<br>
+          If you didn't request this, you can safely ignore this email.
+        </p>
+        <hr style="border:none;border-top:1px solid #E5E7EB;margin:24px 0;"/>
+        <p style="color:#9CA3AF;font-size:11px;text-align:center;">
+          Gordon College CCS · studysprint.study
+        </p>
+      </div>
+    </div>
+  `;
+}
+
+module.exports = { register, login, verifyEmail, resendVerification, getMe, updateProfile, changePassword, forgotPassword, resetPassword, gcSetup };

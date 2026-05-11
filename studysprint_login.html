@@ -237,6 +237,37 @@
     .field-input { font-size: 16px; }
   }
 
+
+  /* ── Gordon College SSO Section ── */
+  .gc-divider {
+    display: flex; align-items: center; gap: 12px;
+    margin: 20px 0 18px; color: var(--text-muted); font-size: 12px; font-weight: 600;
+  }
+  .gc-divider::before, .gc-divider::after {
+    content: ''; flex: 1; height: 1px; background: var(--border);
+  }
+  .gc-sso-btn {
+    width: 100%; padding: 13px 16px; border: 2px solid #003366;
+    border-radius: var(--radius-sm);
+    background: white; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 14px; font-weight: 700; color: #003366;
+    transition: all .15s;
+  }
+  .gc-sso-btn:hover { background: #EEF2FF; border-color: #003366; }
+  .gc-sso-btn:disabled { opacity: .5; cursor: not-allowed; }
+  .gc-logo {
+    width: 22px; height: 22px; object-fit: contain;
+    font-size: 20px; line-height: 1;
+  }
+  .gc-badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    background: #EEF2FF; color: #003366;
+    font-size: 11px; font-weight: 700; padding: 3px 8px;
+    border-radius: 999px; margin-left: 6px;
+  }
+
 </style>
 </head>
 <body>
@@ -293,6 +324,12 @@
     <button class="submit-btn" id="login-btn" onclick="handleLogin()" type="button">
       <div class="btn-spinner"></div>
       <span class="btn-label">Sign In →</span>
+    </button>
+    <div class="gc-divider">or</div>
+    <button class="gc-sso-btn" id="gc-sso-btn" onclick="openGCModal()" type="button">
+      <span class="gc-logo">🎓</span>
+      Sign in with Gordon College Email
+      <span class="gc-badge">@gordoncollege.edu.ph</span>
     </button>
   </div>
 
@@ -497,6 +534,48 @@
     <div class="modal-footer">
       <button class="modal-accept" onclick="handleResetPassword()" type="button" id="reset-btn">
         Set New Password
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ Gordon College SSO Modal ══════════════════════ -->
+<div class="modal-bg" id="gc-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>🎓 Gordon College Sign-In</h2>
+      <button class="modal-close" onclick="closeGCModal()" type="button">×</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:13px;color:var(--text-secondary);margin-bottom:18px;line-height:1.6;">
+        Enter your Gordon College email address. We'll send you a secure setup link —
+        no password needed to get started.
+      </p>
+      <div class="alert error" id="gc-error" style="margin-bottom:12px;">
+        <svg width="14" height="14" fill="none" viewBox="0 0 14 14" style="flex-shrink:0;margin-top:1px;"><circle cx="7" cy="7" r="6" stroke="currentColor" stroke-width="1.4" fill="none"/><path d="M7 4.5v3M7 9.5v.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        <span id="gc-error-msg"></span>
+      </div>
+      <div class="alert success" id="gc-success" style="margin-bottom:12px;">
+        <svg width="14" height="14" fill="none" viewBox="0 0 14 14" style="flex-shrink:0;margin-top:1px;"><circle cx="7" cy="7" r="6" stroke="currentColor" stroke-width="1.4" fill="none"/><path d="M4 7l2 2 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span id="gc-success-msg"></span>
+      </div>
+      <div class="field-group" style="margin-bottom:0;">
+        <label class="field-label">Gordon College Email</label>
+        <div class="field-wrap">
+          <svg class="field-icon" width="15" height="15" fill="none" viewBox="0 0 15 15"><rect x="1" y="3" width="13" height="9" rx="2" stroke="currentColor" stroke-width="1.3" fill="none"/><path d="M1 6.5l6.5 3.5 6.5-3.5" stroke="currentColor" stroke-width="1.3"/></svg>
+          <input class="field-input" type="email" id="gc-email"
+            placeholder="yourname@gordoncollege.edu.ph"
+            oninput="validateGCEmail()"/>
+        </div>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:5px;">
+          Only <strong>@gordoncollege.edu.ph</strong> emails are accepted.
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="modal-decline" onclick="closeGCModal()" type="button">Cancel</button>
+      <button class="modal-accept" onclick="handleGCSetup()" type="button" id="gc-btn" disabled>
+        Send Setup Link →
       </button>
     </div>
   </div>
@@ -906,6 +985,82 @@ async function handleForgotPassword() {
     document.getElementById('forgot-error').classList.add('show');
     btn.disabled = false;
     btn.textContent = 'Send Reset Link';
+  }
+}
+
+
+// ── Handle ?gc_setup=token in URL (GC account setup link click) ──
+(function checkGCSetupToken() {
+  const params = new URLSearchParams(window.location.search);
+  const token  = params.get('gc_setup');
+  if (!token) return;
+
+  // Reuse the reset password modal for setting the password
+  window._resetToken = token;
+  // Update modal title and description for first-time setup
+  const modal = document.getElementById('reset-modal');
+  const h2    = modal.querySelector('.modal-header h2');
+  const desc  = modal.querySelector('.modal-body p');
+  if (h2)   h2.textContent  = '🎓 Set Your StudySprint Password';
+  if (desc) desc.textContent = 'Welcome to StudySprint! Set a password for your Gordon College account. You can change it anytime in your profile settings.';
+  modal.classList.add('open');
+  window.history.replaceState({}, '', window.location.pathname);
+})();
+
+// ── GC MODAL ────────────────────────────────────
+function openGCModal() {
+  document.getElementById('gc-modal').classList.add('open');
+  document.getElementById('gc-email').value   = '';
+  document.getElementById('gc-error').classList.remove('show');
+  document.getElementById('gc-success').classList.remove('show');
+  document.getElementById('gc-btn').disabled  = true;
+}
+function closeGCModal() {
+  document.getElementById('gc-modal').classList.remove('open');
+}
+function validateGCEmail() {
+  const email = document.getElementById('gc-email').value.trim().toLowerCase();
+  const valid = email.endsWith('@gordoncollege.edu.ph') && email.length > 21;
+  document.getElementById('gc-btn').disabled = !valid;
+}
+async function handleGCSetup() {
+  const email = document.getElementById('gc-email').value.trim().toLowerCase();
+  document.getElementById('gc-error').classList.remove('show');
+  document.getElementById('gc-success').classList.remove('show');
+
+  if (!email.endsWith('@gordoncollege.edu.ph')) {
+    document.getElementById('gc-error-msg').textContent = 'Only @gordoncollege.edu.ph emails are accepted.';
+    document.getElementById('gc-error').classList.add('show');
+    return;
+  }
+
+  const btn = document.getElementById('gc-btn');
+  btn.disabled    = true;
+  btn.textContent = 'Sending…';
+
+  try {
+    const res  = await fetch('/api/auth/gc-setup', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ email }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      document.getElementById('gc-success-msg').textContent =
+        data.message || '✅ Check your Gordon College email for a setup link!';
+      document.getElementById('gc-success').classList.add('show');
+      btn.textContent = 'Sent!';
+    } else {
+      document.getElementById('gc-error-msg').textContent = data.message || 'Something went wrong. Please try again.';
+      document.getElementById('gc-error').classList.add('show');
+      btn.disabled    = false;
+      btn.textContent = 'Send Setup Link →';
+    }
+  } catch (e) {
+    document.getElementById('gc-error-msg').textContent = 'Could not reach the server. Please try again.';
+    document.getElementById('gc-error').classList.add('show');
+    btn.disabled    = false;
+    btn.textContent = 'Send Setup Link →';
   }
 }
 

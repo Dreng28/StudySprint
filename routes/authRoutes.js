@@ -12,6 +12,7 @@ const {
   changePassword,
   forgotPassword,
   resetPassword,
+  gcSetup,
 } = require('../controllers/authController');
 
 router.post('/register',             register);
@@ -23,5 +24,6 @@ router.put ('/profile',              protect, updateProfile);
 router.put ('/change-password',      protect, changePassword);
 router.post('/forgot-password',      forgotPassword);
 router.post('/reset-password',       resetPassword);
+router.post('/gc-setup',             gcSetup);
 
 module.exports = router;
