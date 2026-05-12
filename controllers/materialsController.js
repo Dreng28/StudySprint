@@ -103,22 +103,39 @@ const getMaterials = async (req, res) => {
 
 // GET /api/materials/:id/download
 // Streams the file as binary — avoids 502 on large files from JSON encoding overhead
+// NOTE: This handler resolves auth itself so it can be registered WITHOUT the
+// authenticateToken middleware (allowing browser window.open() with ?token=).
+const jwt = require('jsonwebtoken');
 const downloadMaterial = async (req, res) => {
   try {
-    // Support token via query param for direct browser window.open() calls
-    if (req.query.token && !req.headers.authorization) {
-      req.headers.authorization = `Bearer ${req.query.token}`;
-      const jwt = require('jsonwebtoken');
-      try {
-        req.user = jwt.verify(req.query.token, process.env.JWT_SECRET);
-      } catch (_) {
-        return res.status(401).json({ success: false, message: 'Invalid token.' });
-      }
+    // 1. Resolve the caller's identity from either source:
+    //    a) Standard Authorization header  (fetch / XHR callers)
+    //    b) ?token= query param            (window.open / direct browser tab)
+    let userId = null;
+
+    const headerToken = (req.headers.authorization || '').replace('Bearer ', '').trim();
+    const queryToken  = (req.query.token || '').trim();
+    const rawToken    = headerToken || queryToken;
+
+    if (!rawToken) {
+      return res.status(401).json({ success: false, message: 'No token provided. Please log in.' });
+    }
+
+    try {
+      const decoded = jwt.verify(rawToken, process.env.JWT_SECRET);
+      // jwt payload may use `id` or `userId` depending on how the token was signed
+      userId = decoded.id ?? decoded.userId ?? decoded.sub ?? null;
+    } catch (_) {
+      return res.status(401).json({ success: false, message: 'Invalid or expired token.' });
+    }
+
+    if (!userId) {
+      return res.status(401).json({ success: false, message: 'Token payload missing user id.' });
     }
 
     const [rows] = await db.query(
       'SELECT file_name, file_type, file_size, file_data FROM study_materials WHERE id=? AND user_id=?',
-      [req.params.id, req.user.id]
+      [req.params.id, userId]
     );
     if (!rows.length) {
       return res.status(404).json({ success: false, message: 'Material not found.' });
