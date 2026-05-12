@@ -285,15 +285,33 @@
 <body>
 
 <nav class="topnav">
+  <!-- Left: back + CCS logo -->
   <div class="nav-left">
     <button class="back-btn" onclick="window.location='studysprint_dashboard.html'">
       <svg width="16" height="16" fill="none" viewBox="0 0 16 16"><path d="M10 3L5 8l5 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
     </button>
-    <div>
-      <div class="nav-title">Upload &amp; Parse Syllabus</div>
-      <div class="nav-sub">Let AI extract your course information</div>
+    <img src="assets/ccs-logo.png" alt="Gordon College CCS"
+         style="width:34px;height:34px;border-radius:50%;object-fit:cover;flex-shrink:0;"
+         onerror="this.style.display='none'"/>
+    <div style="line-height:1.25;">
+      <div style="font-size:10px;font-weight:700;color:var(--text);white-space:nowrap;">Gordon College</div>
+      <div style="font-size:9px;color:var(--text-secondary);white-space:nowrap;">College of Computer Studies</div>
     </div>
   </div>
+  <!-- Center: page title -->
+  <div style="text-align:center;">
+    <div class="nav-title">Upload &amp; Parse Syllabus</div>
+    <div class="nav-sub">Let AI extract your course information</div>
+  </div>
+  <!-- Right: StudySprint logo -->
+  <a href="studysprint_dashboard.html" style="display:flex;align-items:center;gap:7px;text-decoration:none;flex-shrink:0;">
+    <div style="width:26px;height:26px;background:linear-gradient(135deg,#C2460A,#EA6C1A);border-radius:7px;display:flex;align-items:center;justify-content:center;">
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <polygon points="10,2 5,9 8,9 6,14 11,7 8,7 10,2" fill="white"/>
+      </svg>
+    </div>
+    <span style="font-size:15px;font-weight:800;color:#C2460A;font-family:'Plus Jakarta Sans',sans-serif;">StudySprint</span>
+  </a>
 </nav>
 
 <div class="page">
@@ -903,7 +921,14 @@ async function loadManualSubjects() {
   try {
     const [coursesRes, syllabiRes] = await Promise.all([Courses.list(), Syllabi.list()]);
     const allCourses  = coursesRes?.courses || [];
-    const syllabiIds  = new Set((syllabiRes?.syllabi || []).map(s => s.course_id ?? s.id));
+    // Build a Set of course IDs that have a real uploaded syllabus.
+    // Only use course_id — never fall back to s.id (the syllabus record ID),
+    // which caused uploaded syllabi to bleed into the Manually Added list.
+    const syllabiIds = new Set(
+      (syllabiRes?.syllabi || [])
+        .map(s => s.course_id)
+        .filter(id => id != null)
+    );
 
     // Manually added = courses that have no corresponding syllabus
     const manualCourses = allCourses.filter(c => !syllabiIds.has(c.id));
