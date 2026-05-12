@@ -64,8 +64,24 @@ const deleteCourse = async (req, res) => {
 
     const courseId = req.params.id;
 
-    // Explicitly remove all child records first (schema has ON DELETE CASCADE but
-    // we do this manually to be safe across all MySQL configurations).
+    // ── Bank XP from completed sprints before deleting them ──
+    const [donesprints] = await db.query(
+      'SELECT duration_min, priority FROM sprints WHERE course_id=? AND user_id=? AND is_done=1',
+      [courseId, req.user.id]
+    );
+    const priorityMult = { high: 1.5, medium: 1.0, low: 0.8 };
+    const xpToBank = donesprints.reduce((sum, s) => {
+      const mult = priorityMult[s.priority] || 1.0;
+      return sum + Math.round((s.duration_min || 45) * mult);
+    }, 0);
+    if (xpToBank > 0) {
+      await db.query(
+        'UPDATE users SET xp_banked = COALESCE(xp_banked, 0) + ? WHERE id=?',
+        [xpToBank, req.user.id]
+      );
+    }
+
+    // Wipe all child records then the course itself
     await db.query('DELETE FROM sprints     WHERE course_id=? AND user_id=?', [courseId, req.user.id]);
     await db.query('DELETE FROM assessments WHERE course_id=? AND user_id=?', [courseId, req.user.id]);
     await db.query('DELETE FROM syllabi     WHERE course_id=? AND user_id=?', [courseId, req.user.id]);

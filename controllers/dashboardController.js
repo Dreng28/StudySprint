@@ -118,6 +118,10 @@ const getDashboard = async (req, res) => {
     }
 
     // ── XP & Level system ────────────────────────
+    // XP is accumulated in users.xp so it persists even after courses are deleted.
+    // Each time the dashboard loads, we calculate XP only from CURRENT completed sprints
+    // and add it on top of any previously banked XP (users.xp_banked).
+    // When a course is deleted, sprintController banks its XP first before wiping sprints.
     const LEVELS = [
       { level: 1,  name: 'Freshman',          xp: 0     },
       { level: 2,  name: 'Studier',            xp: 500   },
@@ -131,16 +135,26 @@ const getDashboard = async (req, res) => {
       { level: 10, name: 'StudySprint Legend', xp: 30000 },
     ];
 
+    // XP from currently-alive completed sprints
     const [xpRows] = await db.query(
       'SELECT duration_min, priority FROM sprints WHERE user_id=? AND is_done=1',
       [userId]
     );
     const priorityMult = { high: 1.5, medium: 1.0, low: 0.8 };
-    let totalXp = xpRows.reduce((sum, s) => {
+    const liveXp = xpRows.reduce((sum, s) => {
       const mult = priorityMult[s.priority] || 1.0;
       return sum + Math.round((s.duration_min || 45) * mult);
     }, 0);
-    totalXp += streak * 10;
+
+    // Add streak bonus
+    const liveXpWithStreak = liveXp + streak * 10;
+
+    // Add any XP banked from previously deleted courses
+    const [[userRow]] = await db.query(
+      'SELECT COALESCE(xp_banked, 0) AS xp_banked FROM users WHERE id=?', [userId]
+    );
+    const xpBanked = userRow?.xp_banked || 0;
+    let totalXp = liveXpWithStreak + xpBanked;
 
     let currentLevel = LEVELS[0];
     let nextLevel    = LEVELS[1];

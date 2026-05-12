@@ -120,8 +120,10 @@ const parseSyllabus = async (req, res) => {
 const getSyllabi = async (req, res) => {
   try {
     const [rows] = await db.query(
-      `SELECT s.id,s.file_name,s.parse_status,s.created_at,c.course_name,c.course_code,c.color
-       FROM syllabi s JOIN courses c ON c.id=s.course_id WHERE s.user_id=? ORDER BY s.created_at DESC`,
+      `SELECT s.id, s.course_id, s.file_name, s.parse_status, s.created_at,
+              c.course_name, c.course_code, c.color
+       FROM syllabi s JOIN courses c ON c.id=s.course_id
+       WHERE s.user_id=? ORDER BY s.created_at DESC`,
       [req.user.id]
     );
     return res.status(200).json({ success: true, syllabi: rows });
@@ -146,18 +148,31 @@ const deleteSyllabus = async (req, res) => {
 
     const courseId = syllabusRows[0].course_id;
 
-    // Delete sprints and assessments tied to this course, then the syllabus record.
-    // We do NOT delete the course itself here — deleteCourse handles full course removal.
-    // Deleting the course here was the bug: it cascaded and wiped the syllabus even
-    // when the user only meant to delete a manually-added subject entry.
+    // ── Bank XP from completed sprints before deleting them ──
+    // This preserves the user's XP/Level even after the course is wiped.
+    const [donesprints] = await db.query(
+      'SELECT duration_min, priority FROM sprints WHERE course_id=? AND user_id=? AND is_done=1',
+      [courseId, req.user.id]
+    );
+    const priorityMult = { high: 1.5, medium: 1.0, low: 0.8 };
+    const xpToBank = donesprints.reduce((sum, s) => {
+      const mult = priorityMult[s.priority] || 1.0;
+      return sum + Math.round((s.duration_min || 45) * mult);
+    }, 0);
+    if (xpToBank > 0) {
+      await db.query(
+        'UPDATE users SET xp_banked = COALESCE(xp_banked, 0) + ? WHERE id=?',
+        [xpToBank, req.user.id]
+      );
+    }
+
+    // Now safe to wipe everything
     await db.query('DELETE FROM sprints     WHERE course_id=? AND user_id=?', [courseId, req.user.id]);
     await db.query('DELETE FROM assessments WHERE course_id=? AND user_id=?', [courseId, req.user.id]);
     await db.query('DELETE FROM syllabi     WHERE id=?        AND user_id=?', [req.params.id, req.user.id]);
+    await db.query('DELETE FROM courses     WHERE id=?        AND user_id=?', [courseId, req.user.id]);
 
-    // After removing the syllabus the course becomes "manual" — keep it so the
-    // user can re-upload without losing their subject entry. If they want to
-    // fully remove the course they can delete it from the Manually Added list.
-    return res.status(200).json({ success: true, message: 'Syllabus deleted. Course kept for re-upload.' });
+    return res.status(200).json({ success: true, message: 'Syllabus and all related data deleted.' });
   } catch (err) {
     console.error('Delete syllabus error:', err);
     return res.status(500).json({ success: false, message: 'Server error.' });
