@@ -157,10 +157,6 @@ const generateSprintsForCourse = async (userId, courseId, doneSprints = []) => {
     }
 
     // ── STANDARD ASSESSMENTS: full window (project, lab, assignment, other) ──
-    let priority = 'medium';
-    if ((assessment.weight_percent >= 20) || daysLeft <= 3) priority = 'high';
-    if ((assessment.weight_percent || 0) < 10 && daysLeft > 14) priority = 'low';
-
     // Duration scaled by weight
     let duration = sprintDuration;
     if (assessment.weight_percent >= 25) duration = Math.min(sprintDuration + 45, 120);
@@ -179,14 +175,39 @@ const generateSprintsForCourse = async (userId, courseId, doneSprints = []) => {
       const key  = dateStr(scheduledDate);
       const slot = assignSlot(key);
 
+      // ── Deadline-driven priority escalation ──────────────────────────
+      // Priority is determined by how many days remain at the time of EACH sprint,
+      // not the assessment as a whole. Sprints near the deadline escalate to high.
+      const daysAtSprint = Math.ceil((dueDate - scheduledDate) / (1000 * 60 * 60 * 24));
+      let sprintPriority;
+      if (daysAtSprint <= 3) {
+        sprintPriority = 'high';   // ≤ 3 days to deadline: HIGH — final push
+      } else if (daysAtSprint <= 7) {
+        sprintPriority = 'high';   // ≤ 7 days: HIGH — imminent
+      } else if (daysAtSprint <= 14) {
+        sprintPriority = 'medium'; // 1–2 weeks: MEDIUM — steady prep
+      } else {
+        sprintPriority = 'low';    // > 2 weeks: LOW — early groundwork
+      }
+      // High-weight assessments (≥ 20%) always get at least medium priority
+      if ((assessment.weight_percent || 0) >= 20 && sprintPriority === 'low') {
+        sprintPriority = 'medium';
+      }
+
+      const priorityLabel = i < sprintCount - 1
+        ? `Sprint ${i + 1}`
+        : 'Final Review';
+
       scheduled.push([
         userId, courseId, assessment.id,
-        `${assessment.name} — Sprint ${i + 1}`,
-        duration, priority,
+        `${assessment.name} — ${priorityLabel}`,
+        duration, sprintPriority,
         key,
         slot,
         assessment.due_date,
-        `Assessment weighted at ${assessment.weight_percent || '?'}%. ${daysLeft} days until deadline.`,
+        `Sprint ${i + 1} of ${sprintCount}. ${daysAtSprint} days until deadline. ` +
+        `Weighted at ${assessment.weight_percent || '?'}%. ` +
+        `Priority escalates as deadline approaches.`,
         0,
       ]);
     }
@@ -271,7 +292,7 @@ const getSprints = async (req, res) => {
 
     if (week) { query += ' AND s.scheduled_date>=? AND s.scheduled_date<DATE_ADD(?,INTERVAL 7 DAY)'; params.push(week, week); }
     if (course_id) { query += ' AND s.course_id=?'; params.push(course_id); }
-    query += ' ORDER BY s.is_unscheduled ASC, s.scheduled_date ASC, FIELD(s.scheduled_slot,"morning","afternoon","evening")';
+    query += ' ORDER BY s.is_unscheduled ASC, s.scheduled_date ASC, FIELD(s.scheduled_slot,"morning","afternoon","evening"), FIELD(s.priority,"high","medium","low")';
 
     const [sprints] = await db.query(query, params);
     return res.status(200).json({ success: true, sprints });

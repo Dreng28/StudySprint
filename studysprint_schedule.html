@@ -75,10 +75,10 @@
   .cal-day-hdr.today .cal-day-name { color: var(--orange); }
   .cal-day-hdr.today .cal-day-num { color: var(--orange); }
 
-  .cal-body-row { display: grid; grid-template-columns: 80px repeat(7, 1fr); border-bottom: 1px solid #F9FAFB; }
+  .cal-body-row { display: grid; grid-template-columns: 80px repeat(7, 1fr); border-bottom: 1px solid #F9FAFB; min-height: 90px; }
   .cal-body-row:last-child { border-bottom: none; }
-  .cal-time { padding: 10px 10px 0; font-size: 11px; color: var(--text-muted); font-weight: 500; text-align: right; background: var(--bg); border-right: 1px solid var(--border); }
-  .cal-cell { min-height: 70px; padding: 6px; border-left: 1px solid #F3F4F6; transition: background 0.1s; }
+  .cal-time { padding: 10px 10px 0; font-size: 11px; color: var(--text-muted); font-weight: 500; text-align: right; background: var(--bg); border-right: 1px solid var(--border); min-height: 90px; }
+  .cal-cell { min-height: 90px; padding: 6px; border-left: 1px solid #F3F4F6; transition: background 0.1s; overflow: hidden; }
   .cal-cell:hover { background: var(--orange-pale); }
   .cal-cell.today-col { background: #FAFAF9; }
 
@@ -162,7 +162,10 @@
   .dur-save { padding: 6px 14px; background: var(--orange); color: white; border: none; border-radius: 8px; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap; }
   .dur-save:hover { background: var(--orange-mid); }
   .dur-saved { font-size: 11px; color: var(--green); font-weight: 600; display: none; margin-left: 4px; }
-  /* Drag & drop */
+  .color-picker-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px; }
+  .color-swatch { width: 24px; height: 24px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; transition: transform 0.12s, border-color 0.12s; flex-shrink: 0; }
+  .color-swatch:hover { transform: scale(1.15); }
+  .color-swatch.selected { border-color: var(--text); transform: scale(1.15); }
   .sprint-block[draggable="true"] { cursor: grab; }
   .sprint-block[draggable="true"]:active { cursor: grabbing; }
   .sprint-block.dragging { opacity: 0.35; transform: scale(0.97); box-shadow: none; }
@@ -276,6 +279,14 @@
     <button class="back-btn" onclick="window.location='studysprint_dashboard.html'">
       <svg width="16" height="16" fill="none" viewBox="0 0 16 16"><path d="M10 3L5 8l5 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
     </button>
+    <img src="assets/ccs-logo.png" alt="Gordon College CCS"
+         style="width:34px;height:34px;border-radius:50%;object-fit:cover;flex-shrink:0;"
+         onerror="this.style.display='none'"/>
+    <div style="line-height:1.25;">
+      <div style="font-size:10px;font-weight:700;color:var(--text);white-space:nowrap;">Gordon College</div>
+      <div style="font-size:9px;color:var(--text-secondary);white-space:nowrap;">College of Computer Studies</div>
+    </div>
+    <div style="width:1px;height:28px;background:var(--border);margin:0 4px;"></div>
     <div>
       <div class="nav-title">Study Schedule</div>
       <div class="nav-sub" id="week-sub">Week of Mar 24 – 30, 2026</div>
@@ -295,6 +306,12 @@
       <svg width="14" height="14" fill="none" viewBox="0 0 14 14"><path d="M2 7A5 5 0 017 2M12 7A5 5 0 017 12" stroke="white" stroke-width="1.6" stroke-linecap="round"/><path d="M7 2L5.5 3.5M7 12L8.5 10.5" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
       Recalibrate
     </button>
+    <a href="studysprint_dashboard.html" style="display:flex;align-items:center;gap:6px;text-decoration:none;flex-shrink:0;">
+      <div style="width:24px;height:24px;background:linear-gradient(135deg,#C2460A,#EA6C1A);border-radius:6px;display:flex;align-items:center;justify-content:center;">
+        <svg width="13" height="13" viewBox="0 0 16 16" fill="none"><polygon points="10,2 5,9 8,9 6,14 11,7 8,7 10,2" fill="white"/></svg>
+      </div>
+      <span style="font-size:14px;font-weight:800;color:#C2460A;font-family:'Plus Jakarta Sans',sans-serif;">StudySprint</span>
+    </a>
   </div>
 </nav>
 
@@ -365,6 +382,10 @@
     </div>
     <div class="modal-row"><span class="modal-key">Priority</span><span class="modal-val" id="m-pri">—</span></div>
     <div class="modal-row"><span class="modal-key">Linked deadline</span><span class="modal-val" id="m-dead">—</span></div>
+    <div class="modal-row" style="flex-direction:column;align-items:flex-start;gap:8px;">
+      <span class="modal-key">Course color</span>
+      <div class="color-picker-row" id="color-picker-row"></div>
+    </div>
     <div class="modal-reason" id="m-reason">—</div>
 
     <!-- Pomodoro Timer -->
@@ -627,7 +648,51 @@ async function toggleDone(id, e) {
   } catch (_) { /* offline or error; UI state already updated */ }
 }
 
-function openModal(sp) {
+const COURSE_COLORS = [
+  '#C2460A','#EA6C1A','#10B981','#3B82F6','#EF4444',
+  '#F59E0B','#8B5CF6','#EC4899','#14B8A6','#6366F1',
+  '#84CC16','#F97316','#06B6D4','#D946EF','#64748B',
+];
+
+function buildColorPicker(currentHex, courseId) {
+  const row = document.getElementById('color-picker-row');
+  row.innerHTML = '';
+  COURSE_COLORS.forEach(hex => {
+    const sw = document.createElement('div');
+    sw.className = 'color-swatch' + (hex.toLowerCase() === currentHex.toLowerCase() ? ' selected' : '');
+    sw.style.background = hex;
+    sw.title = hex;
+    sw.onclick = () => pickColor(hex, courseId);
+    row.appendChild(sw);
+  });
+}
+
+async function pickColor(hex, courseId) {
+  // Update UI immediately
+  document.querySelectorAll('.color-swatch').forEach(s => {
+    s.classList.toggle('selected', s.style.background === hex || s.title === hex);
+  });
+  // Update all local sprints for this course
+  sprints.forEach(s => { if (s.courseId === courseId) { s.colorHex = hex; s.colorBg = hexToBg(hex); } });
+  buildCal(); buildList();
+  // Persist to backend
+  try {
+    await apiFetch(`/courses/${courseId}`, {
+      method: 'PUT',
+      body: JSON.stringify({ color: hex })
+    });
+    showToast('Course color updated!');
+  } catch (_) {
+    showToast('Could not save color.');
+  }
+}
+
+function hexToBg(hex) {
+  if (!hex) return '#F3F0FF';
+  const h = hex.replace('#','');
+  const r = parseInt(h.slice(0,2),16), g = parseInt(h.slice(2,4),16), b = parseInt(h.slice(4,6),16);
+  return `rgba(${r},${g},${b},0.10)`;
+}
   activeSprint = sp;
   document.getElementById('m-title').textContent  = sp.title;
   document.getElementById('m-course').textContent = sp.course;
@@ -637,6 +702,8 @@ function openModal(sp) {
     `<span style="background:${priBg[sp.pri] || ''};color:${priTxt[sp.pri] || ''};padding:3px 10px;border-radius:6px;font-size:12px;">${sp.pri}</span>`;
   document.getElementById('m-dead').textContent   = sp.dead || 'TBD';
   document.getElementById('m-reason').textContent = '💡 ' + (sp.reason || 'AI-generated sprint.');
+  // Build color picker for this sprint's course
+  buildColorPicker(sp.colorHex || '#C2460A', sp.courseId);
   // Reset pomodoro to sprint duration
   const mins = parseInt(sp.dur) || 45;
   pomReset(mins);
@@ -845,13 +912,6 @@ async function loadRealSprints() {
       const spDate = new Date(sp.scheduled_date.slice(0, 10) + 'T00:00:00');
       const dayIdx = Math.round((spDate - ws) / (1000 * 60 * 60 * 24));
 
-      // Derive background tint from course hex color
-      const hexToBg = (hex) => {
-        if (!hex) return '#F3F0FF';
-        const h = hex.replace('#','');
-        const r = parseInt(h.slice(0,2),16), g = parseInt(h.slice(2,4),16), b = parseInt(h.slice(4,6),16);
-        return `rgba(${r},${g},${b},0.10)`;
-      };
       const colorHex = sp.color || '#C2460A';
 
       sprints.push({
