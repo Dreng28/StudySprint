@@ -63,9 +63,17 @@ const generateSprintsForCourse = async (userId, courseId, doneSprints = []) => {
     return preferred;
   };
 
-  for (const assessment of assessments) {
+  // ── Sprint window rules per assessment type ─────────────────────
+  // exam  → sprints only within 7 days of due date (scope announced late)
+  // quiz  → sprints only within 5 days of due date (short prep window)
+  // all others → full window (projects, labs, assignments need early planning)
+  const SPRINT_WINDOW = { exam: 7, quiz: 5 };
+  const EXAM_SPRINT_COUNT = 3; // fixed 3 sprints for exam/quiz in intensive window
 
-    // ── NO DATE SET YET ──────────────────────────────────────────────
+  for (const assessment of assessments) {
+    const aType = (assessment.type || 'other').toLowerCase();
+
+    // ── NO DATE SET YET ────────────────────────────────────────────
     if (!assessment.due_date) {
       const placeholderDate = new Date(today);
       placeholderDate.setDate(today.getDate() + 3);
@@ -84,12 +92,71 @@ const generateSprintsForCourse = async (userId, courseId, doneSprints = []) => {
       continue;
     }
 
-    // ── DATE IS SET — normal sprint generation ───────────────────────
+    // ── DATE IS SET ────────────────────────────────────────────────
     const dueDate  = new Date(assessment.due_date);
     dueDate.setHours(0, 0, 0, 0);
     const daysLeft = Math.ceil((dueDate - today) / (1000 * 60 * 60 * 24));
-    if (daysLeft < 0) continue;
+    if (daysLeft < 0) continue; // past due — skip
 
+    const windowDays = SPRINT_WINDOW[aType]; // undefined for non-exam/quiz
+
+    // ── EXAM / QUIZ: restricted window ────────────────────────────
+    if (windowDays !== undefined) {
+      if (daysLeft > windowDays) {
+        // Too early — add a "coming soon" locked reminder
+        // Place it 3 days from today so it's visible on the schedule
+        const reminderDate = new Date(today);
+        reminderDate.setDate(today.getDate() + 3);
+        const rKey = dateStr(reminderDate);
+        const daysUntilWindow = daysLeft - windowDays;
+        const windowStartDate = new Date(dueDate);
+        windowStartDate.setDate(dueDate.getDate() - windowDays);
+        unscheduled.push([
+          userId, courseId, assessment.id,
+          `📅 ${assessment.name} — Sprints coming in ${daysUntilWindow} day${daysUntilWindow !== 1 ? 's' : ''}`,
+          30, 'medium',
+          rKey,
+          preferred, null,
+          `Sprints for ${aType === 'exam' ? 'exams' : 'quizzes'} are generated ${windowDays} days before the deadline ` +
+          `to match when scope is typically announced. ` +
+          `Recalibrate on or after ${windowStartDate.toDateString()} to get your study sprints.`,
+          1,
+        ]);
+        continue;
+      }
+
+      // Within window — generate fixed intensive sprints
+      const examSprintCount = Math.min(EXAM_SPRINT_COUNT, daysLeft);
+      const duration        = Math.min(sprintDuration + 15, 90); // slightly longer for exams
+      const priority        = daysLeft <= 3 ? 'high' : 'high';   // always high for exams
+
+      for (let i = 0; i < examSprintCount; i++) {
+        const daysBeforeDue = Math.floor((daysLeft / examSprintCount) * (i + 1));
+        const idealDate = new Date(today);
+        idealDate.setDate(today.getDate() + (daysLeft - daysBeforeDue));
+        idealDate.setHours(0, 0, 0, 0);
+
+        const scheduledDate = nextAvailableDate(idealDate, dueDate);
+        const key  = dateStr(scheduledDate);
+        const slot = assignSlot(key);
+
+        const sprintLabels = ['Review Scope', 'Practice & Drill', 'Final Review'];
+        scheduled.push([
+          userId, courseId, assessment.id,
+          `${assessment.name} — ${sprintLabels[i] || `Sprint ${i + 1}`}`,
+          duration, 'high',
+          key,
+          slot,
+          assessment.due_date,
+          `${aType === 'exam' ? 'Exam' : 'Quiz'} sprint ${i + 1} of ${examSprintCount}. ` +
+          `${daysLeft} days until ${aType}. Weighted at ${assessment.weight_percent || '?'}%.`,
+          0,
+        ]);
+      }
+      continue;
+    }
+
+    // ── STANDARD ASSESSMENTS: full window (project, lab, assignment, other) ──
     let priority = 'medium';
     if ((assessment.weight_percent >= 20) || daysLeft <= 3) priority = 'high';
     if ((assessment.weight_percent || 0) < 10 && daysLeft > 14) priority = 'low';
@@ -103,15 +170,13 @@ const generateSprintsForCourse = async (userId, courseId, doneSprints = []) => {
     const sprintCount = Math.min(Math.max(1, Math.floor(daysLeft / 2)), 5);
 
     for (let i = 0; i < sprintCount; i++) {
-      // Spread sprints evenly between today and due date
       const daysBeforeDue = Math.floor((daysLeft / sprintCount) * (i + 1));
       const idealDate = new Date(today);
       idealDate.setDate(today.getDate() + (daysLeft - daysBeforeDue));
       idealDate.setHours(0, 0, 0, 0);
 
-      // Find a balanced date near the ideal date
       const scheduledDate = nextAvailableDate(idealDate, dueDate);
-      const key = dateStr(scheduledDate);
+      const key  = dateStr(scheduledDate);
       const slot = assignSlot(key);
 
       scheduled.push([
