@@ -1,7 +1,7 @@
 // controllers/materialsController.js
 const db = require('../config/db');
 
-const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB limit (matches server.js body limit)
+const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB limit
 
 // POST /api/materials
 // Body: { course_id, sprint_id (optional), file_name, file_type, file_size, file_data (base64) }

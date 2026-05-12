@@ -32,9 +32,9 @@ app.use(cors({
   ],
   credentials: true,
 }));
-// Increase limit to 10mb to support base64 file uploads
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+// Increase limit to 75mb to safely support 50MB file uploads (base64 adds ~33% overhead)
+app.use(express.json({ limit: '75mb' }));
+app.use(express.urlencoded({ extended: true, limit: '75mb' }));
 app.use(express.static(__dirname));
 
 // ── Health check ──────────────────────────────────
