@@ -59,10 +59,21 @@ const updateCourse = async (req, res) => {
 
 const deleteCourse = async (req, res) => {
   try {
-    const [result] = await db.query('DELETE FROM courses WHERE id=? AND user_id=?', [req.params.id, req.user.id]);
-    if (!result.affectedRows) return res.status(404).json({ success: false, message: 'Course not found.' });
-    return res.status(200).json({ success: true, message: 'Course deleted.' });
+    const [rows] = await db.query('SELECT id FROM courses WHERE id=? AND user_id=?', [req.params.id, req.user.id]);
+    if (!rows.length) return res.status(404).json({ success: false, message: 'Course not found.' });
+
+    const courseId = req.params.id;
+
+    // Explicitly remove all child records first (schema has ON DELETE CASCADE but
+    // we do this manually to be safe across all MySQL configurations).
+    await db.query('DELETE FROM sprints     WHERE course_id=? AND user_id=?', [courseId, req.user.id]);
+    await db.query('DELETE FROM assessments WHERE course_id=? AND user_id=?', [courseId, req.user.id]);
+    await db.query('DELETE FROM syllabi     WHERE course_id=? AND user_id=?', [courseId, req.user.id]);
+    await db.query('DELETE FROM courses     WHERE id=?        AND user_id=?', [courseId, req.user.id]);
+
+    return res.status(200).json({ success: true, message: 'Course and all related data deleted.' });
   } catch (err) {
+    console.error('Delete course error:', err);
     return res.status(500).json({ success: false, message: 'Server error.' });
   }
 };

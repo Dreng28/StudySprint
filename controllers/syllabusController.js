@@ -145,12 +145,19 @@ const deleteSyllabus = async (req, res) => {
     if (!syllabusRows.length) return res.status(404).json({ success: false, message: 'Syllabus not found.' });
 
     const courseId = syllabusRows[0].course_id;
-    await db.query('DELETE FROM sprints WHERE course_id=? AND user_id=?', [courseId, req.user.id]);
-    await db.query('DELETE FROM assessments WHERE course_id=? AND user_id=?', [courseId, req.user.id]);
-    await db.query('DELETE FROM syllabi WHERE id=? AND user_id=?', [req.params.id, req.user.id]);
-    await db.query('DELETE FROM courses WHERE id=? AND user_id=?', [courseId, req.user.id]);
 
-    return res.status(200).json({ success: true, message: 'Syllabus and related data deleted.' });
+    // Delete sprints and assessments tied to this course, then the syllabus record.
+    // We do NOT delete the course itself here — deleteCourse handles full course removal.
+    // Deleting the course here was the bug: it cascaded and wiped the syllabus even
+    // when the user only meant to delete a manually-added subject entry.
+    await db.query('DELETE FROM sprints     WHERE course_id=? AND user_id=?', [courseId, req.user.id]);
+    await db.query('DELETE FROM assessments WHERE course_id=? AND user_id=?', [courseId, req.user.id]);
+    await db.query('DELETE FROM syllabi     WHERE id=?        AND user_id=?', [req.params.id, req.user.id]);
+
+    // After removing the syllabus the course becomes "manual" — keep it so the
+    // user can re-upload without losing their subject entry. If they want to
+    // fully remove the course they can delete it from the Manually Added list.
+    return res.status(200).json({ success: true, message: 'Syllabus deleted. Course kept for re-upload.' });
   } catch (err) {
     console.error('Delete syllabus error:', err);
     return res.status(500).json({ success: false, message: 'Server error.' });
