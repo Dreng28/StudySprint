@@ -277,13 +277,13 @@
   <!-- Orange header -->
   <div class="card-header">
     <!-- CCS Logo -->
-    <div style="display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:14px;position:relative;z-index:1;">
+    <div style="display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:16px;position:relative;z-index:1;">
       <img src="assets/ccs-logo.png" alt="Gordon College CCS"
-           style="width:40px;height:40px;border-radius:50%;object-fit:cover;border:2px solid rgba(255,255,255,0.4);"
+           style="width:60px;height:60px;border-radius:50%;object-fit:cover;border:3px solid rgba(255,255,255,0.5);box-shadow:0 4px 12px rgba(0,0,0,0.2);"
            onerror="this.style.display='none'"/>
-      <div style="text-align:left;line-height:1.3;">
-        <div style="font-size:12px;font-weight:700;color:white;white-space:nowrap;">Gordon College</div>
-        <div style="font-size:10px;color:rgba(255,255,255,0.75);white-space:nowrap;">College of Computer Studies</div>
+      <div style="text-align:left;line-height:1.4;">
+        <div style="font-size:15px;font-weight:800;color:white;white-space:nowrap;letter-spacing:-0.01em;">Gordon College</div>
+        <div style="font-size:12px;color:rgba(255,255,255,0.8);white-space:nowrap;font-weight:500;">College of Computer Studies</div>
       </div>
     </div>
     <!-- StudySprint Logo -->
@@ -344,7 +344,6 @@
     <button class="gc-sso-btn" id="gc-sso-btn" onclick="openGCModal()" type="button">
       <span class="gc-logo">🎓</span>
       Sign in with Gordon College Email
-      <span class="gc-badge">@gordoncollege.edu.ph</span>
     </button>
   </div>
 
@@ -393,8 +392,10 @@
         <label class="field-label">Student ID</label>
         <div class="field-wrap">
           <svg class="field-icon" width="15" height="15" fill="none" viewBox="0 0 15 15"><rect x="1" y="2" width="13" height="11" rx="2" stroke="currentColor" stroke-width="1.3" fill="none"/><circle cx="5" cy="7.5" r="1.5" stroke="currentColor" stroke-width="1.2" fill="none"/><path d="M8 6.5h4M8 8.5h4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
-          <input class="field-input" type="text" id="reg-studentid" placeholder="ID Number"/>
+          <input class="field-input" type="text" id="reg-studentid" placeholder="ID Number (numbers only)"
+            oninput="validateStudentId(this)" inputmode="numeric"/>
         </div>
+        <div class="field-error" id="err-studentid">Student ID must contain numbers only</div>
       </div>
     </div>
 
@@ -411,7 +412,12 @@
       <label class="field-label">Program / Course</label>
       <div class="field-wrap">
         <svg class="field-icon" width="15" height="15" fill="none" viewBox="0 0 15 15"><path d="M7.5 1L14 5l-6.5 4L1 5l6.5-4z" stroke="currentColor" stroke-width="1.3" fill="none"/><path d="M1 5v5c0 1 2.5 3 6.5 3s6.5-2 6.5-3V5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" fill="none"/></svg>
-        <input class="field-input" type="text" id="reg-program" placeholder="e.g. BS Computer Science - 2nd Year"/>
+        <select class="field-input" id="reg-program" style="cursor:pointer;" onchange="validateReg()">
+          <option value="">Select your program</option>
+          <option value="BS Computer Science">BS Computer Science</option>
+          <option value="BS Information Technology">BS Information Technology</option>
+          <option value="BS Entertainment and Multimedia Computing">BS Entertainment and Multimedia Computing</option>
+        </select>
       </div>
     </div>
 
@@ -609,14 +615,17 @@
         <p>By creating a StudySprint account, you agree to these Terms &amp; Conditions. StudySprint is an educational tool developed as a capstone project at Gordon College. By using this application, you acknowledge that it is a student-developed system and may be subject to updates, maintenance, or changes without prior notice.</p>
       </div>
       <div class="tc-section">
-        <h3>2. Use of Your Data</h3>
-        <p>StudySprint collects the following information to provide its services:</p>
+        <h3>2. Privacy Policy &amp; Use of Your Data</h3>
+        <p>StudySprint is committed to protecting your privacy. We collect and use the following information solely to provide and improve the service:</p>
         <ul>
-          <li>Your name, email address, student ID, and program — used to personalise your experience</li>
-          <li>Syllabus content you upload — sent to the Gemini AI API for parsing and immediately discarded after processing</li>
-          <li>Your study schedule and sprint completion data — stored securely in our database to power the adaptive scheduler</li>
+          <li><strong>Account Information</strong> — your name, email address, student ID, and program are used to personalise your experience and identify your account.</li>
+          <li><strong>Syllabus Content</strong> — documents you upload are sent to the Google Gemini AI API for parsing only. Raw syllabus text is not permanently stored; only the extracted structured data (assessment names, dates, weights) is retained in our database.</li>
+          <li><strong>Study Activity Data</strong> — your sprint schedules, completion history, streaks, and XP are stored securely to power the adaptive scheduler and gamification features.</li>
+          <li><strong>Email Address</strong> — used for account verification, password reset, and optional study reminders if enabled in your settings. We will never use your email for unsolicited marketing.</li>
         </ul>
-        <p>We do not sell your data to third parties.</p>
+        <p><strong>Data Retention:</strong> Your data is retained for the duration of your account. You may request deletion by contacting the developer.</p>
+        <p><strong>Third-Party Services:</strong> StudySprint uses Google Gemini AI (for parsing), Resend (for email delivery), and Railway (for cloud hosting). Each of these services maintains their own privacy policies. We do not sell your personal data to any third party.</p>
+        <p><strong>Gordon College CCS Students:</strong> If you sign in using your @gordoncollege.edu.ph institutional email, your account is automatically provisioned. No additional data beyond your email is collected from the institution.</p>
       </div>
       <div class="tc-section">
         <h3>3. AI-Generated Content</h3>
@@ -860,6 +869,22 @@ function updateStrength() {
   document.getElementById('req-special').classList.toggle('met', checks.special);
 }
 
+// ── Student ID validation (numbers only) ────────────────────────
+function validateStudentId(input) {
+  const val = input.value;
+  // Remove any non-numeric characters as they type
+  const cleaned = val.replace(/[^0-9]/g, '');
+  if (val !== cleaned) {
+    input.value = cleaned;
+    document.getElementById('err-studentid').classList.add('show');
+    input.classList.add('error');
+    setTimeout(() => {
+      document.getElementById('err-studentid').classList.remove('show');
+      input.classList.remove('error');
+    }, 2000);
+  }
+}
+
 // ── REGISTER VALIDATION ───────────────────────────
 function validateReg() {
   const firstname = document.getElementById('reg-firstname').value.trim();
@@ -876,6 +901,8 @@ function validateReg() {
     if (show) valid = false;
   };
 
+  const program   = document.getElementById('reg-program').value.trim();
+
   setErr('err-firstname', 'reg-firstname', !firstname);
   setErr('err-lastname',  'reg-lastname',  !lastname);
   setErr('err-email',     'reg-email',     !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email));
@@ -885,7 +912,8 @@ function validateReg() {
   const allFilled = firstname && lastname &&
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) &&
     score === 5 &&
-    confirm === password;
+    confirm === password &&
+    program !== '';
 
   document.getElementById('reg-btn').disabled = !(allFilled && tcAccepted);
 }
