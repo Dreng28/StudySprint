@@ -693,6 +693,8 @@ function hexToBg(hex) {
   const r = parseInt(h.slice(0,2),16), g = parseInt(h.slice(2,4),16), b = parseInt(h.slice(4,6),16);
   return `rgba(${r},${g},${b},0.10)`;
 }
+
+function openModal(sp) {
   activeSprint = sp;
   document.getElementById('m-title').textContent  = sp.title;
   document.getElementById('m-course').textContent = sp.course;
