@@ -271,22 +271,35 @@
 
   /* ── MOBILE ── */
   @media (max-width: 640px) {
-    nav { padding: 0 14px; }
-    .nav-logo-text { font-size: 17px; }
+    nav {
+      padding: 0 12px;
+      height: 54px;
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: center;
+      gap: 8px;
+    }
     .gc-name-text { display: none; }
-    /* On mobile: undo absolute centering so logo doesn't overlap Sign In btn */
+    /* Shrink StudySprint logo on mobile */
     .nav-logo {
       position: static !important;
       left: auto !important;
       transform: none !important;
+      gap: 6px;
+      justify-self: start;
     }
-    /* Make nav a proper 3-col layout: left | center | right */
-    nav {
-      display: grid;
-      grid-template-columns: 1fr auto 1fr;
-      align-items: center;
+    .nav-logo-icon { width: 26px; height: 26px; border-radius: 7px; }
+    .nav-logo-icon svg { width: 13px; height: 13px; }
+    .nav-logo-text { font-size: 14px; }
+    /* Shrink Sign In button on mobile */
+    .nav-cta {
+      padding: 7px 12px;
+      font-size: 12px;
+      gap: 4px;
+      border-radius: 8px;
+      white-space: nowrap;
     }
-    nav > :last-child { justify-self: end; }
+    .nav-cta svg { width: 11px; height: 11px; }
     .hero { padding: 100px 18px 60px; }
     .hero-title { font-size: clamp(38px, 10vw, 54px); }
     .hero-sub { font-size: 15px; }
