@@ -11,6 +11,7 @@ const courseRoutes    = require('./routes/courseRoutes');
 const syllabusRoutes  = require('./routes/syllabusRoutes');
 const sprintRoutes    = require('./routes/sprintRoutes');
 const dashboardRoutes = require('./routes/dashboardRoutes');
+const materialsRoutes = require('./routes/materialsRoutes');
 
 // ── DB connection (runs on import — will exit if fails) ──
 require('./config/db');
@@ -31,8 +32,9 @@ app.use(cors({
   ],
   credentials: true,
 }));
-app.use(express.json({ limit: '5mb' }));      // parse JSON body (up to 5MB for syllabus text)
-app.use(express.urlencoded({ extended: true }));
+// Increase limit to 10mb to support base64 file uploads
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(express.static(__dirname));
 
 // ── Health check ──────────────────────────────────
@@ -56,6 +58,7 @@ app.use('/api/courses',   courseRoutes);
 app.use('/api/syllabi',   syllabusRoutes);
 app.use('/api/sprints',   sprintRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/materials', materialsRoutes);
 
 // ── 404 handler ───────────────────────────────────
 app.use((req, res) => {
