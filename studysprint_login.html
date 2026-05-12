@@ -276,8 +276,23 @@
 
   <!-- Orange header -->
   <div class="card-header">
+    <!-- CCS Logo -->
+    <div style="display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:14px;position:relative;z-index:1;">
+      <img src="assets/ccs-logo.png" alt="Gordon College CCS"
+           style="width:40px;height:40px;border-radius:50%;object-fit:cover;border:2px solid rgba(255,255,255,0.4);"
+           onerror="this.style.display='none'"/>
+      <div style="text-align:left;line-height:1.3;">
+        <div style="font-size:12px;font-weight:700;color:white;white-space:nowrap;">Gordon College</div>
+        <div style="font-size:10px;color:rgba(255,255,255,0.75);white-space:nowrap;">College of Computer Studies</div>
+      </div>
+    </div>
+    <!-- StudySprint Logo -->
     <div class="logo-wrap">
-      <div class="logo-icon">✦</div>
+      <div class="logo-icon">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <polygon points="13,2 6,11 10,11 7,18 14,9 10,9 13,2" fill="white"/>
+        </svg>
+      </div>
       <span class="logo-text">StudySprint</span>
     </div>
     <div class="header-sub">AI-Powered Academic Study Scheduler</div>
