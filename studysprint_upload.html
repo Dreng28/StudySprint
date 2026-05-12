@@ -226,6 +226,8 @@
   @media (max-width: 640px) {
     .topnav { padding: 0 14px; }
     .nav-sub { display: none; }
+    .gc-name-text { display: none; }
+    .nav-ss-text { display: none; }
     .page { padding: 14px 12px 48px; }
 
     /* How it works banner: stack steps */
@@ -293,7 +295,7 @@
     <img src="assets/ccs-logo.png" alt="Gordon College CCS"
          style="width:34px;height:34px;border-radius:50%;object-fit:cover;flex-shrink:0;"
          onerror="this.style.display='none'"/>
-    <div style="line-height:1.25;">
+    <div class="gc-name-text" style="line-height:1.25;">
       <div style="font-size:10px;font-weight:700;color:var(--text);white-space:nowrap;">Gordon College</div>
       <div style="font-size:9px;color:var(--text-secondary);white-space:nowrap;">College of Computer Studies</div>
     </div>
@@ -310,7 +312,7 @@
         <polygon points="10,2 5,9 8,9 6,14 11,7 8,7 10,2" fill="white"/>
       </svg>
     </div>
-    <span style="font-size:15px;font-weight:800;color:#C2460A;font-family:'Plus Jakarta Sans',sans-serif;">StudySprint</span>
+    <span class="nav-ss-text" style="font-size:15px;font-weight:800;color:#C2460A;font-family:'Plus Jakarta Sans',sans-serif;">StudySprint</span>
   </a>
 </nav>
 

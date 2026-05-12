@@ -271,8 +271,9 @@
 
   /* ── MOBILE ── */
   @media (max-width: 640px) {
-    nav { padding: 0 18px; }
+    nav { padding: 0 14px; }
     .nav-logo-text { font-size: 17px; }
+    .gc-name-text { display: none; }
     .hero { padding: 100px 18px 60px; }
     .hero-title { font-size: clamp(38px, 10vw, 54px); }
     .hero-sub { font-size: 15px; }
@@ -300,7 +301,7 @@
   <!-- CCS Logo (left) -->
   <div style="display:flex;align-items:center;gap:10px;">
     <img src="assets/ccs-logo.png" alt="Gordon College CCS" style="width:36px;height:36px;border-radius:50%;object-fit:cover;flex-shrink:0;" onerror="this.style.display='none'"/>
-    <div style="line-height:1.2;">
+    <div class="gc-name-text" style="line-height:1.2;">
       <div style="font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;font-weight:600;color:var(--text);white-space:nowrap;">Gordon College</div>
       <div style="font-family:'Plus Jakarta Sans',sans-serif;font-size:10px;color:var(--muted);white-space:nowrap;">College of Computer Studies</div>
     </div>
