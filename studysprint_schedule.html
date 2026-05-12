@@ -1166,18 +1166,11 @@ function formatBytes(bytes) {
 }
 
 async function downloadMat(id, fileName) {
-  showToast('Opening…');
-  try {
-    const res = await apiFetch(`/materials/${id}/download`);
-    if (!res?.success) { showToast('Could not load file.'); return; }
-    const binary = atob(res.material.file_data);
-    const bytes  = new Uint8Array(binary.length);
-    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-    const blob = new Blob([bytes], { type: res.material.file_type || 'application/octet-stream' });
-    const url  = URL.createObjectURL(blob);
-    window.open(url, '_blank');
-    setTimeout(() => URL.revokeObjectURL(url), 10000);
-  } catch (_) { showToast('Could not open file.'); }
+  // Backend now streams binary directly — just open the URL in a new tab.
+  // We pass the JWT token as a query param since we can't set headers on window.open.
+  const token = localStorage.getItem('ss_token') || '';
+  const url = `${window.API_BASE || '/api'}/materials/${id}/download?token=${encodeURIComponent(token)}`;
+  window.open(url, '_blank');
 }
 
 async function deleteMat(id) {

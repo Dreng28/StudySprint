@@ -102,26 +102,38 @@ const getMaterials = async (req, res) => {
 };
 
 // GET /api/materials/:id/download
-// Returns the file_data (base64) + metadata for a single material
+// Streams the file as binary — avoids 502 on large files from JSON encoding overhead
 const downloadMaterial = async (req, res) => {
   try {
+    // Support token via query param for direct browser window.open() calls
+    if (req.query.token && !req.headers.authorization) {
+      req.headers.authorization = `Bearer ${req.query.token}`;
+      const jwt = require('jsonwebtoken');
+      try {
+        req.user = jwt.verify(req.query.token, process.env.JWT_SECRET);
+      } catch (_) {
+        return res.status(401).json({ success: false, message: 'Invalid token.' });
+      }
+    }
+
     const [rows] = await db.query(
-      'SELECT * FROM study_materials WHERE id=? AND user_id=?',
+      'SELECT file_name, file_type, file_size, file_data FROM study_materials WHERE id=? AND user_id=?',
       [req.params.id, req.user.id]
     );
     if (!rows.length) {
       return res.status(404).json({ success: false, message: 'Material not found.' });
     }
-    return res.status(200).json({
-      success: true,
-      material: {
-        id:        rows[0].id,
-        file_name: rows[0].file_name,
-        file_type: rows[0].file_type,
-        file_size: rows[0].file_size,
-        file_data: rows[0].file_data,
-      }
-    });
+
+    const { file_name, file_type, file_size, file_data } = rows[0];
+
+    // Convert base64 stored in DB back to binary buffer
+    const buffer = Buffer.from(file_data, 'base64');
+
+    res.setHeader('Content-Type', file_type || 'application/octet-stream');
+    res.setHeader('Content-Disposition', `inline; filename="${encodeURIComponent(file_name)}"`);
+    res.setHeader('Content-Length', buffer.length);
+    res.setHeader('Cache-Control', 'private, max-age=300');
+    return res.end(buffer);
   } catch (err) {
     console.error('Download material error:', err);
     return res.status(500).json({ success: false, message: 'Server error.' });
