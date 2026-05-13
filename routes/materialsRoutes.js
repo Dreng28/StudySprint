@@ -9,10 +9,12 @@ const {
   deleteMaterial,
 } = require('../controllers/materialsController');
 
-router.use(protect);
-router.post  ('/',             uploadMaterial);
-router.get   ('/',             getMaterials);
-router.get   ('/:id/download', downloadMaterial);
-router.delete('/:id',          deleteMaterial);
+// /:id/download intentionally has NO protect middleware —
+// it handles its own auth via ?token= query param (for window.open browser tab support).
+// All other routes still require the protect middleware as normal.
+router.post  ('/',             protect, uploadMaterial);
+router.get   ('/',             protect, getMaterials);
+router.get   ('/:id/download',          downloadMaterial);
+router.delete('/:id',          protect, deleteMaterial);
 
 module.exports = router;
