@@ -143,9 +143,11 @@ const downloadMaterial = async (req, res) => {
 
     const { file_name, file_type, file_size, file_data } = rows[0];
 
-    // file_data is a LONGBLOB — the MySQL driver returns it as a Buffer already.
-    // Do NOT use Buffer.from(file_data, 'base64') — that double-converts and corrupts the file.
-    const buffer = Buffer.isBuffer(file_data) ? file_data : Buffer.from(file_data, 'base64');
+    // file_data is stored as a base64 string inside a BLOB column.
+    // mysql2 returns BLOB columns as Buffer objects containing the raw bytes of the stored text.
+    // So we first convert the Buffer → string to get the base64 text, then decode it to binary.
+    const base64Str = Buffer.isBuffer(file_data) ? file_data.toString('utf8') : String(file_data);
+    const buffer = Buffer.from(base64Str, 'base64');
 
     res.setHeader('Content-Type', file_type || 'application/octet-stream');
     res.setHeader('Content-Disposition', `inline; filename="${encodeURIComponent(file_name)}"`);
